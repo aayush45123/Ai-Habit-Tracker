@@ -1,0 +1,266 @@
+/* -----------------------------
+   ROOT LAYOUT
+------------------------------ */
+.root {
+  padding: 2rem 2.5rem;
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+}
+
+/* -----------------------------
+   TITLES
+------------------------------ */
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.sub {
+  color: var(--color-text-secondary);
+  margin-bottom: 2rem;
+}
+
+/* -----------------------------
+   EDIT BUTTON
+------------------------------ */
+.editBtn {
+  background-color: var(--color-accent-secondary);
+  border: none;
+  padding: 0.6rem 1.3rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.editBtn:hover {
+  background-color: var(--color-accent-primary);
+}
+
+/* -----------------------------
+   MAIN CARD
+------------------------------ */
+.card {
+  background-color: var(--color-bg-secondary);
+  padding: 1.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  margin-bottom: 2rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+/* -----------------------------
+   REVIEW MODE
+------------------------------ */
+.reviewBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reviewRow {
+  background: var(--color-bg-primary);
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* -----------------------------
+   INPUT ROW (Title + Time)
+------------------------------ */
+.row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* -----------------------------
+   TEXT INPUT
+------------------------------ */
+.textInput {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.textInput:focus {
+  border-color: var(--color-accent-primary);
+  outline: none;
+}
+
+/* -----------------------------
+   TIME FIELDS
+------------------------------ */
+.timeGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.timeInput {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem;
+  width: 70%;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.timeInput:focus {
+  border-color: var(--color-accent-primary);
+  outline: none;
+}
+
+.timeGroup select {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.timeGroup select:focus {
+  border-color: var(--color-accent-primary);
+}
+
+/* -----------------------------
+   BUTTON — Submit / Start
+------------------------------ */
+.submitBtn {
+  background: var(--color-accent-primary);
+  padding: 0.9rem 1.4rem;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.submitBtn:hover {
+  background: var(--color-accent-secondary);
+}
+
+/* -----------------------------
+   MESSAGE TEXT
+------------------------------ */
+.msg {
+  margin-top: 0.75rem;
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+/* -----------------------------
+   21-DAY GRID
+------------------------------ */
+.progressGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 3rem;
+}
+
+/* -----------------------------
+   DAY CARD
+------------------------------ */
+.dayCard {
+  background: #fbf9f2;
+  border: 1px solid var(--color-border);
+  padding: 1rem;
+  border-radius: 12px;
+  min-height: 200px;
+}
+
+.dayTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+/* -----------------------------
+   STATUS ROWS
+------------------------------ */
+.statusRow {
+  padding: 0.35rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ICON COLORS */
+.done {
+  color: #30a46c;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.expired {
+  color: #d64c4c;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.future {
+  color: #aaa;
+  font-size: 1.4rem;
+}
+
+/* -----------------------------
+   "Mark Done" BUTTON
+------------------------------ */
+.markBtn {
+  background-color: #3cb179;
+  color: white;
+  padding: 0.45rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.markBtn:hover {
+  background-color: #2e9b66;
+}
+
+/* -----------------------------
+   RESPONSIVE
+------------------------------ */
+@media (max-width: 900px) {
+  .progressGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .progressGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .timeGroup {
+    width: 100%;
+  }
+
+  .timeInput {
+    width: 100%;
+  }
+}

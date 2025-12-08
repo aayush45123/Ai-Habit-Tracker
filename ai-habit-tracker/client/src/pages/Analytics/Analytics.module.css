@@ -1,0 +1,349 @@
+/* Analytics.module.css */
+
+.root {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+}
+
+/* Header Section */
+.header {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Charts Grid Layout */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Chart Card */
+.chartCard {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all var(--transition-speed) var(--transition-easing);
+  box-shadow: 0 4px 6px rgba(31, 29, 23, 0.1);
+}
+
+.chartCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(123, 183, 126, 0.15);
+  border-color: var(--color-accent-primary);
+}
+
+/* Chart Header */
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.chartTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.badge {
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-primary),
+    var(--color-accent-secondary)
+  );
+  color: white;
+  padding: 0.375rem 0.875rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(123, 183, 126, 0.3);
+}
+
+/* Chart Wrapper */
+.chartWrapper {
+  height: 300px;
+  position: relative;
+  background-color: var(--color-bg-primary);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+/* Calendar Card */
+.calendarCard {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 4px 6px rgba(31, 29, 23, 0.1);
+}
+
+/* Calendar Grid */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.calendarCell {
+  width: 50px;
+  height: 50px;
+  background: var(--color-bg-tertiary);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-speed) var(--transition-easing);
+  cursor: pointer;
+}
+
+.calendarCell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(123, 183, 126, 0.2);
+}
+
+.checkMark {
+  font-size: 22px;
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.crossMark {
+  font-size: 22px;
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+.emptyCircle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.futureCircle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px dashed var(--color-text-secondary);
+  background: transparent;
+}
+
+.calendarDate {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Highlight Section */
+.highlight {
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-primary),
+    var(--color-accent-secondary)
+  );
+  border: 2px solid var(--color-accent-primary);
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  box-shadow: 0 8px 16px rgba(123, 183, 126, 0.3);
+  transition: all var(--transition-speed) var(--transition-easing);
+  color: white;
+  margin-top: 2rem;
+}
+
+.highlight:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 24px rgba(123, 183, 126, 0.4);
+}
+
+.highlightIcon {
+  font-size: 2rem;
+  animation: var(--animation-pulse);
+}
+
+.highlightText {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.highlightValue {
+  color: white;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* Loading State */
+.root:has(.loading) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .root {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .chartsGrid {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .root {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .chartCard,
+  .calendarCard {
+    padding: 1rem;
+  }
+
+  .chartWrapper {
+    height: 250px;
+  }
+
+  .chartHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .highlight {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .highlightText {
+    font-size: 1rem;
+  }
+
+  .highlightValue {
+    font-size: 1.25rem;
+  }
+
+  .calendarGrid {
+    gap: 8px;
+  }
+
+  .calendarCell {
+    width: 44px;
+    height: 44px;
+  }
+
+  .checkMark,
+  .crossMark {
+    font-size: 18px;
+  }
+}
+/* -------------------- CONSISTENCY SCORE CARD -------------------- */
+.consistencyCard {
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.consistencyWrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin-top: 1rem;
+}
+
+.ring {
+  width: 140px;
+  height: 140px;
+  transform: rotate(-90deg);
+}
+
+.ringBg {
+  fill: none;
+  stroke: var(--color-bg-tertiary);
+  stroke-width: 10;
+}
+
+.ringProgress {
+  fill: none;
+  stroke: var(--color-accent-primary);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease;
+}
+
+.consistencyValue {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  color: var(--color-text-primary);
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+.consistencyLabel {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}

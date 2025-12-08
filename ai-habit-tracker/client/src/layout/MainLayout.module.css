@@ -1,0 +1,31 @@
+/* MainLayout.module.css */
+
+.layoutContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+}
+
+.mainSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 260px; /* Match sidebar width */
+}
+
+.pageBody {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: var(--color-bg-primary);
+}
+
+@media (max-width: 768px) {
+  .mainSection {
+    margin-left: 0;
+  }
+
+  .pageBody {
+    padding: 1rem;
+  }
+}

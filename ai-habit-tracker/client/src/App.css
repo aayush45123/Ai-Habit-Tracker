@@ -1,0 +1,104 @@
+/*
+|--------------------------------------------------------------------------
+| 1. Google Font Import
+|--------------------------------------------------------------------------
+*/
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@100..900&family=Sora:wght@100..800&display=swap");
+/*
+|--------------------------------------------------------------------------
+| 2. Root CSS Variables (:root)
+|--------------------------------------------------------------------------
+| Updated to improve visibility and contrast on light backgrounds.
+*/
+:root {
+  /* --- COLORS (Light Natural Theme) --- */
+
+  /* Primary Background (Warm Cream/Beige) */
+  --color-bg-primary: #faf5e6; /* Soft warm cream */
+
+  /* Secondary Background (Light Sage Card Background) */
+  --color-bg-secondary: #eef2e1; /* Pastel sage */
+
+  /* Tertiary Background (Slightly darker sage for hover) */
+  --color-bg-tertiary: #dbe4c7; /* Soft muted green */
+
+  /* Primary Accent (Natural Green Buttons) */
+  --color-accent-primary: #7bb77e; /* Herbal green */
+
+  /* Secondary Accent (Honey Yellow) */
+  --color-accent-secondary: #e7c86e; /* Warm honey yellow */
+
+  /* ★ UPDATED — High Contrast Text Colors ★ */
+
+  /* Primary Text (Darker forest-brown for readability) */
+  --color-text-primary: #1f1d17; /* Very dark brown (almost black) */
+
+  /* Secondary Text (Deeper olive-gray for visibility) */
+  --color-text-secondary: #4a4938;
+
+  /* Success / Warning / Error (slightly deepened for readability) */
+  --color-success: #5b955c;
+  --color-warning: #d8a54e;
+  --color-error: #b85b4d;
+
+  /* Border / Dividers (Improved contrast) */
+  --color-border: #b9b59d;
+
+  /* Typography */
+  --font-primary: "Sora", sans-serif;
+  --font-size-base: 16px;
+
+  /* Transitions & Animations */
+  --transition-speed: 0.3s;
+  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --animation-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/*
+|--------------------------------------------------------------------------
+| 3. Global Styles
+|--------------------------------------------------------------------------
+*/
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Base transitions */
+a,
+button,
+.card,
+input {
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Example button */
+.btn-primary {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-secondary);
+  transform: translateY(-2px);
+}
