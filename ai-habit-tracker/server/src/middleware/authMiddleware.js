@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -9,10 +10,17 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.userId;
+
+    // Load user document
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) return res.status(401).json({ message: "User not found" });
+
+    req.user = user; // contains isAdmin also
+
     next();
-  } catch (error) {
-    return res.status(401).json({ message: "Token is not valid" });
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 

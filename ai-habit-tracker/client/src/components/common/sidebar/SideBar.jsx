@@ -137,6 +137,14 @@ function Sidebar() {
           </svg>
           <span>21-Day Challenge</span>
         </NavLink>
+        <NavLink
+          to="/templates"
+          className={({ isActive }) =>
+            isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+          }
+        >
+          Habit Templates
+        </NavLink>
       </nav>
 
       <div className={styles.footer}>
