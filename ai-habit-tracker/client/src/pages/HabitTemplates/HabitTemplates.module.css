@@ -1,0 +1,90 @@
+.root {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #888;
+  margin-top: 5px;
+}
+
+.categoryList {
+  display: flex;
+  gap: 12px;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.categoryButton {
+  padding: 10px 18px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.categoryButton:hover {
+  background: #eaeaea;
+}
+
+.active {
+  background: #4ade80;
+  color: white;
+  border-color: #22c55e;
+}
+
+.templatesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.templateCard {
+  padding: 1.3rem;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #dcdcdc;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.templateCard h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.time {
+  color: #555;
+}
+
+.badge {
+  background: #e6f7ff;
+  color: #0ea5e9;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  width: fit-content;
+}
+
+.addBtn {
+  background: #22c55e;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+}
+
+.addBtn:hover {
+  background: #16a34a;
+}

@@ -12,7 +12,11 @@ import AIChat from "./pages/AIChat/AIChat";
 
 import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "./utils/protectedRoute";
+import ProtectedAdminRoute from "./utils/ProtectedAdminRoute";
+
 import ChallengePage from "./pages/Challenge/ChallengePage";
+import HabitTemplates from "./pages/HabitTemplates/HabitTemplates";
+import AdminTemplates from "./pages/admin/AdminTemplates";
 
 function App() {
   return (
@@ -30,6 +34,17 @@ function App() {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/ai" element={<AIChat />} />
           <Route path="/challenge" element={<ChallengePage />} />
+          <Route path="/templates" element={<HabitTemplates />} />
+
+          {/* ADMIN ONLY (Hidden from sidebar) */}
+          <Route
+            path="/admin/templates"
+            element={
+              <ProtectedAdminRoute>
+                <AdminTemplates />
+              </ProtectedAdminRoute>
+            }
+          />
         </Route>
       </Route>
     </Routes>

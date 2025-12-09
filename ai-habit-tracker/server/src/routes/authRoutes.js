@@ -1,14 +1,30 @@
 import express from "express";
-import { signup, login } from "../controllers/authController.js";
+import { signup, login, me } from "../controllers/authController.js";
+import auth from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Public routes
 router.post("/signup", signup);
 router.post("/login", login);
 
 router.get("/test", (req, res) => {
-  res.send("Auth route working!!!");
+  res.send("Auth route working!");
+});
+
+// Logged-in user
+router.get("/me", auth, async (req, res) => {
+  try {
+    const user = req.user; // req.user already contains full user object
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin === true,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 export default router;
