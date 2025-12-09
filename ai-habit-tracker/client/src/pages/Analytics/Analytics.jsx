@@ -2,24 +2,27 @@ import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import styles from "./Analytics.module.css";
 
-import { Line, Bar } from "react-chartjs-2";
+import { Line, Pie } from "react-chartjs-2";
+
 import {
   Chart as ChartJS,
   LineElement,
   CategoryScale,
   LinearScale,
-  BarElement,
   PointElement,
+  ArcElement,
   Tooltip,
+  Legend,
 } from "chart.js";
 
 ChartJS.register(
   LineElement,
   CategoryScale,
   LinearScale,
-  BarElement,
   PointElement,
-  Tooltip
+  ArcElement,
+  Tooltip,
+  Legend
 );
 
 export default function Analytics() {
@@ -51,13 +54,49 @@ export default function Analytics() {
 
   if (loading) return <div className={styles.root}>Loading analytics…</div>;
 
-  // WEEKLY TREND LABELS
+  // WEEKLY CHART
   const weeklyLabels = Object.keys(weekly).map((d) =>
     new Date(d).toLocaleDateString("en-IN", { month: "short", day: "numeric" })
   );
   const weeklyValues = Object.values(weekly);
 
-  // FIXED CALENDAR (NO TIMEZONE SHIFT)
+  // PIE CHART DATA FOR DAY-WISE PERFORMANCE
+  const pieLabels = Object.keys(dayCount);
+  const pieValues = Object.values(dayCount);
+
+  const pieData = {
+    labels: pieLabels,
+    datasets: [
+      {
+        label: "Habits Completed",
+        data: pieValues,
+        backgroundColor: [
+          "#7C3AED",
+          "#22D3EE",
+          "#FACC15",
+          "#FB7185",
+          "#34D399",
+          "#F472B6",
+          "#60A5FA",
+        ],
+        borderColor: "#ffffff",
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: { color: "#475569", font: { size: 14 } },
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+  };
+
+  // DAILY COMPLETION CALENDAR
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
@@ -69,7 +108,6 @@ export default function Analytics() {
     const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       d
     ).padStart(2, "0")}`;
-
     let status = "empty";
 
     if (dailyCompletion[iso] !== undefined) {
@@ -91,11 +129,11 @@ export default function Analytics() {
       </div>
 
       <div className={styles.chartsGrid}>
-        {/* WEEKLY TREND */}
+        {/* WEEKLY TREND LINE CHART */}
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
             <h3 className={styles.chartTitle}>Weekly Trend</h3>
-            <span className={styles.badge}>Last 7 Days</span>
+            <span className={styles.badge}>LAST 7 DAYS</span>
           </div>
 
           <div className={styles.chartWrapper}>
@@ -118,45 +156,20 @@ export default function Analytics() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: {
-                  x: { ticks: { color: "#94a3b8" } },
-                  y: { ticks: { color: "#94a3b8" } },
-                },
               }}
             />
           </div>
         </div>
 
-        {/* DAY-WISE PERFORMANCE */}
+        {/* DAY-WISE PIE CHART */}
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
             <h3 className={styles.chartTitle}>Day-wise Performance</h3>
-            <span className={styles.badge}>Distribution</span>
+            <span className={styles.badge}>PIE CHART</span>
           </div>
 
-          <div className={styles.chartWrapper}>
-            <Bar
-              data={{
-                labels: Object.keys(dayCount),
-                datasets: [
-                  {
-                    label: "Done Count",
-                    data: Object.values(dayCount),
-                    backgroundColor: "#22d3ee",
-                    borderRadius: 8,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                  x: { ticks: { color: "#94a3b8" } },
-                  y: { ticks: { color: "#94a3b8" } },
-                },
-              }}
-            />
+          <div className={styles.pieWrapper}>
+            <Pie data={pieData} options={pieOptions} />
           </div>
         </div>
 
@@ -182,7 +195,7 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* DAILY COMPLETION CALENDAR */}
+        {/* CALENDAR */}
         <div className={styles.calendarCard}>
           <h3 className={styles.chartTitle}>Daily Completion Calendar</h3>
 

@@ -347,3 +347,11 @@
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
+/* PIE CHART WRAPPER */
+.pieWrapper {
+  height: 320px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

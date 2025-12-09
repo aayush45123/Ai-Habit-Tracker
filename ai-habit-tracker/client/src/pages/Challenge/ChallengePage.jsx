@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
+import ChallengeHeatmap from "../../components/ChallengeHeatMap/ChallengeHeatMap";
 
 /* Convert 24-hour → 12-hour */
 function convert24to12(time24) {
@@ -133,14 +134,46 @@ export default function ChallengePage() {
 
   return (
     <div className={styles.root}>
-      <h2 className={styles.title}>21-Day Challenge</h2>
-      <p className={styles.sub}>
-        Commit to 21 days of powerful habit building.
-      </p>
+      {/* HEADER SECTION */}
+      <div className={styles.header}>
+        <h2 className={styles.title}>21-Day Challenge</h2>
+        <p className={styles.subtitle}>
+          Commit to 21 days of powerful habit building.
+        </p>
+      </div>
+
+      {/* DESCRIPTION BANNER */}
+      <div className={styles.descriptionBanner}>
+        <div className={styles.bannerIcon}>🌱</div>
+        <div className={styles.bannerContent}>
+          <h3 className={styles.bannerTitle}>Why 21 Days?</h3>
+          <p className={styles.bannerText}>
+            Research shows it takes approximately 21 days to form a new habit.
+            This challenge helps you build consistency, track your progress
+            daily, and transform your routines into lasting behaviors. Choose 6
+            meaningful habits and commit to completing them every day for the
+            next three weeks.
+          </p>
+          <div className={styles.bannerStats}>
+            <div className={styles.stat}>
+              <span className={styles.statNumber}>6</span>
+              <span className={styles.statLabel}>Daily Habits</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statNumber}>21</span>
+              <span className={styles.statLabel}>Days to Success</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statNumber}>126</span>
+              <span className={styles.statLabel}>Total Completions</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {existing && !editMode && (
         <button className={styles.editBtn} onClick={() => setEditMode(true)}>
-          Edit Challenge
+          ✏️ Edit Challenge
         </button>
       )}
 
@@ -157,8 +190,9 @@ export default function ChallengePage() {
               const e = convert24to12(h.endTime);
               return (
                 <div key={i} className={styles.reviewRow}>
-                  <strong>{h.title}</strong>
-                  <span>
+                  <div className={styles.reviewHabitNum}>#{i + 1}</div>
+                  <strong className={styles.reviewHabitTitle}>{h.title}</strong>
+                  <span className={styles.reviewHabitTime}>
                     {s.time} {s.period} — {e.time} {e.period}
                   </span>
                 </div>
@@ -172,14 +206,16 @@ export default function ChallengePage() {
           <>
             {habits.map((h, i) => (
               <div key={i} className={styles.row}>
+                <div className={styles.habitNumber}>{i + 1}</div>
                 <input
                   className={styles.textInput}
-                  placeholder={`Habit ${i + 1}`}
+                  placeholder={`Enter habit ${i + 1} (e.g., Morning Exercise)`}
                   value={h.title}
                   onChange={(e) => updateHabit(i, "title", e.target.value)}
                 />
 
                 <div className={styles.timeGroup}>
+                  <label className={styles.timeLabel}>Start</label>
                   <input
                     className={styles.timeInput}
                     placeholder="06:00"
@@ -189,6 +225,7 @@ export default function ChallengePage() {
                     }
                   />
                   <select
+                    className={styles.periodSelect}
                     value={h.startPeriod}
                     onChange={(e) =>
                       updateHabit(i, "startPeriod", e.target.value)
@@ -200,6 +237,7 @@ export default function ChallengePage() {
                 </div>
 
                 <div className={styles.timeGroup}>
+                  <label className={styles.timeLabel}>End</label>
                   <input
                     className={styles.timeInput}
                     placeholder="08:00"
@@ -207,6 +245,7 @@ export default function ChallengePage() {
                     onChange={(e) => updateHabit(i, "endTime", e.target.value)}
                   />
                   <select
+                    className={styles.periodSelect}
                     value={h.endPeriod}
                     onChange={(e) =>
                       updateHabit(i, "endPeriod", e.target.value)
@@ -223,7 +262,7 @@ export default function ChallengePage() {
               className={styles.submitBtn}
               onClick={existing ? updateChallenge : startChallenge}
             >
-              {existing ? "Save Changes" : "Start 21-Day Challenge"}
+              {existing ? "💾 Save Changes" : "🚀 Start 21-Day Challenge"}
             </button>
 
             {message && <p className={styles.msg}>{message}</p>}
@@ -233,41 +272,60 @@ export default function ChallengePage() {
 
       {/* PROGRESS GRID */}
       {existing && (
-        <div className={styles.progressGrid}>
-          {days.map((day, dayIndex) => (
-            <div key={dayIndex} className={styles.dayCard}>
-              <h4>{day.date.slice(5)}</h4>
+        <>
+          <div className={styles.progressHeader}>
+            <h3 className={styles.progressTitle}>Your Progress Journey</h3>
+            <p className={styles.progressSubtitle}>
+              Track your daily completion across all 21 days
+            </p>
+          </div>
 
-              {day.statuses.map((status, habitIndex) => (
-                <div key={habitIndex} className={styles.statusRow}>
-                  {status === "done" && <span className={styles.done}>✔</span>}
-
-                  {status === "expired" && (
-                    <span className={styles.expired}>✖</span>
-                  )}
-
-                  {status === "future" && (
-                    <span className={styles.future}>•</span>
-                  )}
-
-                  {status === "pending" && (
-                    <span className={styles.comingSoon}>Coming Soon</span>
-                  )}
-
-                  {status === "ongoing" && (
-                    <button
-                      className={styles.markBtn}
-                      onClick={() => markDone(dayIndex, habitIndex)}
-                    >
-                      Mark Done
-                    </button>
-                  )}
+          <div className={styles.progressGrid}>
+            {days.map((day, dayIndex) => (
+              <div key={dayIndex} className={styles.dayCard}>
+                <div className={styles.dayHeader}>
+                  <span className={styles.dayLabel}>Day {dayIndex + 1}</span>
+                  <span className={styles.dayDate}>{day.date.slice(5)}</span>
                 </div>
-              ))}
-            </div>
-          ))}
-        </div>
+
+                <div className={styles.statusList}>
+                  {day.statuses.map((status, habitIndex) => (
+                    <div key={habitIndex} className={styles.statusRow}>
+                      {status === "done" && (
+                        <span className={styles.done}>✔</span>
+                      )}
+
+                      {status === "expired" && (
+                        <span className={styles.expired}>✖</span>
+                      )}
+
+                      {status === "future" && (
+                        <span className={styles.future}>○</span>
+                      )}
+
+                      {status === "pending" && (
+                        <span className={styles.comingSoon}>⏳</span>
+                      )}
+
+                      {status === "ongoing" && (
+                        <button
+                          className={styles.markBtn}
+                          onClick={() => markDone(dayIndex, habitIndex)}
+                        >
+                          ✓ Mark Done
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
+
+      {/* HEATMAP SECTION */}
+      {existing && <ChallengeHeatmap />}
     </div>
   );
 }
