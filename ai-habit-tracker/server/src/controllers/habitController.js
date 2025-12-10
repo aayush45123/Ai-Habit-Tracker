@@ -179,6 +179,9 @@ export const logHabit = async (req, res) => {
 // ----------------------------------------------------
 // ANALYTICS (WEEKLY, BEST DAY, CALENDAR COMPLETION)
 // ----------------------------------------------------
+// ----------------------------------------------------
+// ANALYTICS (WEEKLY, BEST DAY, CALENDAR COMPLETION)
+// ----------------------------------------------------
 export const getAnalytics = async (req, res) => {
   try {
     const habits = await Habit.find({ userId: req.user });
@@ -243,23 +246,36 @@ export const getAnalytics = async (req, res) => {
     );
 
     // ----------------------------------------------------
-    // WEEK-OVER-WEEK CHANGE %
+    // WEEK-OVER-WEEK TREND (SMOOTHED)
     // ----------------------------------------------------
-    const diffDays = (d1, d2) =>
-      (new Date(d1) - new Date(d2)) / (1000 * 60 * 60 * 24);
+    const getWeekDays = (offset) => {
+      const arr = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - (offset + i));
+        arr.push(d.toISOString().split("T")[0]);
+      }
+      return arr;
+    };
 
-    const thisWeek = normalizedLogs.filter(
-      (l) => diffDays(today, l.date) <= 6 && diffDays(today, l.date) >= 0
+    const thisWeekDays = getWeekDays(0);
+    const lastWeekDays = getWeekDays(7);
+
+    const thisWeekDone = thisWeekDays.filter((d) =>
+      normalizedLogs.some((l) => l.date === d && l.status === "done")
     ).length;
 
-    const lastWeek = normalizedLogs.filter(
-      (l) => diffDays(today, l.date) <= 13 && diffDays(today, l.date) >= 7
+    const lastWeekDone = lastWeekDays.filter((d) =>
+      normalizedLogs.some((l) => l.date === d && l.status === "done")
     ).length;
 
-    let weekChange = 0;
-    if (lastWeek === 0 && thisWeek > 0) weekChange = 100;
-    else if (lastWeek > 0)
-      weekChange = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
+    const thisRate = Math.round((thisWeekDone / 7) * 100);
+    const lastRate = Math.round((lastWeekDone / 7) * 100);
+
+    let rawChange = thisRate - lastRate;
+
+    // 🔥 smoothen drastic changes
+    let weekChange = Math.round(rawChange * 0.7);
 
     // ----------------------------------------------------
     // DAILY COMPLETION FOR CALENDAR (PERCENTAGE)
@@ -280,7 +296,7 @@ export const getAnalytics = async (req, res) => {
     });
 
     // ----------------------------------------------------
-    // CONSISTENCY SCORE (Last 30 days)
+    // CONSISTENCY SCORE – Last 30 days
     // ----------------------------------------------------
     const last30 = new Date();
     last30.setDate(last30.getDate() - 29);
@@ -306,6 +322,9 @@ export const getAnalytics = async (req, res) => {
     const consistencyScore =
       totalDays === 0 ? 0 : Math.round((completedDays.size / totalDays) * 100);
 
+    // ----------------------------------------------------
+    // RETURN ANALYTICS
+    // ----------------------------------------------------
     return res.json({
       weekly: sortedWeekly,
       dayCount,
