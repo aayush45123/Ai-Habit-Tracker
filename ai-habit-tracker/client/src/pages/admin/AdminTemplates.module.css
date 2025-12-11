@@ -22,6 +22,7 @@
   border: 2px solid var(--color-border);
   padding: 2rem;
   margin-bottom: 3rem;
+  box-shadow: 8px 8px 0 var(--color-border);
 }
 
 .formCard h3 {
@@ -52,6 +53,7 @@
   border: 2px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
   outline: none;
+  box-shadow: 3px 3px 0 var(--color-border);
 }
 
 .formGrid textarea {
@@ -68,13 +70,15 @@
   line-height: 1.6;
   transition: all var(--transition-speed) var(--transition-easing);
   outline: none;
+  box-shadow: 3px 3px 0 var(--color-border);
 }
 
 .formGrid input:focus,
 .formGrid select:focus,
 .formGrid textarea:focus {
   border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--color-border);
 }
 
 .formGrid input:hover,
@@ -113,18 +117,19 @@
   transition: all var(--transition-speed) var(--transition-easing);
   text-transform: uppercase;
   letter-spacing: 1px;
+  box-shadow: 4px 4px 0 var(--color-border);
 }
 
 .submitBtn:hover {
   background-color: var(--color-accent-secondary);
   border-color: var(--color-accent-secondary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--color-border);
 }
 
 .submitBtn:active {
-  transform: translateY(0);
-  box-shadow: none;
+  transform: translate(0, 0);
+  box-shadow: 4px 4px 0 var(--color-border);
 }
 
 /* Template Grid */
@@ -143,11 +148,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  box-shadow: 5px 5px 0 var(--color-border);
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--color-border);
   border-color: var(--color-accent-primary);
 }
 
@@ -178,6 +184,7 @@
   letter-spacing: 0.5px;
   color: var(--color-text-primary) !important;
   width: fit-content;
+  box-shadow: 2px 2px 0 var(--color-border);
 }
 
 /* Time */
@@ -199,6 +206,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   width: fit-content;
+  box-shadow: 3px 3px 0 var(--color-border);
 }
 
 /* Actions */
@@ -222,6 +230,7 @@
   border: 2px solid var(--color-border);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: 3px 3px 0 var(--color-border);
 }
 
 .editBtn {
@@ -233,7 +242,8 @@
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
   border-color: var(--color-accent-primary);
-  transform: translateY(-2px);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--color-border);
 }
 
 .deleteBtn {
@@ -245,12 +255,18 @@
 .deleteBtn:hover {
   background-color: var(--color-error);
   color: var(--color-bg-primary);
-  transform: translateY(-2px);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--color-error);
 }
 
 .editBtn:active,
 .deleteBtn:active {
-  transform: translateY(0);
+  transform: translate(0, 0);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.deleteBtn:active {
+  box-shadow: 3px 3px 0 var(--color-error);
 }
 
 /* Responsive Design */
@@ -276,6 +292,7 @@
 
   .formCard {
     padding: 1.5rem;
+    box-shadow: 6px 6px 0 var(--color-border);
   }
 
   .formCard h3 {
@@ -287,9 +304,41 @@
     gap: 1rem;
   }
 
+  .formGrid input,
+  .formGrid select,
+  .formGrid textarea {
+    box-shadow: 2px 2px 0 var(--color-border);
+  }
+
+  .formGrid input:focus,
+  .formGrid select:focus,
+  .formGrid textarea:focus {
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .submitBtn {
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .submitBtn:hover {
+    box-shadow: 4px 4px 0 var(--color-border);
+  }
+
+  .submitBtn:active {
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
   .grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .card {
+    box-shadow: 4px 4px 0 var(--color-border);
+  }
+
+  .card:hover {
+    box-shadow: 5px 5px 0 var(--color-border);
   }
 
   .actions {
@@ -299,6 +348,24 @@
   .editBtn,
   .deleteBtn {
     width: 100%;
+    box-shadow: 2px 2px 0 var(--color-border);
+  }
+
+  .editBtn:hover {
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .deleteBtn:hover {
+    box-shadow: 3px 3px 0 var(--color-error);
+  }
+
+  .editBtn:active,
+  .deleteBtn:active {
+    box-shadow: 2px 2px 0 var(--color-border);
+  }
+
+  .deleteBtn:active {
+    box-shadow: 2px 2px 0 var(--color-error);
   }
 }
 
@@ -309,6 +376,7 @@
 
   .formCard {
     padding: 1.25rem;
+    box-shadow: 4px 4px 0 var(--color-border);
   }
 
   .formCard h3 {
@@ -329,9 +397,22 @@
 
   .card {
     padding: 1.25rem;
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .card:hover {
+    box-shadow: 4px 4px 0 var(--color-border);
   }
 
   .card h3 {
     font-size: 1.125rem;
+  }
+
+  .category {
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+
+  .tag {
+    box-shadow: 2px 2px 0 var(--color-border);
   }
 }

@@ -12,13 +12,15 @@
 /* Panel */
 .panel {
   background-color: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--color-border);
   padding: 2rem;
   transition: all var(--transition-speed) var(--transition-easing);
+  box-shadow: 8px 8px 0px var(--color-accent-primary);
 }
 
 .panel:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transform: translate(-2px, -2px);
+  box-shadow: 10px 10px 0px var(--color-accent-primary);
 }
 
 /* Header Panel */
@@ -27,6 +29,8 @@
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
 }
 
 .headerPanel p {
@@ -42,8 +46,9 @@
   color: var(--color-text-primary);
   padding: 0.75rem 1rem;
   background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   margin-bottom: 1.5rem;
+  box-shadow: 4px 4px 0px var(--color-border);
 }
 
 /* Actions */
@@ -58,7 +63,7 @@
   padding: 0.75rem 1.5rem;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--color-border);
   font-family: var(--font-primary);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -66,28 +71,37 @@
   transition: all var(--transition-speed) var(--transition-easing);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: 5px 5px 0px var(--color-accent-primary);
 }
 
 .btn:hover {
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
   border-color: var(--color-accent-primary);
-  transform: translateY(-2px);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px var(--color-accent-secondary);
 }
 
 .btn:active {
-  transform: translateY(0);
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0px var(--color-accent-primary);
 }
 
 .danger {
   color: var(--color-error);
   border-color: var(--color-error);
+  box-shadow: 5px 5px 0px var(--color-error);
 }
 
 .danger:hover {
   background-color: var(--color-error);
   color: var(--color-bg-primary);
   border-color: var(--color-error);
+  box-shadow: 7px 7px 0px var(--color-error);
+}
+
+.danger:active {
+  box-shadow: 3px 3px 0px var(--color-error);
 }
 
 /* Edit Form */
@@ -115,16 +129,18 @@
   font-family: var(--font-primary);
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
   outline: none;
+  box-shadow: 4px 4px 0px var(--color-border);
 }
 
 .editForm input:focus,
 .editForm textarea:focus,
 .editForm select:focus {
   border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px var(--color-accent-primary);
 }
 
 .editForm input:hover,
@@ -165,7 +181,7 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid var(--color-border);
+  border-bottom: 3px solid var(--color-border);
   gap: 1rem;
 }
 
@@ -174,6 +190,8 @@
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .logsHeader div {
@@ -198,19 +216,23 @@
   align-items: center;
   padding: 1rem 1.25rem;
   background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
+  box-shadow: 4px 4px 0px var(--color-border);
 }
 
 .logsList li:hover {
-  transform: translateX(4px);
+  transform: translate(-2px, -2px);
   border-color: var(--color-accent-primary);
+  box-shadow: 6px 6px 0px var(--color-accent-primary);
 }
 
 .logsList li span:first-child {
   font-size: 0.9375rem;
   color: var(--color-text-secondary);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .logsList li span:last-child {
@@ -219,29 +241,43 @@
   padding: 0.375rem 0.875rem;
   border: 2px solid var(--color-border);
   letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 2px 2px 0px var(--color-border);
 }
 
 /* Status-based styling */
 .done {
-  border-left-width: 4px;
+  border-left-width: 6px;
   border-left-color: var(--color-accent-primary);
+  box-shadow: 5px 5px 0px var(--color-accent-primary);
+}
+
+.done:hover {
+  box-shadow: 7px 7px 0px var(--color-accent-primary);
 }
 
 .done span:last-child {
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
   border-color: var(--color-accent-primary);
+  box-shadow: 2px 2px 0px var(--color-accent-secondary);
 }
 
 .missed {
-  border-left-width: 4px;
+  border-left-width: 6px;
   border-left-color: var(--color-error);
+  box-shadow: 5px 5px 0px var(--color-error);
+}
+
+.missed:hover {
+  box-shadow: 7px 7px 0px var(--color-error);
 }
 
 .missed span:last-child {
   background-color: var(--color-bg-primary);
   color: var(--color-error);
   border-color: var(--color-error);
+  box-shadow: 2px 2px 0px var(--color-error);
 }
 
 /* Responsive Design */
@@ -253,6 +289,11 @@
 
   .panel {
     padding: 1.5rem;
+    box-shadow: 6px 6px 0px var(--color-accent-primary);
+  }
+
+  .panel:hover {
+    box-shadow: 8px 8px 0px var(--color-accent-primary);
   }
 
   .headerPanel h2 {
@@ -263,12 +304,41 @@
     font-size: 0.9375rem;
   }
 
+  .headerPanel p:last-of-type {
+    box-shadow: 3px 3px 0px var(--color-border);
+  }
+
   .hdActions {
     flex-direction: column;
   }
 
   .btn {
     width: 100%;
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .btn:hover {
+    box-shadow: 6px 6px 0px var(--color-accent-secondary);
+  }
+
+  .danger {
+    box-shadow: 4px 4px 0px var(--color-error);
+  }
+
+  .danger:hover {
+    box-shadow: 6px 6px 0px var(--color-error);
+  }
+
+  .editForm input,
+  .editForm textarea,
+  .editForm select {
+    box-shadow: 3px 3px 0px var(--color-border);
+  }
+
+  .editForm input:focus,
+  .editForm textarea:focus,
+  .editForm select:focus {
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
   }
 
   .logsHeader {
@@ -289,10 +359,31 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    box-shadow: 3px 3px 0px var(--color-border);
+  }
+
+  .logsList li:hover {
+    box-shadow: 5px 5px 0px var(--color-accent-primary);
   }
 
   .logsList li span:last-child {
     align-self: flex-end;
+  }
+
+  .done {
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .done:hover {
+    box-shadow: 6px 6px 0px var(--color-accent-primary);
+  }
+
+  .missed {
+    box-shadow: 4px 4px 0px var(--color-error);
+  }
+
+  .missed:hover {
+    box-shadow: 6px 6px 0px var(--color-error);
   }
 }
 
@@ -304,6 +395,11 @@
 
   .panel {
     padding: 1.25rem;
+    box-shadow: 5px 5px 0px var(--color-accent-primary);
+  }
+
+  .panel:hover {
+    box-shadow: 7px 7px 0px var(--color-accent-primary);
   }
 
   .headerPanel h2 {
@@ -317,11 +413,33 @@
   .headerPanel p:last-of-type {
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
+    box-shadow: 3px 3px 0px var(--color-border);
   }
 
   .btn {
     padding: 0.625rem 1.25rem;
     font-size: 0.875rem;
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .btn:hover {
+    box-shadow: 5px 5px 0px var(--color-accent-secondary);
+  }
+
+  .btn:active {
+    box-shadow: 2px 2px 0px var(--color-accent-primary);
+  }
+
+  .danger {
+    box-shadow: 4px 4px 0px var(--color-error);
+  }
+
+  .danger:hover {
+    box-shadow: 5px 5px 0px var(--color-error);
+  }
+
+  .danger:active {
+    box-shadow: 2px 2px 0px var(--color-error);
   }
 
   .editForm input,
@@ -329,6 +447,13 @@
   .editForm select {
     padding: 0.75rem 0.875rem;
     font-size: 0.9375rem;
+    box-shadow: 3px 3px 0px var(--color-border);
+  }
+
+  .editForm input:focus,
+  .editForm textarea:focus,
+  .editForm select:focus {
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
   }
 
   .logsHeader h3 {
@@ -337,6 +462,11 @@
 
   .logsList li {
     padding: 0.875rem 1rem;
+    box-shadow: 3px 3px 0px var(--color-border);
+  }
+
+  .logsList li:hover {
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
   }
 
   .logsList li span:first-child {
@@ -346,5 +476,21 @@
   .logsList li span:last-child {
     font-size: 0.8125rem;
     padding: 0.25rem 0.75rem;
+  }
+
+  .done {
+    box-shadow: 3px 3px 0px var(--color-accent-primary);
+  }
+
+  .done:hover {
+    box-shadow: 5px 5px 0px var(--color-accent-primary);
+  }
+
+  .missed {
+    box-shadow: 3px 3px 0px var(--color-error);
+  }
+
+  .missed:hover {
+    box-shadow: 5px 5px 0px var(--color-error);
   }
 }

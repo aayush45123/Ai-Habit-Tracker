@@ -10,6 +10,7 @@
   left: 0;
   top: 0;
   overflow-y: auto;
+  box-shadow: 8px 0px 0px var(--color-border);
 }
 
 /* Header Section */
@@ -108,16 +109,19 @@
   transition: all var(--transition-speed) var(--transition-easing);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: 4px 4px 0px var(--color-border);
 }
 
 .logoutBtn:hover {
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
   border-color: var(--color-accent-primary);
+  box-shadow: 5px 5px 0px var(--color-border);
 }
 
 .logoutBtn:active {
-  transform: none;
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px var(--color-border);
 }
 
 .logoutBtn svg {
@@ -132,6 +136,7 @@
   padding: 1rem;
   background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0px var(--color-border);
 }
 
 .userAvatar {
@@ -146,6 +151,7 @@
   font-size: 0.875rem;
   flex-shrink: 0;
   border: 2px solid var(--color-border);
+  box-shadow: 3px 3px 0px var(--color-border);
 }
 
 .footerText {
