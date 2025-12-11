@@ -11,38 +11,38 @@
 | Updated to improve visibility and contrast on light backgrounds.
 */
 :root {
-  /* --- COLORS (Light Natural Theme) --- */
+  /* --- COLORS (Nihilism Monochrome Theme) --- */
 
-  /* Primary Background (Warm Cream/Beige) */
-  --color-bg-primary: #faf5e6; /* Soft warm cream */
+  /* Primary Background (Paper white) */
+  --color-bg-primary: #ffffff;
 
-  /* Secondary Background (Light Sage Card Background) */
-  --color-bg-secondary: #eef2e1; /* Pastel sage */
+  /* Secondary Background (Slight off-white for cards) */
+  --color-bg-secondary: #f5f5f5;
 
-  /* Tertiary Background (Slightly darker sage for hover) */
-  --color-bg-tertiary: #dbe4c7; /* Soft muted green */
+  /* Tertiary Background (Light gray hover shade) */
+  --color-bg-tertiary: #e6e6e6;
 
-  /* Primary Accent (Natural Green Buttons) */
-  --color-accent-primary: #7bb77e; /* Herbal green */
+  /* Primary Accent (Pure black for buttons & highlights) */
+  --color-accent-primary: #000000;
 
-  /* Secondary Accent (Honey Yellow) */
-  --color-accent-secondary: #e7c86e; /* Warm honey yellow */
+  /* Secondary Accent (Dark gray for subtle accents) */
+  --color-accent-secondary: #2b2b2b;
 
-  /* ★ UPDATED — High Contrast Text Colors ★ */
+  /* ★ TEXT — High Contrast Black/Gray ★ */
 
-  /* Primary Text (Darker forest-brown for readability) */
-  --color-text-primary: #1f1d17; /* Very dark brown (almost black) */
+  /* Primary Text (Pure black) */
+  --color-text-primary: #000000;
 
-  /* Secondary Text (Deeper olive-gray for visibility) */
-  --color-text-secondary: #4a4938;
+  /* Secondary Text (Medium gray) */
+  --color-text-secondary: #555555;
 
-  /* Success / Warning / Error (slightly deepened for readability) */
-  --color-success: #5b955c;
-  --color-warning: #d8a54e;
-  --color-error: #b85b4d;
+  /* Success / Warning / Error (Monochrome versions) */
+  --color-success: #1a1a1a;
+  --color-warning: #3d3d3d;
+  --color-error: #7a7a7a;
 
-  /* Border / Dividers (Improved contrast) */
-  --color-border: #b9b59d;
+  /* Borders (Sharp dark black border) */
+  --color-border: #000000;
 
   /* Typography */
   --font-primary: "Sora", sans-serif;
