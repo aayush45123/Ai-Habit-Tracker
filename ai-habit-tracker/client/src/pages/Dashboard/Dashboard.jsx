@@ -94,6 +94,10 @@ export default function Dashboard() {
       <header className={styles.dashHeader}>
         <div>
           <h1>Welcome back</h1>
+          <p className={styles.dashDescription}>
+            Track your daily habits, build powerful streaks, and transform your
+            life one day at a time. Your journey to consistency starts here.
+          </p>
         </div>
 
         <div className={styles.dashHeaderRight}>
