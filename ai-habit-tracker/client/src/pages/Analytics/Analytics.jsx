@@ -32,6 +32,7 @@ export default function Analytics() {
   const [dailyCompletion, setDailyCompletion] = useState({});
   const [consistencyScore, setConsistencyScore] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -45,6 +46,7 @@ export default function Analytics() {
       setDayCount(res.data.dayCount);
       setDailyCompletion(res.data.dailyCompletion || {});
       setConsistencyScore(res.data.consistencyScore || 0);
+      setLeaderboard(res.data.leaderboard || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -173,25 +175,23 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* CONSISTENCY SCORE */}
-        <div className={styles.consistencyCard}>
-          <h3 className={styles.chartTitle}>Habit Consistency Score</h3>
+        {/* HABIT SUCCESS LEADERBOARD */}
+        <div className={styles.chartCard}>
+          <div className={styles.chartHeader}>
+            <h3 className={styles.chartTitle}>Habit Success Leaderboard</h3>
+            <span className={styles.badge}>Top Performers</span>
+          </div>
 
-          <div className={styles.consistencyWrapper}>
-            <svg viewBox="0 0 120 120" className={styles.ring}>
-              <circle className={styles.ringBg} cx="60" cy="60" r="50" />
-              <circle
-                className={styles.ringProgress}
-                cx="60"
-                cy="60"
-                r="50"
-                strokeDasharray={Math.PI * 100}
-                strokeDashoffset={Math.PI * 100 * (1 - consistencyScore / 100)}
-              />
-            </svg>
-
-            <div className={styles.consistencyValue}>{consistencyScore}%</div>
-            <p className={styles.consistencyLabel}>Last 30 Days</p>
+          <div className={styles.leaderboard}>
+            {leaderboard.map((item, i) => (
+              <div key={i} className={styles.leadRow}>
+                <span className={styles.leadRank}>{i + 1}</span>
+                <span className={styles.leadName}>{item.habit}</span>
+                <span className={styles.leadPercent}>
+                  {item.completionRate}%
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 

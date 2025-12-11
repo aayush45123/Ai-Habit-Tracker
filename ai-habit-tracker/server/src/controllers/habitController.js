@@ -323,6 +323,38 @@ export const getAnalytics = async (req, res) => {
       totalDays === 0 ? 0 : Math.round((completedDays.size / totalDays) * 100);
 
     // ----------------------------------------------------
+    // HABIT SUCCESS RANKING (LEADERBOARD)
+    // ----------------------------------------------------
+    const leaderboard = [];
+
+    for (let habit of habits) {
+      const hLogs = normalizedLogs.filter(
+        (l) => l.habitId.toString() === habit._id.toString()
+      );
+
+      if (hLogs.length === 0) {
+        leaderboard.push({
+          habit: habit.title,
+          completionRate: 0,
+          totalLogs: 0,
+        });
+        continue;
+      }
+
+      const done = hLogs.filter((l) => l.status === "done").length;
+      const rate = Math.round((done / hLogs.length) * 100);
+
+      leaderboard.push({
+        habit: habit.title,
+        completionRate: rate,
+        totalLogs: hLogs.length,
+      });
+    }
+
+    // sort — highest success first
+    leaderboard.sort((a, b) => b.completionRate - a.completionRate);
+
+    // ----------------------------------------------------
     // RETURN ANALYTICS
     // ----------------------------------------------------
     return res.json({
@@ -332,6 +364,7 @@ export const getAnalytics = async (req, res) => {
       weekChange,
       dailyCompletion,
       consistencyScore,
+      leaderboard,
     });
   } catch (error) {
     res.status(500).json({ message: "Analytics error", error: error.message });
