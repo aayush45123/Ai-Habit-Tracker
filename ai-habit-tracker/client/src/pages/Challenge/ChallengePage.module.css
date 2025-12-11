@@ -1,74 +1,44 @@
-/* -----------------------------
-   ROOT LAYOUT
------------------------------- */
+/* Root Container */
 .root {
-  padding: 2.5rem 3rem;
-  font-family: var(--font-primary);
-  color: var(--color-text-primary);
   max-width: 1400px;
   margin: 0 auto;
+  padding: 2rem;
+  font-family: var(--font-primary);
 }
 
-/* -----------------------------
-   HEADER SECTION
------------------------------- */
+/* Header */
 .header {
   margin-bottom: 2rem;
-  text-align: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--color-border);
 }
 
 .title {
-  font-size: 2.75rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
   color: var(--color-text-primary);
-  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem 0;
 }
 
 .subtitle {
+  font-size: 1rem;
   color: var(--color-text-secondary);
-  font-size: 1.15rem;
-  font-weight: 500;
+  margin: 0;
 }
 
-/* -----------------------------
-   DESCRIPTION BANNER
------------------------------- */
+/* Description Banner */
 .descriptionBanner {
-  background: linear-gradient(
-    135deg,
-    var(--color-bg-secondary) 0%,
-    var(--color-bg-tertiary) 100%
-  );
-  border: 2px solid var(--color-border);
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 2.5rem;
   display: flex;
-  gap: 2rem;
-  align-items: flex-start;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.descriptionBanner:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  gap: 1.5rem;
+  padding: 2rem;
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  margin-bottom: 2rem;
 }
 
 .bannerIcon {
   font-size: 3.5rem;
-  line-height: 1;
   flex-shrink: 0;
-  background: var(--color-bg-primary);
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 3px solid var(--color-accent-primary);
-  animation: var(--animation-pulse);
 }
 
 .bannerContent {
@@ -78,32 +48,30 @@
 .bannerTitle {
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 0.75rem;
   color: var(--color-text-primary);
+  margin: 0 0 1rem 0;
 }
 
 .bannerText {
+  font-size: 0.9375rem;
   color: var(--color-text-secondary);
   line-height: 1.7;
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
+  margin: 0 0 1.5rem 0;
 }
 
 .bannerStats {
-  display: flex;
-  gap: 2.5rem;
-  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: var(--color-bg-primary);
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
-  min-width: 100px;
+  padding: 1rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
 }
 
 .statNumber {
@@ -115,60 +83,52 @@
 }
 
 .statLabel {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
   font-weight: 600;
   text-align: center;
 }
 
-/* -----------------------------
-   EDIT BUTTON
------------------------------- */
+/* Edit Button */
 .editBtn {
-  background: var(--color-accent-secondary);
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  margin-bottom: 1.5rem;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  border: 2px solid var(--color-border);
+  font-family: var(--font-primary);
   font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .editBtn:hover {
-  background: var(--color-accent-primary);
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent-primary);
   transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* -----------------------------
-   MAIN CARD
------------------------------- */
+/* Card */
 .card {
-  background: var(--color-bg-secondary);
-  padding: 2.5rem;
-  border-radius: 16px;
+  background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
-  margin-bottom: 3rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  margin-bottom: 2rem;
 }
 
 .cardTitle {
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 1.75rem;
   color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
 }
 
-/* -----------------------------
-   REVIEW MODE
------------------------------- */
+/* Review Box (View Mode) */
 .reviewBox {
   display: flex;
   flex-direction: column;
@@ -176,418 +136,509 @@
 }
 
 .reviewRow {
-  background: var(--color-bg-primary);
-  padding: 1.25rem 1.5rem;
-  border-radius: 12px;
-  border: 2px solid var(--color-border);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 1rem;
+  display: flex;
   align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .reviewRow:hover {
   border-color: var(--color-accent-primary);
-  transform: translateX(4px);
 }
 
 .reviewHabitNum {
-  background: var(--color-accent-primary);
-  color: white;
-  font-weight: 700;
-  font-size: 0.9rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
 }
 
 .reviewHabitTitle {
-  font-size: 1.05rem;
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .reviewHabitTime {
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-/* -----------------------------
-   INPUT ROW (Title + Time)
------------------------------- */
+/* Habit Input Row */
 .row {
   display: grid;
-  grid-template-columns: auto 1.5fr 1fr 1fr;
+  grid-template-columns: 40px 1fr auto auto;
   gap: 1rem;
-  margin-bottom: 1.25rem;
   align-items: center;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
 }
 
 .habitNumber {
-  background: var(--color-accent-primary);
-  color: white;
-  font-weight: 700;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border);
 }
 
-/* -----------------------------
-   TEXT INPUT
------------------------------- */
 .textInput {
-  background: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  padding: 0.9rem 1rem;
-  border-radius: 10px;
-  font-size: 1rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
   font-family: var(--font-primary);
   color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.textInput::placeholder {
-  color: var(--color-text-secondary);
-  opacity: 0.6;
+  outline: none;
 }
 
 .textInput:focus {
   border-color: var(--color-accent-primary);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(123, 183, 126, 0.2);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
 }
 
-/* -----------------------------
-   TIME FIELDS
------------------------------- */
+.textInput:hover {
+  border-color: var(--color-accent-secondary);
+}
+
+.textInput::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+/* Time Group */
 .timeGroup {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
 .timeLabel {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
 }
 
 .timeInput {
-  background: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  padding: 0.9rem;
-  border-radius: 10px;
-  font-size: 1rem;
+  width: 80px;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
   font-family: var(--font-primary);
   color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.timeInput::placeholder {
-  color: var(--color-text-secondary);
-  opacity: 0.6;
+  outline: none;
+  text-align: center;
 }
 
 .timeInput:focus {
   border-color: var(--color-accent-primary);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(123, 183, 126, 0.2);
 }
 
 .periodSelect {
-  background: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  padding: 0.9rem;
-  border-radius: 10px;
-  font-size: 1rem;
+  width: 70px;
+  padding: 0.625rem 0.5rem;
+  font-size: 0.875rem;
   font-family: var(--font-primary);
   color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 14px;
+  padding-right: 2rem;
+  text-align: center;
 }
 
 .periodSelect:focus {
   border-color: var(--color-accent-primary);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(123, 183, 126, 0.2);
 }
 
-.periodSelect:hover {
-  border-color: var(--color-accent-secondary);
-}
-
-/* -----------------------------
-   BUTTON — Submit / Start
------------------------------- */
+/* Submit Button */
 .submitBtn {
-  background: var(--color-accent-primary);
-  padding: 1.1rem 2rem;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-accent-primary);
+  font-family: var(--font-primary);
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 1.5rem;
-  width: 100%;
-  box-shadow: 0 4px 12px rgba(123, 183, 126, 0.3);
   transition: all var(--transition-speed) var(--transition-easing);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 1rem;
 }
 
 .submitBtn:hover {
-  background: var(--color-accent-secondary);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(123, 183, 126, 0.4);
+  background-color: var(--color-accent-secondary);
+  border-color: var(--color-accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .submitBtn:active {
-  transform: translateY(-1px);
+  transform: translateY(0);
 }
 
-/* -----------------------------
-   MESSAGE TEXT
------------------------------- */
+/* Message */
 .msg {
   margin-top: 1rem;
-  color: var(--color-error);
+  padding: 1rem 1.25rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-accent-primary);
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
   font-weight: 600;
-  padding: 0.75rem 1rem;
-  background: rgba(184, 91, 77, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid var(--color-error);
-}
-
-/* -----------------------------
-   PROGRESS HEADER
------------------------------- */
-.progressHeader {
-  margin-bottom: 2rem;
   text-align: center;
 }
 
-.progressTitle {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--color-text-primary);
-}
-
-.progressSubtitle {
-  color: var(--color-text-secondary);
-  font-size: 1rem;
-}
-
-/* -----------------------------
-   21-DAY GRID
------------------------------- */
-.progressGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-/* -----------------------------
-   DAY CARD
------------------------------- */
-.dayCard {
-  background: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
-  padding: 1.25rem;
-  border-radius: 14px;
-  min-height: 220px;
-  transition: all var(--transition-speed) var(--transition-easing);
-  display: flex;
-  flex-direction: column;
-}
-
-.dayCard:hover {
-  border-color: var(--color-accent-primary);
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-.dayHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
+/* Progress Header */
+.progressHeader {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
   border-bottom: 2px solid var(--color-border);
 }
 
-.dayLabel {
-  font-size: 0.85rem;
+.progressTitle {
+  font-size: 1.75rem;
   font-weight: 700;
-  color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.progressSubtitle {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Progress Grid */
+.progressGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+/* Day Card */
+.dayCard {
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 1rem;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.dayCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Day Header */
+.dayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dayLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
 }
 
 .dayDate {
-  font-size: 1.1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
   font-weight: 600;
-  color: var(--color-text-primary);
 }
 
+/* Status List */
 .statusList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  flex: 1;
+  gap: 0.5rem;
 }
 
-/* -----------------------------
-   STATUS ROWS
------------------------------- */
 .statusRow {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
-  background: var(--color-bg-primary);
-  border-radius: 8px;
-  min-height: 40px;
+  min-height: 32px;
 }
 
-/* ICON COLORS */
 .done {
-  color: var(--color-success);
-  font-size: 1.4rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  color: var(--color-accent-primary);
+  font-weight: 700;
 }
 
 .expired {
+  font-size: 1.25rem;
   color: var(--color-error);
-  font-size: 1.4rem;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .future {
-  color: #a8a594;
-  font-size: 1.6rem;
+  font-size: 1.25rem;
+  color: var(--color-text-secondary);
   opacity: 0.5;
 }
 
 .comingSoon {
+  font-size: 1.25rem;
   color: var(--color-text-secondary);
-  font-size: 1.2rem;
-  opacity: 0.6;
 }
 
-/* -----------------------------
-   "Mark Done" BUTTON
------------------------------- */
 .markBtn {
-  background: var(--color-accent-primary);
-  color: white;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-accent-primary);
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
-  box-shadow: 0 2px 6px rgba(123, 183, 126, 0.3);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .markBtn:hover {
-  background: var(--color-accent-secondary);
+  background-color: var(--color-accent-secondary);
+  border-color: var(--color-accent-secondary);
   transform: scale(1.05);
-  box-shadow: 0 4px 10px rgba(123, 183, 126, 0.4);
 }
 
 .markBtn:active {
-  transform: scale(0.98);
+  transform: scale(1);
 }
 
-/* -----------------------------
-   RESPONSIVE
------------------------------- */
-@media (max-width: 1200px) {
-  .progressGrid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-
-  .bannerStats {
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 900px) {
+/* Responsive Design */
+@media (max-width: 1024px) {
   .root {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .descriptionBanner {
+    padding: 1.75rem;
   }
 
   .progressGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .root {
+    padding: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
   }
 
   .descriptionBanner {
     flex-direction: column;
-    text-align: center;
-  }
-
-  .bannerIcon {
-    margin: 0 auto;
-  }
-
-  .bannerStats {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 650px) {
-  .progressGrid {
-    grid-template-columns: repeat(2, 1fr);
+    padding: 1.5rem;
     gap: 1rem;
   }
 
-  .row {
+  .bannerIcon {
+    font-size: 3rem;
+    align-self: center;
+  }
+
+  .bannerTitle {
+    font-size: 1.25rem;
+  }
+
+  .bannerStats {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .habitNumber {
-    display: none;
-  }
-
-  .timeGroup {
-    width: 100%;
+    gap: 1rem;
   }
 
   .card {
     padding: 1.5rem;
   }
 
-  .title {
-    font-size: 2rem;
+  .cardTitle {
+    font-size: 1.25rem;
   }
 
-  .bannerStats {
-    flex-direction: column;
-    gap: 1rem;
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
   }
 
-  .stat {
+  .textInput {
+    order: 1;
+  }
+
+  .habitNumber {
+    order: 0;
+    align-self: flex-start;
+  }
+
+  .timeGroup {
+    order: 2;
     width: 100%;
+    justify-content: space-between;
+  }
+
+  .progressGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .reviewRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .reviewHabitTime {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .root {
+    padding: 0.75rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .descriptionBanner {
+    padding: 1.25rem;
+  }
+
+  .bannerIcon {
+    font-size: 2.5rem;
+  }
+
+  .bannerTitle {
+    font-size: 1.125rem;
+  }
+
+  .bannerText {
+    font-size: 0.875rem;
+  }
+
+  .statNumber {
+    font-size: 1.75rem;
+  }
+
+  .statLabel {
+    font-size: 0.8125rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .cardTitle {
+    font-size: 1.125rem;
+  }
+
+  .row {
+    padding: 0.875rem;
+  }
+
+  .textInput {
+    font-size: 0.875rem;
+    padding: 0.625rem 0.875rem;
+  }
+
+  .timeInput {
+    width: 70px;
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .periodSelect {
+    width: 65px;
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.375rem;
+  }
+
+  .submitBtn {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.75rem;
+  }
+
+  .editBtn {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.75rem;
+  }
+
+  .progressTitle {
+    font-size: 1.5rem;
+  }
+
+  .progressSubtitle {
+    font-size: 0.875rem;
+  }
+
+  .progressGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+
+  .dayCard {
+    padding: 0.875rem;
+  }
+
+  .markBtn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
   }
 }

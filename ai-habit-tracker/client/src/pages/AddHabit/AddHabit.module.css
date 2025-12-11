@@ -1,111 +1,210 @@
-/* AddHabit.module.css */
-
+/* Layout Container */
 .layout {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background-color: var(--color-bg-primary);
-  padding: 1rem;
 }
 
+/* Page Container */
 .page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Add Habit Root */
+.addHabitRoot {
   background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 2rem 2.5rem;
-  box-shadow: 0 10px 20px rgba(31, 29, 23, 0.1);
-  max-width: 480px;
-  width: 100%;
-  font-family: var(--font-primary);
-  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
+  padding: 2.5rem;
 }
 
 .addHabitRoot h2 {
-  margin-bottom: 1rem;
+  font-size: 2rem;
   font-weight: 700;
-  font-size: 1.75rem;
-  text-align: center;
+  color: var(--color-text-primary);
+  margin: 0 0 2rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+  font-family: var(--font-primary);
 }
 
+/* Error Message */
 .error {
-  background-color: var(--color-error);
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
+  background-color: var(--color-bg-primary);
+  color: var(--color-error);
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--color-error);
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  text-align: center;
-  box-shadow: 0 0 6px var(--color-error);
-  animation: var(--animation-pulse);
 }
 
+/* Form */
 .addForm {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .addForm label {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 0.25rem;
-  color: var(--color-text-secondary);
-  user-select: none;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.addForm input[type="text"],
+.addForm input,
 .addForm textarea,
 .addForm select {
-  border: 1.5px solid var(--color-border);
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
   font-size: 1rem;
   font-family: var(--font-primary);
   color: var(--color-text-primary);
-  background-color: #fff;
-  resize: vertical;
-  min-height: 40px;
-  transition: border-color var(--transition-speed) var(--transition-easing),
-    box-shadow var(--transition-speed) var(--transition-easing);
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  transition: all var(--transition-speed) var(--transition-easing);
+  outline: none;
 }
 
-.addForm input[type="text"]:focus,
+.addForm input:focus,
 .addForm textarea:focus,
 .addForm select:focus {
-  outline: none;
   border-color: var(--color-accent-primary);
-  box-shadow: 0 0 8px var(--color-accent-primary);
+  background-color: var(--color-bg-primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.addForm input:hover,
+.addForm textarea:hover,
+.addForm select:hover {
+  border-color: var(--color-accent-secondary);
+}
+
+.addForm input::placeholder,
+.addForm textarea::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
 }
 
 .addForm textarea {
-  min-height: 80px;
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
 }
 
-.submitBtn {
-  margin-top: 0.5rem;
-  background-color: var(--color-accent-primary);
-  color: var(--color-text-primary);
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
+.addForm select {
   cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 20px;
+  padding-right: 3rem;
+}
+
+/* Submit Button */
+.submitBtn {
+  padding: 1rem 2rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-accent-primary);
+  font-family: var(--font-primary);
+  font-size: 1rem;
   font-weight: 700;
-  font-size: 1.1rem;
-  user-select: none;
-  box-shadow: 0 4px 8px rgba(123, 183, 126, 0.4);
-  transition: background-color var(--transition-speed) var(--transition-easing),
-    transform var(--transition-speed) var(--transition-easing),
-    box-shadow var(--transition-speed) var(--transition-easing);
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 1rem;
 }
 
 .submitBtn:hover {
   background-color: var(--color-accent-secondary);
+  border-color: var(--color-accent-secondary);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(231, 200, 110, 0.6);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .submitBtn:active {
   transform: translateY(0);
-  box-shadow: 0 3px 6px rgba(123, 183, 126, 0.3);
+  box-shadow: none;
+}
+
+.submitBtn:disabled {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem;
+  }
+
+  .addHabitRoot {
+    padding: 2rem;
+  }
+
+  .addHabitRoot h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .addForm {
+    gap: 1.25rem;
+  }
+
+  .addForm input,
+  .addForm textarea,
+  .addForm select {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9375rem;
+  }
+
+  .submitBtn {
+    padding: 0.875rem 1.75rem;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .addHabitRoot {
+    padding: 1.5rem;
+  }
+
+  .addHabitRoot h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .addForm {
+    gap: 1rem;
+  }
+
+  .addForm label {
+    font-size: 0.875rem;
+  }
+
+  .addForm input,
+  .addForm textarea,
+  .addForm select {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .submitBtn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
 }
