@@ -1,158 +1,83 @@
-/*
-|--------------------------------------------------------------------------
-| HabitCard Component Module CSS
-|--------------------------------------------------------------------------
-| Professional card design with glassmorphism, animations, and hover effects
-*/
-
-.habitCard{
-  position: relative;
+/* Habit Card Container */
+.habitCard {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 1.5rem;
-  background: linear-gradient(
-    135deg,
-    rgba(30, 41, 59, 0.6) 0%,
-    rgba(30, 41, 59, 0.4) 100%
-  );
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(71, 85, 105, 0.4);
-  border-radius: 1rem;
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Gradient overlay */
-.habitCard::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(139, 92, 246, 0.03) 0%,
-    rgba(34, 211, 238, 0.02) 100%
-  );
-  opacity: 0;
-  transition: opacity var(--transition-speed) var(--transition-easing);
-  pointer-events: none;
+  gap: 1.5rem;
 }
 
 .habitCard:hover {
-  transform: translateY(-4px);
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 0 24px rgba(139, 92, 246, 0.15);
+  background-color: var(--color-bg-tertiary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.habitCard:hover::before {
-  opacity: 1;
-}
-
-/* DONE STATE */
 .habitCard.done {
-  background: linear-gradient(
-    135deg,
-    rgba(16, 185, 129, 0.15) 0%,
-    rgba(16, 185, 129, 0.05) 100%
-  );
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+  background-color: var(--color-bg-primary);
+  border-color: var(--color-accent-primary);
+  position: relative;
 }
 
 .habitCard.done::before {
-  background: linear-gradient(
-    90deg,
-    rgba(16, 185, 129, 0.1) 0%,
-    rgba(52, 211, 153, 0.05) 100%
-  );
-  opacity: 1;
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--color-accent-primary);
 }
 
-.habitCard.done:hover {
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.25),
-    0 0 24px rgba(16, 185, 129, 0.2);
-}
-
-/*
-|--------------------------------------------------------------------------
-| LEFT SECTION
-|--------------------------------------------------------------------------
-*/
+/* Left Section */
 .hcLeft {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 0; /* Prevents flex child from overflowing */
+  min-width: 0;
 }
 
 .hcTitleLink {
   text-decoration: none;
-  color: inherit;
   display: block;
-  transition: all var(--transition-speed) var(--transition-easing);
+  margin-bottom: 0.5rem;
 }
 
 .hcTitle {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
-  transition: all var(--transition-speed) var(--transition-easing);
-  position: relative;
-  display: inline-block;
-  max-width: fit-content;
-}
-
-/* Animated underline on hover */
-.hcTitle::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    var(--color-accent-primary) 0%,
-    var(--color-accent-secondary) 100%
-  );
-  transition: width var(--transition-speed) var(--transition-easing);
+  transition: color var(--transition-speed) var(--transition-easing);
+  word-wrap: break-word;
 }
 
 .hcTitleLink:hover .hcTitle {
-  color: var(--color-accent-primary);
+  color: var(--color-accent-secondary);
+  text-decoration: underline;
 }
 
-.hcTitleLink:hover .hcTitle::after {
-  width: 100%;
+.habitCard.done .hcTitle {
+  position: relative;
+}
+
+.habitCard.done .hcTitle::after {
+  content: " ✓";
+  color: var(--color-accent-primary);
+  font-weight: 700;
 }
 
 .hcDesc {
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--color-text-secondary);
-  transition: color var(--transition-speed) var(--transition-easing);
-}
-
-.habitCard:hover .hcDesc {
-  color: var(--color-text-primary);
+  word-wrap: break-word;
 }
 
 .muted {
-  opacity: 0.9;
+  color: var(--color-text-secondary);
 }
 
-/*
-|--------------------------------------------------------------------------
-| RIGHT SECTION
-|--------------------------------------------------------------------------
-*/
+/* Right Section */
 .hcRight {
   display: flex;
   align-items: center;
@@ -160,182 +85,71 @@
   flex-shrink: 0;
 }
 
-/*
-|--------------------------------------------------------------------------
-| TOGGLE BUTTON
-|--------------------------------------------------------------------------
-*/
+/* Toggle Button */
 .toggle {
-  position: relative;
   padding: 0.625rem 1.5rem;
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.1) 0%,
-    rgba(139, 92, 246, 0.05) 100%
-  );
+  background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 0.75rem;
-  font-weight: 600;
+  border: 2px solid var(--color-border);
+  font-family: var(--font-primary);
   font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
-  overflow: hidden;
-  font-family: var(--font-primary);
-  min-width: 90px;
-}
-
-/* Shimmer effect */
-.toggle::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(139, 92, 246, 0.3),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.toggle:hover::before {
-  left: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .toggle:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.2) 0%,
-    rgba(139, 92, 246, 0.1) 100%
-  );
-  border-color: var(--color-accent-primary);
+  background-color: var(--color-accent-secondary);
+  color: var(--color-bg-primary);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
 }
 
 .toggle:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
 }
 
-/* ON STATE (Done) */
 .toggle.on {
-  background: linear-gradient(
-    135deg,
-    rgba(16, 185, 129, 0.2) 0%,
-    rgba(16, 185, 129, 0.1) 100%
-  );
-  border-color: var(--color-success);
-  color: #6ee7b7; /* Emerald 300 */
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
-}
-
-.toggle.on::before {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(16, 185, 129, 0.3),
-    transparent
-  );
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent-primary);
 }
 
 .toggle.on:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(16, 185, 129, 0.3) 0%,
-    rgba(16, 185, 129, 0.15) 100%
-  );
-  border-color: #34d399; /* Emerald 400 */
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  background-color: var(--color-accent-secondary);
+  border-color: var(--color-accent-secondary);
 }
 
-/* Focus state for accessibility */
-.toggle:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
-}
-
-.toggle.on:focus {
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
-}
-
-/*
-|--------------------------------------------------------------------------
-| STREAK INDICATOR
-|--------------------------------------------------------------------------
-*/
+/* Streak Badge */
 .hcStreak {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
   padding: 0.5rem 1rem;
-  background: linear-gradient(
-    135deg,
-    rgba(251, 191, 36, 0.15) 0%,
-    rgba(251, 191, 36, 0.05) 100%
-  );
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  border-radius: 0.75rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  font-size: 1rem;
   font-weight: 700;
-  font-size: 0.9375rem;
-  color: #fcd34d; /* Amber 300 */
-  transition: all var(--transition-speed) var(--transition-easing);
-  white-space: nowrap;
-  box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
+  color: var(--color-text-primary);
+  min-width: 70px;
+  justify-content: center;
 }
 
-.habitCard:hover .hcStreak {
-  background: linear-gradient(
-    135deg,
-    rgba(251, 191, 36, 0.2) 0%,
-    rgba(251, 191, 36, 0.1) 100%
-  );
-  border-color: var(--color-warning);
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.35);
-}
-
-/* High streak animation */
-.hcStreak:has(:first-child:not(:empty)) {
+.habitCard.done .hcStreak {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent-primary);
   animation: var(--animation-pulse);
 }
 
-/*
-|--------------------------------------------------------------------------
-| Responsive Design
-|--------------------------------------------------------------------------
-*/
+/* Responsive Design */
 @media (max-width: 768px) {
   .habitCard {
-    padding: 1.25rem;
-  }
-
-  .hcRight {
-    gap: 0.75rem;
-  }
-
-  .toggle {
-    min-width: 80px;
-    padding: 0.5rem 1rem;
-    font-size: 0.8125rem;
-  }
-
-  .hcStreak {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.875rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .habitCard {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 1rem;
-    padding: 1rem;
+    padding: 1.25rem;
   }
 
   .hcLeft {
@@ -349,10 +163,30 @@
 
   .toggle {
     flex: 1;
-    min-width: auto;
+    padding: 0.75rem 1rem;
   }
 
   .hcStreak {
-    flex-shrink: 0;
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hcTitle {
+    font-size: 1rem;
+  }
+
+  .hcDesc {
+    font-size: 0.8125rem;
+  }
+
+  .toggle {
+    font-size: 0.8125rem;
+  }
+
+  .hcStreak {
+    font-size: 0.9375rem;
+    padding: 0.5rem 0.75rem;
+    min-width: 70px;
   }
 }

@@ -1,112 +1,337 @@
+/* Root Container */
 .root {
-  padding: 2rem;
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 2rem;
+  font-family: var(--font-primary);
 }
 
+/* Title */
 .title {
   font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  color: var(--color-text-primary);
+  margin: 0 0 2rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
 }
 
-/* FORM */
+/* Form Card */
 .formCard {
-  padding: 1.5rem;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 2rem;
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 2rem;
+  margin-bottom: 3rem;
 }
 
 .formCard h3 {
-  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
+/* Form Grid */
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .formGrid input,
-.formGrid select,
-.formGrid textarea {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+.formGrid select {
+  width: 100%;
+  padding: 0.875rem 1rem;
   font-size: 0.95rem;
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  transition: all var(--transition-speed) var(--transition-easing);
+  outline: none;
 }
 
-textarea {
-  grid-column: span 2;
-  min-height: 90px;
+.formGrid textarea {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 0.95rem;
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
+  transition: all var(--transition-speed) var(--transition-easing);
+  outline: none;
 }
 
-.submitBtn {
-  margin-top: 1.2rem;
-  padding: 10px 20px;
-  background: #16a34a;
-  color: white;
-  border: none;
-  border-radius: 8px;
+.formGrid input:focus,
+.formGrid select:focus,
+.formGrid textarea:focus {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.formGrid input:hover,
+.formGrid select:hover,
+.formGrid textarea:hover {
+  border-color: var(--color-accent-secondary);
+}
+
+.formGrid input::placeholder,
+.formGrid textarea::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.formGrid select {
   cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 20px;
+  padding-right: 3rem;
 }
 
-/* TEMPLATE GRID */
+/* Submit Button */
+.submitBtn {
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-accent-primary);
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.submitBtn:hover {
+  background-color: var(--color-accent-secondary);
+  border-color: var(--color-accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.submitBtn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Template Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
+/* Template Card */
 .card {
-  padding: 1.2rem;
-  border-radius: 12px;
-  background: white;
-  border: 1px solid #e3e3e3;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  transition: all var(--transition-speed) var(--transition-easing);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-accent-primary);
+}
+
+.card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.card p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* Category */
 .category {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  font-size: 0.75rem !important;
   font-weight: 600;
-  color: #16a34a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-primary) !important;
+  width: fit-content;
 }
 
+/* Time */
 .time {
-  color: #555;
+  font-size: 0.875rem !important;
+  font-weight: 600;
+  color: var(--color-text-primary) !important;
 }
 
+/* Tag */
 .tag {
   display: inline-block;
-  background: #e0f2fe;
-  color: #0284c7;
-  padding: 4px 10px;
-  border-radius: 6px;
-  margin-top: 5px;
-  font-size: 0.85rem;
+  padding: 0.375rem 0.875rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-accent-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
 }
 
+/* Actions */
 .actions {
-  margin-top: 1rem;
   display: flex;
-  gap: 10px;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.editBtn,
+.deleteBtn {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  border: 2px solid var(--color-border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .editBtn {
-  padding: 6px 12px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.editBtn:hover {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent-primary);
+  transform: translateY(-2px);
 }
 
 .deleteBtn {
-  padding: 6px 12px;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  background-color: var(--color-bg-primary);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.deleteBtn:hover {
+  background-color: var(--color-error);
+  color: var(--color-bg-primary);
+  transform: translateY(-2px);
+}
+
+.editBtn:active,
+.deleteBtn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .root {
+    padding: 1.5rem;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .root {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .formCard {
+    padding: 1.5rem;
+  }
+
+  .formCard h3 {
+    font-size: 1.25rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .editBtn,
+  .deleteBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .formCard {
+    padding: 1.25rem;
+  }
+
+  .formCard h3 {
+    font-size: 1.125rem;
+  }
+
+  .formGrid input,
+  .formGrid select,
+  .formGrid textarea {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  .submitBtn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .card h3 {
+    font-size: 1.125rem;
+  }
 }

@@ -1,31 +1,55 @@
-/* MainLayout.module.css */
-
+/* Layout Container */
 .layoutContainer {
   display: flex;
   min-height: 100vh;
   background-color: var(--color-bg-primary);
+  font-family: var(--font-primary);
 }
 
+/* Main Section */
 .mainSection {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  margin-left: 260px; /* Match sidebar width */
+  margin-left: 280px;
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+  transition: margin-left var(--transition-speed) var(--transition-easing);
 }
 
+/* Page Body */
 .pageBody {
-  flex: 1;
   padding: 2rem;
-  overflow-y: auto;
-  background-color: var(--color-bg-primary);
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 4rem);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .mainSection {
+    margin-left: 240px;
+  }
+
+  .pageBody {
+    padding: 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
+  .layoutContainer {
+    flex-direction: column;
+  }
+
   .mainSection {
     margin-left: 0;
   }
 
   .pageBody {
     padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageBody {
+    padding: 0.75rem;
   }
 }
