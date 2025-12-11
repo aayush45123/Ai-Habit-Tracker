@@ -17,6 +17,7 @@ import ProtectedAdminRoute from "./utils/ProtectedAdminRoute";
 import ChallengePage from "./pages/Challenge/ChallengePage";
 import HabitTemplates from "./pages/HabitTemplates/HabitTemplates";
 import AdminTemplates from "./pages/admin/AdminTemplates";
+import Pomodoro from "./pages/Focus/Pomodoro";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/ai" element={<AIChat />} />
           <Route path="/challenge" element={<ChallengePage />} />
           <Route path="/templates" element={<HabitTemplates />} />
+          <Route path="/focus" element={<Pomodoro />} />
 
           {/* ADMIN ONLY (Hidden from sidebar) */}
           <Route

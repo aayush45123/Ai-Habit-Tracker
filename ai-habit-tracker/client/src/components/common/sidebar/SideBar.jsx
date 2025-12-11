@@ -145,6 +145,14 @@ function Sidebar() {
         >
           Habit Templates
         </NavLink>
+        <NavLink
+          to="/focus"
+          className={({ isActive }) =>
+            isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+          }
+        >
+          Focus
+        </NavLink>
       </nav>
 
       <div className={styles.footer}>
