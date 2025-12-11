@@ -12,6 +12,13 @@ import styles from "./Pomodoro.module.css";
   - Show today's focus count (GET /focus/today)
 */
 
+const DEFAULTS = {
+  focus: 25 * 60,
+  shortBreak: 5 * 60,
+  longBreak: 15 * 60,
+  cyclesBeforeLongBreak: 4,
+};
+
 
 // ONLY FOR TESTING PURPOSE //
 // const DEFAULTS = {
@@ -20,13 +27,6 @@ import styles from "./Pomodoro.module.css";
 //   longBreak: 7,
 //   cyclesBeforeLongBreak: 4,
 // };
-
-const DEFAULTS = {
-  focus:  25 * 60,
-  shortBreak: 5 * 60, 
-  longBreak: 15 * 60, 
-  cyclesBeforeLongBreak: 4,
-};
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60)
@@ -222,7 +222,25 @@ export default function Pomodoro() {
 
   return (
     <div className={styles.root}>
-      <h2 className={styles.title}>Focus Mode — Pomodoro</h2>
+      <div className={styles.header}>
+        <h2 className={styles.title}>Focus Mode — Pomodoro</h2>
+        <div className={styles.description}>
+          <p>
+            The Pomodoro Technique was developed by Francesco Cirillo in the
+            late 1980s, named after the tomato-shaped kitchen timer he used as a
+            university student.
+          </p>
+          <p>
+            This time management method breaks work into focused 25-minute
+            intervals separated by short breaks, helping you maintain
+            concentration and prevent burnout.
+          </p>
+          <p>
+            After four work sessions, take a longer break to recharge and
+            maintain peak productivity throughout your day.
+          </p>
+        </div>
+      </div>
 
       <div className={styles.top}>
         <div className={styles.controls}>

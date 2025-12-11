@@ -43,11 +43,12 @@
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
+  box-shadow: 6px 6px 0 var(--color-border);
 }
 
 .chartCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--color-border);
   border-color: var(--color-accent-primary);
 }
 
@@ -77,6 +78,7 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   border: 2px solid var(--color-border);
+  box-shadow: 2px 2px 0 var(--color-border);
 }
 
 /* Chart Wrapper - Square */
@@ -106,11 +108,14 @@
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
+  box-shadow: 3px 3px 0 var(--color-border);
 }
 
 .leadRow:hover {
   background-color: var(--color-bg-tertiary);
   border-color: var(--color-accent-primary);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--color-border);
 }
 
 .leadRank {
@@ -157,6 +162,7 @@
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
+  box-shadow: 6px 6px 0 var(--color-border);
 }
 
 /* Calendar Day Headers */
@@ -206,17 +212,20 @@
   position: relative;
   cursor: default;
   min-height: 0;
+  box-shadow: 2px 2px 0 var(--color-border);
 }
 
 .calendarCell.emptyCell {
   background-color: transparent;
   border-color: transparent;
+  box-shadow: none;
 }
 
 .calendarCell:not(.emptyCell):hover {
-  transform: scale(1.05);
+  transform: translate(-1px, -1px);
   z-index: 1;
   border-color: var(--color-accent-primary);
+  box-shadow: 3px 3px 0 var(--color-border);
 }
 
 .calendarDate {
@@ -272,6 +281,7 @@
   border: 2px solid var(--color-border);
   border-left-width: 4px;
   border-left-color: var(--color-accent-primary);
+  box-shadow: 5px 5px 0 var(--color-border);
 }
 
 .highlightIcon {
@@ -350,6 +360,12 @@
   .chartCard,
   .calendarCard {
     aspect-ratio: auto;
+    box-shadow: 5px 5px 0 var(--color-border);
+  }
+
+  .chartCard:hover,
+  .calendarCard:hover {
+    box-shadow: 6px 6px 0 var(--color-border);
   }
 
   .chartCard {
@@ -383,6 +399,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    box-shadow: 4px 4px 0 var(--color-border);
   }
 
   .highlightText {
@@ -410,6 +427,12 @@
   .chartCard,
   .calendarCard {
     padding: 1rem;
+    box-shadow: 4px 4px 0 var(--color-border);
+  }
+
+  .chartCard:hover,
+  .calendarCard:hover {
+    box-shadow: 5px 5px 0 var(--color-border);
   }
 
   .chartTitle {
@@ -428,6 +451,11 @@
   .leadRow {
     padding: 0.75rem;
     gap: 0.75rem;
+    box-shadow: 2px 2px 0 var(--color-border);
+  }
+
+  .leadRow:hover {
+    box-shadow: 3px 3px 0 var(--color-border);
   }
 
   .leadRank {
@@ -458,6 +486,14 @@
     padding: 0.25rem 0;
   }
 
+  .calendarCell {
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+
+  .calendarCell:not(.emptyCell):hover {
+    box-shadow: 2px 2px 0 var(--color-border);
+  }
+
   .calendarDate {
     font-size: 0.625rem;
   }
@@ -478,6 +514,7 @@
 
   .highlight {
     padding: 1rem;
+    box-shadow: 3px 3px 0 var(--color-border);
   }
 
   .highlightIcon {
