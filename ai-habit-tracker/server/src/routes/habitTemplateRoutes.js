@@ -4,6 +4,14 @@ import HabitTemplate from "../models/HabitTemplate.js";
 const router = express.Router();
 
 /* GET ALL CATEGORIES */
+router.get("/all", async (req, res) => {
+  try {
+    const templates = await HabitTemplate.find();
+    res.json(templates);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 router.get("/categories", async (req, res) => {
   try {
     const categories = await HabitTemplate.distinct("category");

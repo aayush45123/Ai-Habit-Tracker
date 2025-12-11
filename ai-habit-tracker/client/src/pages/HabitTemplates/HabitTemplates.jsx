@@ -5,10 +5,11 @@ import styles from "./HabitTemplates.module.css";
 export default function HabitTemplates() {
   const [categories, setCategories] = useState([]);
   const [templates, setTemplates] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
     loadCategories();
+    loadAllTemplates();
   }, []);
 
   async function loadCategories() {
@@ -16,8 +17,18 @@ export default function HabitTemplates() {
     setCategories(res.data);
   }
 
+  async function loadAllTemplates() {
+    const res = await api.get("/templates/all");
+    setTemplates(res.data);
+  }
+
   async function loadTemplates(category) {
     setSelectedCategory(category);
+
+    if (category === "All") {
+      return loadAllTemplates();
+    }
+
     const res = await api.get(`/templates/${category}`);
     setTemplates(res.data);
   }
@@ -41,6 +52,15 @@ export default function HabitTemplates() {
 
       {/* CATEGORY LIST */}
       <div className={styles.categoryList}>
+        <button
+          className={`${styles.categoryButton} ${
+            selectedCategory === "All" ? styles.active : ""
+          }`}
+          onClick={() => loadTemplates("All")}
+        >
+          All
+        </button>
+
         {categories.map((cat) => (
           <button
             key={cat}
@@ -54,27 +74,28 @@ export default function HabitTemplates() {
         ))}
       </div>
 
-      {/* TEMPLATE CARDS */}
+      {/* TEMPLATES GRID */}
       <div className={styles.templatesGrid}>
-        {templates.map((t) => (
-          <div key={t._id} className={styles.templateCard}>
-            <h3>{t.title}</h3>
-            <p>{t.description}</p>
+        {templates.length === 0 ? (
+          <p>No templates found.</p>
+        ) : (
+          templates.map((t) => (
+            <div key={t._id} className={styles.templateCard}>
+              <h3>{t.title}</h3>
+              <p>{t.description}</p>
 
-            {t.recommendedTime && (
-              <p className={styles.time}>⏱️ {t.recommendedTime}</p>
-            )}
+              {t.recommendedTime && (
+                <p className={styles.time}>⏱️ {t.recommendedTime}</p>
+              )}
 
-            <span className={styles.badge}>{t.difficulty}</span>
+              <span className={styles.badge}>{t.difficulty}</span>
 
-            <button
-              className={styles.addBtn}
-              onClick={() => addHabit(t)}
-            >
-              + Add Habit
-            </button>
-          </div>
-        ))}
+              <button className={styles.addBtn} onClick={() => addHabit(t)}>
+                + Add Habit
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
