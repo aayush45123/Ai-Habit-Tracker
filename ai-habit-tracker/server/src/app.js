@@ -9,6 +9,7 @@ import aiRoutes from "./routes/aiRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import adminTemplateRoutes from "./routes/adminTemplateRoutes.js";
 import publicTemplateRoutes from "./routes/habitTemplateRoutes.js";
+import focusRoutes from "./routes/focusRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/habits", habitRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/challenge", challengeRoutes);
+app.use("/api/focus", focusRoutes);
 
 // Admin-only area
 app.use("/api/admin/templates", adminTemplateRoutes);
