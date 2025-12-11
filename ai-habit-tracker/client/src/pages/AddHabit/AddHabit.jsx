@@ -16,7 +16,7 @@ export default function AddHabit() {
     }
 
     try {
-      await api.post("/habits/create", { title, description, frequency });
+      await api.post("/habits/add", { title, description, frequency });
       window.location.href = "/";
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -25,7 +25,6 @@ export default function AddHabit() {
 
   return (
     <div className={styles.layout}>
-
       <main className={styles.page}>
         <div className={styles.addHabitRoot}>
           <h2>Create a New Habit</h2>

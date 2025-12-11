@@ -102,10 +102,25 @@ export default function Analytics() {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay(); // 0 = Sunday
   const lastDay = new Date(year, month + 1, 0).getDate();
   const todayISO = new Date().toISOString().split("T")[0];
 
-  const calendarDays = [];
+  const monthName = now.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
+  // Create calendar grid with proper week layout
+  const calendarWeeks = [];
+  let currentWeek = [];
+
+  // Add empty cells for days before the first day of month
+  for (let i = 0; i < firstDay; i++) {
+    currentWeek.push({ isEmpty: true });
+  }
+
+  // Add all days of the month
   for (let d = 1; d <= lastDay; d++) {
     const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       d
@@ -119,7 +134,21 @@ export default function Analytics() {
 
     if (iso > todayISO) status = "future";
 
-    calendarDays.push({ iso, day: d, status });
+    currentWeek.push({ iso, day: d, status });
+
+    // If Sunday (end of week) or last day of month, push week and start new
+    if (currentWeek.length === 7) {
+      calendarWeeks.push([...currentWeek]);
+      currentWeek = [];
+    }
+  }
+
+  // Add remaining empty cells to complete last week
+  if (currentWeek.length > 0) {
+    while (currentWeek.length < 7) {
+      currentWeek.push({ isEmpty: true });
+    }
+    calendarWeeks.push(currentWeek);
   }
 
   return (
@@ -170,7 +199,7 @@ export default function Analytics() {
             <span className={styles.badge}>PIE CHART</span>
           </div>
 
-          <div className={styles.pieWrapper}>
+          <div className={styles.chartWrapper}>
             <Pie data={pieData} options={pieOptions} />
           </div>
         </div>
@@ -183,37 +212,74 @@ export default function Analytics() {
           </div>
 
           <div className={styles.leaderboard}>
-            {leaderboard.map((item, i) => (
-              <div key={i} className={styles.leadRow}>
-                <span className={styles.leadRank}>{i + 1}</span>
-                <span className={styles.leadName}>{item.habit}</span>
-                <span className={styles.leadPercent}>
-                  {item.completionRate}%
-                </span>
+            {leaderboard.length > 0 ? (
+              leaderboard.map((item, i) => (
+                <div key={i} className={styles.leadRow}>
+                  <span className={styles.leadRank}>{i + 1}</span>
+                  <span className={styles.leadName}>{item.habit}</span>
+                  <span className={styles.leadPercent}>
+                    {item.completionRate}%
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className={styles.emptyLeaderboard}>
+                No habits tracked yet
               </div>
-            ))}
+            )}
           </div>
         </div>
 
         {/* CALENDAR */}
         <div className={styles.calendarCard}>
-          <h3 className={styles.chartTitle}>Daily Completion Calendar</h3>
+          <div className={styles.chartHeader}>
+            <h3 className={styles.chartTitle}>Daily Completion Calendar</h3>
+            <span className={styles.badge}>{monthName}</span>
+          </div>
 
+          {/* Day Headers */}
+          <div className={styles.calendarDayHeaders}>
+            <div className={styles.dayHeader}>SUN</div>
+            <div className={styles.dayHeader}>MON</div>
+            <div className={styles.dayHeader}>TUE</div>
+            <div className={styles.dayHeader}>WED</div>
+            <div className={styles.dayHeader}>THU</div>
+            <div className={styles.dayHeader}>FRI</div>
+            <div className={styles.dayHeader}>SAT</div>
+          </div>
+
+          {/* Calendar Grid */}
           <div className={styles.calendarGrid}>
-            {calendarDays.map(({ iso, day, status }) => (
-              <div key={iso} className={styles.calendarCell}>
-                {status === "good" && <div className={styles.checkMark}>✔</div>}
-                {status === "bad" && <div className={styles.crossMark}>✖</div>}
-                {status === "empty" && (
-                  <div className={styles.emptyCircle}></div>
-                )}
-                {status === "future" && (
-                  <div className={styles.futureCircle}></div>
-                )}
-
-                {(status === "empty" || status === "future") && (
-                  <div className={styles.calendarDate}>{day}</div>
-                )}
+            {calendarWeeks.map((week, weekIdx) => (
+              <div key={weekIdx} className={styles.calendarWeek}>
+                {week.map((cell, cellIdx) => (
+                  <div
+                    key={cellIdx}
+                    className={`${styles.calendarCell} ${
+                      cell.isEmpty ? styles.emptyCell : ""
+                    }`}
+                  >
+                    {!cell.isEmpty && (
+                      <>
+                        <div className={styles.calendarDate}>{cell.day}</div>
+                        <div className={styles.calendarStatus}>
+                          {cell.status === "good" && (
+                            <div className={styles.checkMark}>✔</div>
+                          )}
+                          {cell.status === "bad" && (
+                            <div className={styles.crossMark}>✖</div>
+                          )}
+                          {cell.status === "empty" && (
+                            <div className={styles.emptyCircle}></div>
+                          )}
+                          {cell.status === "future" && (
+                            <div className={styles.futureCircle}></div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
           </div>
@@ -222,7 +288,7 @@ export default function Analytics() {
 
       {/* BEST DAY */}
       <div className={styles.highlight}>
-        <span className={styles.highlightIcon}>⭐</span>
+        <span className={styles.highlightIcon}></span>
         <span className={styles.highlightText}>
           Best Day: <strong className={styles.highlightValue}>{bestDay}</strong>
         </span>

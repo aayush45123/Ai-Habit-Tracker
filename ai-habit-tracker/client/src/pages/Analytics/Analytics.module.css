@@ -26,7 +26,7 @@
   margin: 0;
 }
 
-/* Charts Grid */
+/* Charts Grid - 2x2 Layout */
 .chartsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -34,12 +34,15 @@
   margin-bottom: 2rem;
 }
 
-/* Chart Card */
+/* Chart Card - Square */
 .chartCard {
   background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
   padding: 1.5rem;
   transition: all var(--transition-speed) var(--transition-easing);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .chartCard:hover {
@@ -56,6 +59,7 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .chartTitle {
@@ -75,18 +79,14 @@
   border: 2px solid var(--color-border);
 }
 
-/* Chart Wrapper */
+/* Chart Wrapper - Square */
 .chartWrapper {
-  height: 300px;
-  position: relative;
-}
-
-.pieWrapper {
-  height: 350px;
+  flex: 1;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 0;
 }
 
 /* Leaderboard */
@@ -94,6 +94,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .leadRow {
@@ -140,30 +142,62 @@
   text-align: right;
 }
 
+.emptyLeaderboard {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
 /* Calendar Card */
 .calendarCard {
-  grid-column: 1 / -1;
   background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
   padding: 1.5rem;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.calendarCard .chartTitle {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
+/* Calendar Day Headers */
+.calendarDayHeaders {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.3rem;
+  margin-bottom: 0.3rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.dayHeader {
+  text-align: center;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0;
 }
 
 /* Calendar Grid */
 .calendarGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.calendarWeek {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.3rem;
+  flex: 1;
 }
 
 .calendarCell {
-  aspect-ratio: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 2px solid var(--color-border);
@@ -171,50 +205,61 @@
   transition: all var(--transition-speed) var(--transition-easing);
   position: relative;
   cursor: default;
+  min-height: 0;
 }
 
-.calendarCell:hover {
+.calendarCell.emptyCell {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.calendarCell:not(.emptyCell):hover {
   transform: scale(1.05);
   z-index: 1;
+  border-color: var(--color-accent-primary);
+}
+
+.calendarDate {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.125rem;
+}
+
+.calendarStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Calendar Status Markers */
 .checkMark {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: var(--color-accent-primary);
   font-weight: 700;
 }
 
 .crossMark {
-  font-size: 1.25rem;
+  font-size: 1rem;
   color: var(--color-error);
   font-weight: 700;
 }
 
 .emptyCircle {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border: 2px solid var(--color-border);
   border-radius: 50%;
   background-color: transparent;
 }
 
 .futureCircle {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border: 2px dashed var(--color-border);
   border-radius: 50%;
   background-color: transparent;
   opacity: 0.5;
-}
-
-.calendarDate {
-  position: absolute;
-  bottom: 2px;
-  right: 4px;
-  font-size: 0.625rem;
-  color: var(--color-text-secondary);
-  font-weight: 600;
 }
 
 /* Highlight Section */
@@ -256,16 +301,31 @@
     gap: 1.5rem;
   }
 
-  .chartWrapper {
-    height: 250px;
+  .chartTitle {
+    font-size: 1.125rem;
   }
 
-  .pieWrapper {
-    height: 300px;
+  .badge {
+    font-size: 0.6875rem;
+    padding: 0.3rem 0.7rem;
   }
 
-  .calendarGrid {
-    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  .calendarDate {
+    font-size: 0.625rem;
+  }
+
+  .checkMark {
+    font-size: 1rem;
+  }
+
+  .crossMark {
+    font-size: 0.875rem;
+  }
+
+  .emptyCircle,
+  .futureCircle {
+    width: 8px;
+    height: 8px;
   }
 }
 
@@ -287,6 +347,11 @@
     gap: 1.25rem;
   }
 
+  .chartCard,
+  .calendarCard {
+    aspect-ratio: auto;
+  }
+
   .chartCard {
     padding: 1.25rem;
   }
@@ -298,16 +363,19 @@
   }
 
   .chartWrapper {
-    height: 220px;
+    height: 300px;
   }
 
-  .pieWrapper {
-    height: 280px;
+  .calendarDate {
+    font-size: 0.75rem;
   }
 
-  .calendarGrid {
-    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
-    gap: 0.375rem;
+  .checkMark {
+    font-size: 1.25rem;
+  }
+
+  .crossMark {
+    font-size: 1rem;
   }
 
   .highlight {
@@ -339,24 +407,21 @@
     font-size: 0.875rem;
   }
 
-  .chartCard {
+  .chartCard,
+  .calendarCard {
     padding: 1rem;
   }
 
   .chartTitle {
-    font-size: 1.125rem;
+    font-size: 1rem;
   }
 
   .badge {
     padding: 0.25rem 0.625rem;
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
   }
 
   .chartWrapper {
-    height: 200px;
-  }
-
-  .pieWrapper {
     height: 250px;
   }
 
@@ -380,9 +445,21 @@
     min-width: 50px;
   }
 
-  .calendarGrid {
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
+  .calendarWeek {
+    gap: 2px;
+  }
+
+  .calendarDayHeaders {
+    gap: 2px;
+  }
+
+  .dayHeader {
+    font-size: 0.5625rem;
+    padding: 0.25rem 0;
+  }
+
+  .calendarDate {
+    font-size: 0.625rem;
   }
 
   .checkMark {
@@ -397,34 +474,6 @@
   .futureCircle {
     width: 8px;
     height: 8px;
-  }
-
-  .calendarDate {
-    font-size: 0.5625rem;
-  }
-
-  .calendarCell {
-    min-height: 40px;
-  }
-
-  .checkMark {
-    font-size: 1.25rem;
-  }
-
-  .crossMark {
-    font-size: 1rem;
-  }
-
-  .emptyCircle,
-  .futureCircle {
-    width: 10px;
-    height: 10px;
-  }
-
-  .calendarDate {
-    font-size: 0.5625rem;
-    bottom: 1px;
-    right: 2px;
   }
 
   .highlight {
