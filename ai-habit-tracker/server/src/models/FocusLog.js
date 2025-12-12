@@ -10,6 +10,16 @@ const focusLogSchema = new mongoose.Schema(
     },
     date: { type: String, required: true }, // "YYYY-MM-DD"
     durationMin: { type: Number, required: true }, // minutes
+    sessionType: {
+      type: String,
+      enum: ["focus", "short", "long"],
+      default: "focus",
+    },
+    status: {
+      type: String,
+      enum: ["completed", "skipped"],
+      default: "completed",
+    },
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

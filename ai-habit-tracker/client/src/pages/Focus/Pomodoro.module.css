@@ -326,3 +326,16 @@
     width: 100%;
   }
 }
+.analyticsCard {
+  background: white;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  border-radius: 12px;
+  border: 2px solid black;
+}
+
+.analyticsTitle {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}

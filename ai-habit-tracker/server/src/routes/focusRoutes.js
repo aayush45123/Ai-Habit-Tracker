@@ -9,8 +9,8 @@ import {
 
 const router = express.Router();
 
-router.post("/log", auth, logFocus); // log a completed focus session
-router.get("/today", auth, getTodayCount); // get today's count / minutes
+router.post("/log", auth, logFocus); // log a completed or skipped session
+router.get("/today", auth, getTodayCount); // get today's count / minutes / skipped
 router.get("/stats", auth, getStats); // aggregated stats (days query param)
 
 export default router;

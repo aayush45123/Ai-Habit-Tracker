@@ -2,12 +2,25 @@ import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import styles from "./ChallengeHeatMap.module.css";
 
+/* Importing React Icons */
+import {
+  FaFire,
+  FaBullseye,
+  FaBolt,
+  FaTrophy,
+  FaChartLine,
+  FaStar,
+  FaCheck,
+} from "react-icons/fa";
+import { FaDumbbell } from "react-icons/fa6";
+import { GiPlantSeed, GiCrystalBall } from "react-icons/gi";
+
 export default function ChallengeHeatmap() {
   const [heatmap, setHeatmap] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hoveredDay, setHoveredDay] = useState(null);
-  const [selectedView, setSelectedView] = useState("grid"); // "grid" or "list"
+  const [selectedView, setSelectedView] = useState("grid");
 
   useEffect(() => {
     fetchHeatmap();
@@ -37,7 +50,9 @@ export default function ChallengeHeatmap() {
   if (!stats || heatmap.length === 0) {
     return (
       <div className={styles.noData}>
-        <div className={styles.noDataIcon}>📊</div>
+        <div className={styles.noDataIcon}>
+          <FaChartLine size={40} />
+        </div>
         <h4 className={styles.noDataTitle}>No Challenge Data Yet</h4>
         <p className={styles.noDataText}>
           Start your 21-day challenge to see your progress heatmap and track
@@ -47,13 +62,11 @@ export default function ChallengeHeatmap() {
     );
   }
 
-  // Group heatmap into weeks (7 days per row)
   const weeks = [];
   for (let i = 0; i < heatmap.length; i += 7) {
     weeks.push(heatmap.slice(i, i + 7));
   }
 
-  // Get color class based on level
   function getLevelClass(level) {
     if (level === -1) return styles.future;
     if (level === 0) return styles.level0;
@@ -64,7 +77,6 @@ export default function ChallengeHeatmap() {
     return styles.level0;
   }
 
-  // Format date for tooltip
   function formatDate(dateStr) {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
@@ -75,25 +87,36 @@ export default function ChallengeHeatmap() {
     });
   }
 
-  // Get day of week
   function getDayOfWeek(dateStr) {
     const date = new Date(dateStr);
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     return days[date.getDay()];
   }
 
-  // Get motivational message based on completion
   function getMotivationalMessage() {
     const completion = stats.overallCompletion;
     if (completion >= 90)
-      return { emoji: "🔥", text: "Absolutely crushing it!", color: "#2e7d4e" };
+      return {
+        icon: <FaFire />,
+        text: "Absolutely crushing it!",
+        color: "#2e7d4e",
+      };
     if (completion >= 75)
-      return { emoji: "💪", text: "You're on fire!", color: "#49a969" };
+      return {
+        icon: <FaDumbbell />,
+        text: "You're on fire!",
+        color: "#49a969",
+      };
     if (completion >= 50)
-      return { emoji: "⚡", text: "Great momentum!", color: "#7bc96f" };
+      return { icon: <FaBolt />, text: "Great momentum!", color: "#7bc96f" };
     if (completion >= 25)
-      return { emoji: "🌱", text: "Keep growing!", color: "#c6e48b" };
-    return { emoji: "🎯", text: "Every step counts!", color: "#7bb77e" };
+      return { icon: <GiPlantSeed />, text: "Keep growing!", color: "#c6e48b" };
+
+    return {
+      icon: <FaBullseye />,
+      text: "Every step counts!",
+      color: "#7bb77e",
+    };
   }
 
   const motivation = getMotivationalMessage();
@@ -104,7 +127,7 @@ export default function ChallengeHeatmap() {
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h3 className={styles.title}>
-            <span className={styles.titleIcon}>🔥</span>
+            <FaFire className={styles.titleIcon} />
             21-Day Challenge Heatmap
           </h3>
           <p className={styles.subtitle}>
@@ -119,7 +142,7 @@ export default function ChallengeHeatmap() {
             }`}
             onClick={() => setSelectedView("grid")}
           >
-            📊 Grid
+            <FaChartLine /> Grid
           </button>
           <button
             className={`${styles.toggleBtn} ${
@@ -127,17 +150,17 @@ export default function ChallengeHeatmap() {
             }`}
             onClick={() => setSelectedView("list")}
           >
-            📋 List
+            <FaChartLine /> List
           </button>
         </div>
       </div>
 
-      {/* MOTIVATIONAL BANNER */}
+      {/* MOTIVATION BANNER */}
       <div
         className={styles.motivationBanner}
         style={{ borderLeftColor: motivation.color }}
       >
-        <span className={styles.motivationEmoji}>{motivation.emoji}</span>
+        <span className={styles.motivationEmoji}>{motivation.icon}</span>
         <div className={styles.motivationContent}>
           <div className={styles.motivationText}>{motivation.text}</div>
           <div className={styles.motivationSubtext}>
@@ -149,7 +172,9 @@ export default function ChallengeHeatmap() {
       {/* STATS GRID */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <div className={styles.statIcon}>🎯</div>
+          <div className={styles.statIcon}>
+            <FaBullseye />
+          </div>
           <div className={styles.statContent}>
             <div className={styles.statValue}>{stats.completedDays}</div>
             <div className={styles.statLabel}>Perfect Days</div>
@@ -163,7 +188,9 @@ export default function ChallengeHeatmap() {
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statIcon}>⚡</div>
+          <div className={styles.statIcon}>
+            <FaBolt />
+          </div>
           <div className={styles.statContent}>
             <div className={styles.statValue}>{stats.currentStreak}</div>
             <div className={styles.statLabel}>Current Streak</div>
@@ -178,7 +205,9 @@ export default function ChallengeHeatmap() {
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statIcon}>🏆</div>
+          <div className={styles.statIcon}>
+            <FaTrophy />
+          </div>
           <div className={styles.statContent}>
             <div className={styles.statValue}>{stats.longestStreak}</div>
             <div className={styles.statLabel}>Longest Streak</div>
@@ -191,7 +220,9 @@ export default function ChallengeHeatmap() {
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statIcon}>📈</div>
+          <div className={styles.statIcon}>
+            <FaChartLine />
+          </div>
           <div className={styles.statContent}>
             <div className={styles.statValue}>{stats.overallCompletion}%</div>
             <div className={styles.statLabel}>Overall Completion</div>
@@ -236,7 +267,7 @@ export default function ChallengeHeatmap() {
                       onMouseLeave={() => setHoveredDay(null)}
                     >
                       {day.level === 4 && (
-                        <span className={styles.perfectDayBadge}>✓</span>
+                        <FaCheck className={styles.perfectDayBadge} />
                       )}
 
                       {hoveredDay === day && (
@@ -251,10 +282,11 @@ export default function ChallengeHeatmap() {
                               </span>
                             )}
                           </div>
+
                           {day.level === -1 ? (
                             <div className={styles.tooltipContent}>
                               <span className={styles.tooltipFuture}>
-                                🔮 Future day
+                                <GiCrystalBall /> Future day
                               </span>
                             </div>
                           ) : (
@@ -288,21 +320,11 @@ export default function ChallengeHeatmap() {
           {/* LEGEND */}
           <div className={styles.legend}>
             <span className={styles.legendLabel}>Less</span>
-            <div className={`${styles.legendCell} ${styles.level0}`}>
-              <span className={styles.legendTooltip}>0%</span>
-            </div>
-            <div className={`${styles.legendCell} ${styles.level1}`}>
-              <span className={styles.legendTooltip}>1-39%</span>
-            </div>
-            <div className={`${styles.legendCell} ${styles.level2}`}>
-              <span className={styles.legendTooltip}>40-69%</span>
-            </div>
-            <div className={`${styles.legendCell} ${styles.level3}`}>
-              <span className={styles.legendTooltip}>70-99%</span>
-            </div>
-            <div className={`${styles.legendCell} ${styles.level4}`}>
-              <span className={styles.legendTooltip}>100%</span>
-            </div>
+            <div className={`${styles.legendCell} ${styles.level0}`}></div>
+            <div className={`${styles.legendCell} ${styles.level1}`}></div>
+            <div className={`${styles.legendCell} ${styles.level2}`}></div>
+            <div className={`${styles.legendCell} ${styles.level3}`}></div>
+            <div className={`${styles.legendCell} ${styles.level4}`}></div>
             <span className={styles.legendLabel}>More</span>
           </div>
         </div>
@@ -340,7 +362,7 @@ export default function ChallengeHeatmap() {
                 <div className={styles.listProgressText}>
                   {day.level === -1 ? (
                     <span className={styles.listFutureText}>
-                      🔮 Coming Soon
+                      <GiCrystalBall /> Coming Soon
                     </span>
                   ) : (
                     <>
@@ -357,7 +379,7 @@ export default function ChallengeHeatmap() {
 
               {day.level === 4 && (
                 <div className={styles.listBadge}>
-                  <span className={styles.listBadgeIcon}>🏆</span>
+                  <FaTrophy className={styles.listBadgeIcon} />
                   Perfect
                 </div>
               )}
@@ -380,7 +402,7 @@ export default function ChallengeHeatmap() {
             className={styles.completionFill}
             style={{ width: `${stats.overallCompletion}%` }}
           >
-            <span className={styles.completionSparkle}>✨</span>
+            <FaStar className={styles.completionSparkle} />
           </div>
         </div>
 
@@ -401,34 +423,37 @@ export default function ChallengeHeatmap() {
         </div>
       </div>
 
-      {/* ACHIEVEMENT SECTION */}
+      {/* ACHIEVEMENTS */}
       {(stats.completedDays >= 7 ||
         stats.longestStreak >= 5 ||
         stats.overallCompletion >= 80) && (
         <div className={styles.achievementsSection}>
-          <h4 className={styles.achievementsTitle}>🏅 Achievements Unlocked</h4>
+          <h4 className={styles.achievementsTitle}>Achievements Unlocked</h4>
           <div className={styles.achievementsList}>
             {stats.completedDays >= 7 && (
               <div className={styles.achievement}>
-                <span className={styles.achievementIcon}>🎯</span>
+                <FaBullseye className={styles.achievementIcon} />
                 <span className={styles.achievementText}>Week Warrior</span>
               </div>
             )}
+
             {stats.longestStreak >= 5 && (
               <div className={styles.achievement}>
-                <span className={styles.achievementIcon}>🔥</span>
+                <FaFire className={styles.achievementIcon} />
                 <span className={styles.achievementText}>Streak Master</span>
               </div>
             )}
+
             {stats.overallCompletion >= 80 && (
               <div className={styles.achievement}>
-                <span className={styles.achievementIcon}>⭐</span>
+                <FaStar className={styles.achievementIcon} />
                 <span className={styles.achievementText}>Excellence</span>
               </div>
             )}
+
             {stats.completedDays === 21 && (
               <div className={styles.achievement}>
-                <span className={styles.achievementIcon}>👑</span>
+                <FaTrophy className={styles.achievementIcon} />
                 <span className={styles.achievementText}>Champion</span>
               </div>
             )}
