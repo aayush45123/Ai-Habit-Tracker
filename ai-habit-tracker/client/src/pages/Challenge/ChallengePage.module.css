@@ -148,7 +148,7 @@
   background-color: var(--color-bg-primary);
   border: 2px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
-  box-shadow: 3px 3px 0 var(--color-border);
+  /* box-shadow: 3px 3px 0 var(--color-border); */
 }
 
 .reviewRow:hover {

@@ -144,7 +144,6 @@ export default function ChallengePage() {
 
       {/* DESCRIPTION BANNER */}
       <div className={styles.descriptionBanner}>
-        <div className={styles.bannerIcon}>🌱</div>
         <div className={styles.bannerContent}>
           <h3 className={styles.bannerTitle}>Why 21 Days?</h3>
           <p className={styles.bannerText}>
