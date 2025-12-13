@@ -1,3 +1,36 @@
+/* Hamburger Menu Button - Mobile Only */
+.hamburger {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 0.75rem;
+  box-shadow: 4px 4px 0px var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  display: none;
+}
+
+.hamburger:hover {
+  box-shadow: 5px 5px 0px var(--color-border);
+}
+
+.hamburger:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px var(--color-border);
+}
+
+/* Overlay for mobile */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 30;
+  display: none;
+}
+
 /* Sidebar Container */
 .sidebar {
   width: 280px;
@@ -11,6 +44,8 @@
   top: 0;
   overflow-y: auto;
   box-shadow: 8px 0px 0px var(--color-border);
+  z-index: 40;
+  transition: transform 0.3s ease-in-out;
 }
 
 /* Header Section */
@@ -191,9 +226,31 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1023px) {
+  /* Show hamburger button on mobile */
+  .hamburger {
+    display: block;
+  }
+
+  /* Show overlay when sidebar is open */
+  .overlay {
+    display: block;
+  }
+
+  /* Hide sidebar by default on mobile */
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  /* Show sidebar when open */
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
-    width: 240px;
+    width: 260px;
   }
 
   .header {
@@ -201,11 +258,45 @@
   }
 
   .navLink {
-    padding: 0.75rem 1rem;
+    padding: 0.875rem 1.25rem;
     font-size: 0.875rem;
   }
 
   .footer {
     padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 240px;
+  }
+
+  .header {
+    padding: 1.25rem 1rem;
+  }
+
+  .logoText {
+    font-size: 1.25rem;
+  }
+
+  .navLink {
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Ensure sidebar is always visible on large screens */
+@media (min-width: 1024px) {
+  .sidebar {
+    transform: translateX(0) !important;
+  }
+
+  .hamburger {
+    display: none;
+  }
+
+  .overlay {
+    display: none !important;
   }
 }
