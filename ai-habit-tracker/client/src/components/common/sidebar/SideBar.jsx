@@ -153,6 +153,14 @@ function Sidebar() {
         >
           Focus
         </NavLink>
+         <NavLink
+          to="/about"
+          className={({ isActive }) =>
+            isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+          }
+        >
+          About us 
+        </NavLink>
       </nav>
 
       <div className={styles.footer}>
