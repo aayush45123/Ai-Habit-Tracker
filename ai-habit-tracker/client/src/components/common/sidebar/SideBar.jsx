@@ -11,7 +11,7 @@ import {
   FiInfo,
   FiLogOut,
 } from "react-icons/fi";
-import styles from "./sidebar.module.css";
+import styles from "./Sidebar.module.css";
 
 function Sidebar() {
   const logout = () => {
