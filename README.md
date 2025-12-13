@@ -1,4 +1,4 @@
-cat << 'EOF' > README.md
+
 # 🧠 AI Habit Tracker
 
 AI Habit Tracker is a full-stack, production-ready web application that helps users build consistency, improve focus, and track habits using smart insights, challenges, and visual analytics.
