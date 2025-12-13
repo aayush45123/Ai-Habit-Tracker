@@ -1,237 +1,174 @@
-# AI Habit Tracker — Full Stack Productivity & Habit-Building Platform
 
-The **AI Habit Tracker** is a full-stack productivity platform designed to help users build habits, track progress, and stay consistent using daily tracking, streaks, and a guided **21-day challenge system**.
+# 🧠 AI Habit Tracker
 
-This project includes:
-- A **React frontend**
-- A **Node.js + Express backend**
-- Secure authentication
-- Habit creation & tracking
-- 21-day challenge module
-- Clean and scalable architecture
+AI Habit Tracker is a full-stack, production-ready web application that helps users build consistency, improve focus, and track habits using smart insights, challenges, and visual analytics.
 
 ---
 
-## ⭐ Features (Completed Till Now)
+## 🌐 Live Application
 
-### ✅ User Authentication
-- Login / Signup system
-- Password hashing using bcrypt
-- JWT-based authentication
-- Retrieves user profile securely
+**Frontend (Vercel)**  
+https://ai-habit-tracker-eb72-c46m8kh3r.vercel.app
 
-### ✅ Habit Management
-- Add new habits with:
-  - Name  
-  - Category  
-  - Description  
-  - Daily tracking time  
-- Edit and delete habits
-- Stores all habits per user
-
-### ✅ Daily Habit Tracking
-- Mark habits as **Completed** or **Missed**
-- Daily streak calculation
-- Resets tracking automatically each day
-- Shows daily progress summary
-
-### ✅ Dashboard Overview
-- Total habits
-- Completed habits today
-- Pending habits
-- Streaks
-- Motivational message section
-
-### ✅ 21-Day Challenge (New Feature)
-A complete challenge flow:
-- Dedicated challenge page
-- Full description of the challenge
-- "Start Challenge" button
-- User must create **minimum 6 habits**
-- Each habit must include a valid time
-- Tracks progress for all 21 days
-- Shows completed days and streak
-- Challenge resets if the streak breaks (future upgrade)
-
-### ✅ Responsive UI
-- Clean UI layout
-- Mobile & Desktop friendly
-
-### ✅ Secure Environment Handling
-- `.env` for client
-- `.env` for server
-- Both safely ignored through `.gitignore`
+**Backend API (Render)**  
+https://ai-habit-tracker-n8w9.onrender.com
 
 ---
 
-## 🔧 Tech Stack
+## 📸 Output Screenshots
+
+### Dashboard
+![Dashboard](./ai-habit-tracker/client/src/assets/dashboard.png)
+
+### Daily Habits View
+![Daily Habits](./ai-habit-tracker/client/src/assets/21.png)
+
+### Pomodoro / Focus Mode
+![Pomodoro](./ai-habit-tracker/client/src/assets/pomodoro.png)
+
+### Habit Templates
+![Templates](./ai-habit-tracker/client/src/assets/templates.png)
+
+---
+
+## ✨ Key Features
+
+- 🔐 User authentication with JWT
+- ✅ Create, update, and track daily habits
+- 📊 Visual progress analytics and charts
+- 🤖 AI-based habit recommendations
+- ⏱️ Focus sessions and Pomodoro tracking
+- 🏆 Challenges and streak maintenance
+- 📱 Responsive and clean user interface
+- ☁️ Deployed with cloud-ready configuration
+
+---
+
+## 🛠 Technology Stack
 
 ### Frontend
-- React
-- React Router
+- React (Vite)
+- React Router DOM
 - Axios
-- Context API / Redux (based on your implementation)
-- CSS / Tailwind CSS
+- Chart.js / Recharts
+- CSS Modules
 
 ### Backend
 - Node.js
 - Express.js
-- MongoDB (Mongoose)
-- JWT for authentication
-- Bcrypt for password hashing
-- dotenv for environment variables
+- MongoDB with Mongoose
+- JWT Authentication
+- Secure CORS configuration
+
+### Deployment
+- Frontend: Vercel
+- Backend: Render
+- Database: MongoDB Atlas
 
 ---
 
-## 📂 Folder Structure
+## 📁 Project Structure
 
-```
-ai-habit-tracker/
-│
-├── client/
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   ├── .env        (ignored)
-│
-├── server/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── package.json
-│   ├── .env        (ignored)
-│
-├── .gitignore
-├── README.md
-```
+Ai-Habit-Tracker
+└── ai-habit-tracker
+    ├── client
+    │   └── src
+    │       └── assets
+    ├── server
+    └── README.md
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙ Environment Variables
 
-### 1️⃣ Clone the Repository
-```bash
+### Backend (server/.env)
+PORT=10000
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+
+### Frontend (client/.env)
+VITE_API_BASE_URL=https://ai-habit-tracker-n8w9.onrender.com
+
+---
+
+## 🚀 Local Development Setup
+
+### 1. Clone the repository
 git clone https://github.com/aayush45123/Ai-Habit-Tracker.git
-cd Ai-Habit-Tracker
-```
+cd Ai-Habit-Tracker/ai-habit-tracker
 
----
-
-## 2️⃣ Backend Setup (Server)
-
-```bash
+### 2. Backend setup
 cd server
 npm install
-```
-
-### Create `.env` inside `server/`
-```
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-PORT=5000
-```
-
-### Run Backend
-```bash
 npm start
-```
-or with nodemon:
-```bash
-npm run dev
-```
 
----
+Backend runs at http://localhost:10000
 
-## 3️⃣ Frontend Setup (Client)
-
-```bash
+### 3. Frontend setup
 cd ../client
 npm install
-```
-
-### Create `.env` inside `client/`
-```
-VITE_API_URL=http://localhost:5000/api
-```
-
-### Start Frontend
-```bash
 npm run dev
-```
+
+Frontend runs at http://localhost:5173
 
 ---
 
-## 🔌 API Endpoints (Summary)
+## 🌍 Deployment Configuration
 
-### Auth Routes
-```
-POST /api/auth/signup
-POST /api/auth/login
-GET  /api/auth/me
-```
+### Vercel (Frontend)
+- Root Directory: ai-habit-tracker/client
+- Build Command: npm run build
+- Output Directory: dist
 
-### Habit Routes
-```
-POST   /api/habits/create
-GET    /api/habits/all
-PATCH  /api/habits/update/:id
-DELETE /api/habits/delete/:id
-```
-
-### Tracking Routes
-```
-POST /api/habits/mark-complete/:id
-POST /api/habits/mark-missed/:id
-```
-
-### 21-Day Challenge Routes
-```
-POST /api/challenge/start
-GET  /api/challenge/status
-POST /api/challenge/update-day
-```
+### Render (Backend)
+- Root Directory: ai-habit-tracker/server
+- Build Command: npm install
+- Start Command: npm start
 
 ---
 
-## 🚀 Roadmap (Upcoming Features)
+## 🔐 Production Notes
 
-- AI habit suggestions
-- AI motivational quote generator
-- Weekly and monthly analytics
-- Push notifications / reminders
-- Calendar view tracking
-- Mood logging system
-- Export progress as PDF
-- Social/Community Challenges
-- UI animation improvements
+- ✅ CORS configured for localhost and all Vercel deployments
+- ✅ Secure environment variables
+- ✅ Optimized Vite production build
+- ✅ Compatible with Node.js 22
+
+---
+
+## 📈 Future Enhancements
+
+- 📬 Push notifications and reminders
+- 📱 Mobile-first experience
+- 🧠 Advanced AI personalization
+- 📄 Data export and reports
+- 🌐 Custom domain support
+
+---
+
+## 👨‍💻 Author
+
+**Aayush**  
+AI & Data Science Student  
+Full-Stack Developer
+
+---
+
+## 📄 License
+
+This project is open source and available under the MIT License.
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository  
-2. Create a new branch  
-3. Commit your changes  
-4. Open a pull request  
+Contributions, issues, and feature requests are welcome!  
+Feel free to check the issues page.
 
 ---
 
-## 🛡️ Security Notes
+## ⭐ Show your support
 
-- `.env` files are **never** committed  
-- API keys and secrets must remain private  
-- Review `.gitignore` before pushing  
+Give a ⭐️ if this project helped you!
 
----
-
-## 📜 License
-
-This project is licensed under the **MIT License**.
-
----
-
-## 🎯 Final Notes
-
-The AI Habit Tracker is built to help users build discipline, track routines, and stay committed through a clean design and powerful features.  
-Future updates will bring AI tools, analytics, and enhanced productivity systems.
-
+EOF
