@@ -11,30 +11,42 @@ import adminTemplateRoutes from "./routes/adminTemplateRoutes.js";
 import publicTemplateRoutes from "./routes/habitTemplateRoutes.js";
 import focusRoutes from "./routes/focusRoutes.js";
 
+/* =======================
+   ENV & DB
+======================= */
 dotenv.config();
 connectDB();
 
 const app = express();
 
 /* =======================
-   ✅ PRODUCTION CORS FIX
+   BODY PARSER (FIRST)
 ======================= */
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://ai-habit-tracker-eb72-c46m8kh3r.vercel.app",
-];
+app.use(express.json());
+
+/* =======================
+   ✅ FINAL PRODUCTION CORS
+======================= */
+const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // allow server-to-server & Postman
+    origin: (origin, callback) => {
+      // Allow Postman, Render internal calls, server-to-server
       if (!origin) return callback(null, true);
 
+      // Allow local dev
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS not allowed"));
+        return callback(null, true);
       }
+
+      // ✅ Allow ALL Vercel deployments
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      // ❌ Block everything else silently
+      return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -42,10 +54,10 @@ app.use(
   })
 );
 
-// 🔴 VERY IMPORTANT — PRE-FLIGHT
+/* =======================
+   PRE-FLIGHT (CRITICAL)
+======================= */
 app.options("*", cors());
-
-app.use(express.json());
 
 /* =======================
    ROUTES
@@ -55,11 +67,21 @@ app.use("/api/habits", habitRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/challenge", challengeRoutes);
 app.use("/api/focus", focusRoutes);
+
+// Admin-only
 app.use("/api/admin/templates", adminTemplateRoutes);
+
+// Public templates
 app.use("/api/templates", publicTemplateRoutes);
 
+/* =======================
+   HEALTH CHECK
+======================= */
 app.get("/", (req, res) => {
-  res.send("AI Habit Tracker Backend Running 🚀");
+  res.status(200).send("AI Habit Tracker Backend Running 🚀");
 });
 
+/* =======================
+   EXPORT APP
+======================= */
 export default app;
