@@ -1,4 +1,16 @@
 import { NavLink } from "react-router-dom";
+import {
+  FiZap,
+  FiHome,
+  FiPlus,
+  FiBarChart2,
+  FiCpu,
+  FiClock,
+  FiLayers,
+  FiTarget,
+  FiInfo,
+  FiLogOut,
+} from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 
 function Sidebar() {
@@ -11,19 +23,7 @@ function Sidebar() {
     <aside className={styles.sidebar}>
       <div className={styles.header}>
         <div className={styles.logo}>
-          <svg
-            className={styles.logoIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
+          <FiZap className={styles.logoIcon} />
           <h2 className={styles.logoText}>HabitAI</h2>
         </div>
       </div>
@@ -35,19 +35,7 @@ function Sidebar() {
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          <svg
-            className={styles.navIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
+          <FiHome className={styles.navIcon} />
           <span>Dashboard</span>
         </NavLink>
 
@@ -57,19 +45,7 @@ function Sidebar() {
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          <svg
-            className={styles.navIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
+          <FiPlus className={styles.navIcon} />
           <span>Add Habit</span>
         </NavLink>
 
@@ -79,19 +55,7 @@ function Sidebar() {
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          <svg
-            className={styles.navIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
+          <FiBarChart2 className={styles.navIcon} />
           <span>Analytics</span>
         </NavLink>
 
@@ -101,78 +65,54 @@ function Sidebar() {
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          <svg
-            className={styles.navIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
+          <FiCpu className={styles.navIcon} />
           <span>AI Insights</span>
         </NavLink>
+
         <NavLink
           to="/challenge"
           className={({ isActive }) =>
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          <svg
-            className={styles.navIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6l4 2m4-5a8 8 0 11-16 0 8 8 0 0116 0z"
-            />
-          </svg>
+          <FiClock className={styles.navIcon} />
           <span>21-Day Challenge</span>
         </NavLink>
+
         <NavLink
           to="/templates"
           className={({ isActive }) =>
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          Habit Templates
+          <FiLayers className={styles.navIcon} />
+          <span>Habit Templates</span>
         </NavLink>
+
         <NavLink
           to="/focus"
           className={({ isActive }) =>
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          Focus
+          <FiTarget className={styles.navIcon} />
+          <span>Focus</span>
         </NavLink>
-         <NavLink
+
+        <NavLink
           to="/about"
           className={({ isActive }) =>
             isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
           }
         >
-          About us 
+          <FiInfo className={styles.navIcon} />
+          <span>About Us</span>
         </NavLink>
       </nav>
 
       <div className={styles.footer}>
         <button className={styles.logoutBtn} onClick={logout}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            />
-          </svg>
+          <FiLogOut />
           Logout
         </button>
 
