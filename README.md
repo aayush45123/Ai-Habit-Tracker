@@ -7,57 +7,60 @@ AI Habit Tracker is a full-stack, production-ready web application that helps us
 
 ## 🌐 Live Application
 
-Frontend (Vercel)  
+**Frontend (Vercel)**  
 https://ai-habit-tracker-eb72-c46m8kh3r.vercel.app
 
-Backend API (Render)  
+**Backend API (Render)**  
 https://ai-habit-tracker-n8w9.onrender.com
 
 ---
 
 ## 📸 Output Screenshots
 
-Login Page  
-![Login](./assets/login.png)
+### Dashboard
+![Dashboard](./ai-habit-tracker/client/src/assets/dashboard.png)
 
-Dashboard  
-![Dashboard](./assets/dashboard.png)
+### Daily Habits View
+![Daily Habits](./ai-habit-tracker/client/src/assets/21.png)
 
-Habit Tracking  
-![Habits](./assets/habits.png)
+### Pomodoro / Focus Mode
+![Pomodoro](./ai-habit-tracker/client/src/assets/pomodoro.png)
+
+### Habit Templates
+![Templates](./ai-habit-tracker/client/src/assets/templates.png)
 
 ---
 
 ## ✨ Key Features
 
-- User authentication with JWT
-- Create, update, and track daily habits
-- Visual progress analytics and charts
-- AI-based habit recommendations
-- Focus sessions and productivity tracking
-- Challenges and streak maintenance
-- Responsive and clean user interface
-- Deployed with cloud-ready configuration
+- 🔐 User authentication with JWT
+- ✅ Create, update, and track daily habits
+- 📊 Visual progress analytics and charts
+- 🤖 AI-based habit recommendations
+- ⏱️ Focus sessions and Pomodoro tracking
+- 🏆 Challenges and streak maintenance
+- 📱 Responsive and clean user interface
+- ☁️ Deployed with cloud-ready configuration
 
 ---
 
 ## 🛠 Technology Stack
 
-Frontend  
+### Frontend
 - React (Vite)
 - React Router DOM
 - Axios
 - Chart.js / Recharts
 - CSS Modules
 
-Backend  
+### Backend
 - Node.js
 - Express.js
 - MongoDB with Mongoose
 - JWT Authentication
 - Secure CORS configuration
 
-Deployment  
+### Deployment
 - Frontend: Vercel
 - Backend: Render
 - Database: MongoDB Atlas
@@ -66,96 +69,106 @@ Deployment
 
 ## 📁 Project Structure
 
-Ai-Habit-Tracker  
-└── ai-habit-tracker  
-    ├── client  
-    ├── server  
-    ├── assets  
+Ai-Habit-Tracker
+└── ai-habit-tracker
+    ├── client
+    │   └── src
+    │       └── assets
+    ├── server
     └── README.md
 
 ---
 
 ## ⚙ Environment Variables
 
-Backend (server/.env)
-```env
+### Backend (server/.env)
 PORT=10000
 MONGO_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
-Frontend (client/.env)
 
-env
-Copy code
+### Frontend (client/.env)
 VITE_API_BASE_URL=https://ai-habit-tracker-n8w9.onrender.com
-🚀 Local Development Setup
-Clone the repository
 
-bash
-Copy code
+---
+
+## 🚀 Local Development Setup
+
+### 1. Clone the repository
 git clone https://github.com/aayush45123/Ai-Habit-Tracker.git
 cd Ai-Habit-Tracker/ai-habit-tracker
-Backend setup
 
-bash
-Copy code
+### 2. Backend setup
 cd server
 npm install
 npm start
-Backend runs at
 
-text
-Copy code
-http://localhost:10000
-Frontend setup
+Backend runs at http://localhost:10000
 
-bash
-Copy code
+### 3. Frontend setup
 cd ../client
 npm install
 npm run dev
-Frontend runs at
 
-text
-Copy code
-http://localhost:5173
-🌍 Deployment Configuration
-Vercel (Frontend)
+Frontend runs at http://localhost:5173
 
-Root Directory: ai-habit-tracker/client
+---
 
-Build Command: npm run build
+## 🌍 Deployment Configuration
 
-Output Directory: dist
+### Vercel (Frontend)
+- Root Directory: ai-habit-tracker/client
+- Build Command: npm run build
+- Output Directory: dist
 
-Render (Backend)
+### Render (Backend)
+- Root Directory: ai-habit-tracker/server
+- Build Command: npm install
+- Start Command: npm start
 
-Root Directory: ai-habit-tracker/server
+---
 
-Build Command: npm install
+## 🔐 Production Notes
 
-Start Command: npm start
+- ✅ CORS configured for localhost and all Vercel deployments
+- ✅ Secure environment variables
+- ✅ Optimized Vite production build
+- ✅ Compatible with Node.js 22
 
-🔐 Production Notes
-CORS configured for localhost and all Vercel deployments
+---
 
-Secure environment variables
+## 📈 Future Enhancements
 
-Optimized Vite production build
+- 📬 Push notifications and reminders
+- 📱 Mobile-first experience
+- 🧠 Advanced AI personalization
+- 📄 Data export and reports
+- 🌐 Custom domain support
 
-Compatible with Node.js 22
+---
 
-📈 Future Enhancements
-Push notifications and reminders
+## 👨‍💻 Author
 
-Mobile-first experience
-
-Advanced AI personalization
-
-Data export and reports
-
-Custom domain support
-
-👨‍💻 Author
-Aayush
-AI & Data Science Student
+**Aayush**  
+AI & Data Science Student  
 Full-Stack Developer
+
+---
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!  
+Feel free to check the issues page.
+
+---
+
+## ⭐ Show your support
+
+Give a ⭐️ if this project helped you!
+
+EOF
