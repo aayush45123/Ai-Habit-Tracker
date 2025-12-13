@@ -18,6 +18,7 @@ import ChallengePage from "./pages/Challenge/ChallengePage";
 import HabitTemplates from "./pages/HabitTemplates/HabitTemplates";
 import AdminTemplates from "./pages/admin/AdminTemplates";
 import Pomodoro from "./pages/Focus/Pomodoro";
+import About from "./pages/About/About";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/challenge" element={<ChallengePage />} />
           <Route path="/templates" element={<HabitTemplates />} />
           <Route path="/focus" element={<Pomodoro />} />
+          <Route path="/about" element={<About />} />
 
           {/* ADMIN ONLY (Hidden from sidebar) */}
           <Route
