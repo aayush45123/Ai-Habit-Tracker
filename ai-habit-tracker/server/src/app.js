@@ -20,44 +20,39 @@ connectDB();
 const app = express();
 
 /* =======================
-   BODY PARSER (FIRST)
+   BODY PARSER
 ======================= */
 app.use(express.json());
 
 /* =======================
-   ✅ FINAL PRODUCTION CORS
+   ✅ PRODUCTION CORS (FIXED)
 ======================= */
 const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow Postman, Render internal calls, server-to-server
+      // Allow Postman / server-to-server
       if (!origin) return callback(null, true);
 
-      // Allow local dev
+      // Allow localhost
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // ✅ Allow ALL Vercel deployments
+      // Allow ALL Vercel deployments
       if (origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
 
-      // ❌ Block everything else silently
+      // Block others silently
       return callback(null, false);
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-/* =======================
-   PRE-FLIGHT (CRITICAL)
-======================= */
-app.options("*", cors());
 
 /* =======================
    ROUTES
@@ -67,11 +62,7 @@ app.use("/api/habits", habitRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/challenge", challengeRoutes);
 app.use("/api/focus", focusRoutes);
-
-// Admin-only
 app.use("/api/admin/templates", adminTemplateRoutes);
-
-// Public templates
 app.use("/api/templates", publicTemplateRoutes);
 
 /* =======================
@@ -81,7 +72,4 @@ app.get("/", (req, res) => {
   res.status(200).send("AI Habit Tracker Backend Running 🚀");
 });
 
-/* =======================
-   EXPORT APP
-======================= */
 export default app;
