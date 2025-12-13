@@ -18,7 +18,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://YOUR-VERCEL-URL.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "ai-habit-tracker-eb72-c46m8kh3r.vercel.app",
+    ],
     credentials: true,
   })
 );
