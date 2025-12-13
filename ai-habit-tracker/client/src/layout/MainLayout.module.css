@@ -4,6 +4,8 @@
   min-height: 100vh;
   background-color: var(--color-bg-primary);
   font-family: var(--font-primary);
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  width: 100%; /* Ensure container doesn't exceed viewport */
 }
 
 /* Main Section */
@@ -13,6 +15,7 @@
   flex-direction: column; /* Allows footer to stay at bottom */
   margin-left: 280px;
   min-height: 100vh;
+  min-width: 0; /* Important: allows flex item to shrink below content size */
   background-color: var(--color-bg-primary);
   transition: margin-left var(--transition-speed) var(--transition-easing);
   position: relative;
@@ -37,6 +40,7 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 /* -------------------------
