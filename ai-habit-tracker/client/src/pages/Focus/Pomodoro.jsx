@@ -2,15 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import api from "../../utils/api";
 import styles from "./Pomodoro.module.css";
-
-/*
-  Features:
-  - 25 min focus / 5 min break / long break after 4 cycles
-  - Sound + Desktop notification
-  - Persist timer state in localStorage (so refresh won't fully lose progress)
-  - Log a focus session to backend on successful completion (POST /focus/log)
-  - Show today's focus count (GET /focus/today)
-*/
+import PomodoroAnalytics from "../../components/PomodoroAnalytics/PomodoroAnalytics";
 
 const DEFAULTS = {
   focus: 25 * 60,
@@ -19,11 +11,10 @@ const DEFAULTS = {
   cyclesBeforeLongBreak: 4,
 };
 
-
 // ONLY FOR TESTING PURPOSE //
 // const DEFAULTS = {
-//   focus: 10, 
-//   shortBreak: 3, 
+//   focus: 10,
+//   shortBreak: 3,
 //   longBreak: 7,
 //   cyclesBeforeLongBreak: 4,
 // };
@@ -37,25 +28,23 @@ function formatTime(sec) {
 }
 
 export default function Pomodoro() {
-  // sessionType: "focus" | "short" | "long"
   const [sessionType, setSessionType] = useState("focus");
   const [secondsLeft, setSecondsLeft] = useState(DEFAULTS.focus);
   const [running, setRunning] = useState(false);
-  const [cycleCount, setCycleCount] = useState(0); // completed focus sessions in current set
+  const [cycleCount, setCycleCount] = useState(0);
   const [completedToday, setCompletedToday] = useState(0);
+  const [skippedToday, setSkippedToday] = useState(0);
+  const [wasSkipped, setWasSkipped] = useState(false);
   const tickRef = useRef(null);
   const audioRef = useRef(null);
 
-  // localStorage key
   const KEY = "pomodoro_state_v1";
 
-  // load persisted state
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        // restore
         if (s.sessionType) setSessionType(s.sessionType);
         if (typeof s.secondsLeft === "number") setSecondsLeft(s.secondsLeft);
         if (typeof s.running === "boolean") setRunning(s.running);
@@ -65,13 +54,11 @@ export default function Pomodoro() {
       // ignore
     }
     fetchTodayCount();
-    // request notification permission early
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission().catch(() => {});
     }
   }, []);
 
-  // persist
   useEffect(() => {
     const payload = {
       sessionType,
@@ -83,7 +70,6 @@ export default function Pomodoro() {
     localStorage.setItem(KEY, JSON.stringify(payload));
   }, [sessionType, secondsLeft, running, cycleCount]);
 
-  // timer effect
   useEffect(() => {
     if (running) {
       tickRef.current = setInterval(() => {
@@ -100,32 +86,30 @@ export default function Pomodoro() {
     };
   }, [running]);
 
-  // handle end of a session
   useEffect(() => {
     if (secondsLeft <= 0) {
-      // stop timer first
       setRunning(false);
       playSound();
-      notify(
-        `${sessionType === "focus" ? "Focus complete 🎉" : "Break over"} `
-      );
 
-      if (sessionType === "focus") {
-        // increment cycle
+      // Only log as completed if it wasn't manually skipped
+      if (sessionType === "focus" && !wasSkipped) {
+        notify("Focus complete 🎉");
         const newCycle = cycleCount + 1;
         setCycleCount(newCycle);
 
-        // log focus session to backend (duration = focus minutes)
-        logFocusSession(DEFAULTS.focus / 60).catch((err) => {
-          // ignore: we don't block UX if logging fails
+        // Log completed focus session
+        logFocusSession(DEFAULTS.focus / 60, "completed").catch((err) => {
           console.error("Log focus session failed", err);
         });
+      } else if (sessionType !== "focus") {
+        notify("Break over");
       }
 
-      // determine next session
+      // Reset skip flag
+      setWasSkipped(false);
+
       if (sessionType === "focus") {
-        // choose short or long break
-        const afterCycles = cycleCount + 1; // cycles after increment
+        const afterCycles = cycleCount + (wasSkipped ? 0 : 1);
         if (afterCycles % DEFAULTS.cyclesBeforeLongBreak === 0) {
           setSessionType("long");
           setSecondsLeft(DEFAULTS.longBreak);
@@ -134,20 +118,19 @@ export default function Pomodoro() {
           setSecondsLeft(DEFAULTS.shortBreak);
         }
       } else {
-        // break ended -> go to focus
         setSessionType("focus");
         setSecondsLeft(DEFAULTS.focus);
       }
     }
   }, [secondsLeft]); // eslint-disable-line
 
-  async function logFocusSession(minutes) {
+  async function logFocusSession(minutes, status = "completed") {
     try {
       await api.post("/focus/log", {
         durationMin: minutes,
-        // server will attach date/user
+        sessionType: sessionType,
+        status: status,
       });
-      // refresh today's count
       fetchTodayCount();
     } catch (err) {
       console.error(err);
@@ -158,6 +141,7 @@ export default function Pomodoro() {
     try {
       const res = await api.get("/focus/today");
       setCompletedToday(res.data.count || 0);
+      setSkippedToday(res.data.skipped || 0);
     } catch (err) {
       console.error("fetchTodayCount", err);
     }
@@ -175,6 +159,19 @@ export default function Pomodoro() {
   }
 
   function skipSession() {
+    // Mark that this session was skipped
+    setWasSkipped(true);
+
+    // Log as skipped if it's a focus session
+    if (sessionType === "focus") {
+      // Calculate how much time was actually spent before skipping
+      const timeSpent = sessionLength - secondsLeft;
+      const minutesSpent = Math.floor(timeSpent / 60);
+
+      logFocusSession(minutesSpent, "skipped").catch((err) => {
+        console.error("Log skipped session failed", err);
+      });
+    }
     setSecondsLeft(0);
   }
 
@@ -201,15 +198,9 @@ export default function Pomodoro() {
       try {
         new Notification(message, { silent: false });
       } catch (e) {}
-    } else {
-      // fallback: small browser alert
-      // not ideal — but visible
-      // window.alert(message);
-      // prefer in-app toast (not included here)
     }
   }
 
-  // small helpers to display progress %
   const sessionLength =
     sessionType === "focus"
       ? DEFAULTS.focus
@@ -270,9 +261,15 @@ export default function Pomodoro() {
           </button>
         </div>
 
-        <div className={styles.stat}>
-          <div>Completed today</div>
-          <div className={styles.count}>{completedToday}</div>
+        <div className={styles.statsGroup}>
+          <div className={styles.stat}>
+            <div>Completed</div>
+            <div className={styles.count}>{completedToday}</div>
+          </div>
+          <div className={styles.stat}>
+            <div>Skipped</div>
+            <div className={styles.count}>{skippedToday}</div>
+          </div>
         </div>
       </div>
 
@@ -317,7 +314,9 @@ export default function Pomodoro() {
         </div>
       </div>
 
-      {/* audio element for bell */}
+      {/* Analytics Section */}
+      <PomodoroAnalytics />
+
       <audio
         ref={audioRef}
         src="/sounds/pomodoro_bell.wav"

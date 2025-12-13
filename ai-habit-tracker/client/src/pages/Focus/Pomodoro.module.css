@@ -99,13 +99,26 @@
   box-shadow: 5px 5px 0px var(--color-accent-secondary);
 }
 
+/* ==================== Stats Group ==================== */
+.statsGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .stat {
   text-align: center;
   padding: 1rem 1.5rem;
   background-color: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
   box-shadow: 6px 6px 0px var(--color-accent-primary);
-  min-width: 150px;
+  min-width: 120px;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.stat:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 7px 7px 0px var(--color-accent-primary);
 }
 
 .stat div:first-child {
@@ -130,6 +143,7 @@
   padding: 3rem;
   box-shadow: 12px 12px 0px var(--color-accent-primary);
   transition: all var(--transition-speed) var(--transition-easing);
+  margin-bottom: 3rem;
 }
 
 .card:hover {
@@ -307,6 +321,10 @@
     justify-content: center;
   }
 
+  .statsGroup {
+    justify-content: center;
+  }
+
   .card {
     padding: 2rem 1.5rem;
     box-shadow: 8px 8px 0px var(--color-accent-primary);
@@ -325,17 +343,4 @@
   .ghost {
     width: 100%;
   }
-}
-.analyticsCard {
-  background: white;
-  padding: 1.5rem;
-  margin-top: 2rem;
-  border-radius: 12px;
-  border: 2px solid black;
-}
-
-.analyticsTitle {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
 }
