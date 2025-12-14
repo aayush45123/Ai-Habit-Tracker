@@ -76,7 +76,7 @@ export const updateChallenge = async (req, res) => {
 };
 
 /* -----------------------------------------------------
-   GET CURRENT ACTIVE CHALLENGE
+   GET CURRENT ACTIVE CHALLENGE - FIXED
 ----------------------------------------------------- */
 export const getCurrentChallenge = async (req, res) => {
   try {
@@ -88,7 +88,12 @@ export const getCurrentChallenge = async (req, res) => {
     if (!challenge)
       return res.json({ active: false, message: "No active challenge" });
 
-    const todayISO = new Date().toISOString().split("T")[0];
+    // Get current date and time in local timezone
+    const now = new Date();
+    const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      .toISOString()
+      .split("T")[0];
+
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
 
     const TOTAL_DAYS = 21;
@@ -102,16 +107,32 @@ export const getCurrentChallenge = async (req, res) => {
       const statuses = challenge.habits.map((habit, index) => {
         const log = logs.find((l) => l.date === iso && l.habitIndex === index);
 
-        const now = new Date();
-        const start = new Date(`${iso}T${habit.startTime}`);
-        const end = new Date(`${iso}T${habit.endTime}`);
+        // Parse habit times for today
+        const [startHour, startMin] = habit.startTime.split(":").map(Number);
+        const [endHour, endMin] = habit.endTime.split(":").map(Number);
+
+        // Create date objects using local time
+        const startTime = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          startHour,
+          startMin
+        );
+        const endTime = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          endHour,
+          endMin
+        );
 
         if (iso < todayISO) return log ? "done" : "expired";
 
         if (iso === todayISO) {
           if (log) return "done";
-          if (now < start) return "pending";
-          if (now >= start && now <= end) return "ongoing";
+          if (now < startTime) return "pending";
+          if (now >= startTime && now <= endTime) return "ongoing";
           return "expired";
         }
 
@@ -144,7 +165,10 @@ export const getChallengeHeatmap = async (req, res) => {
     if (!challenge) return res.json({ heatmap: [], stats: null });
 
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
-    const todayISO = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      .toISOString()
+      .split("T")[0];
     const TOTAL_DAYS = 21;
     const heatmap = [];
 
@@ -254,21 +278,37 @@ export const markHabitDone = async (req, res) => {
     if (!challenge)
       return res.status(404).json({ message: "Challenge not found" });
 
-    const todayISO = new Date().toISOString().split("T")[0];
+    // Get current date and time in local timezone
+    const now = new Date();
+    const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      .toISOString()
+      .split("T")[0];
+
     const habit = challenge.habits[index];
 
-    // Habits are already stored in 24-hour format (HH:mm)
-    // No need to convert them again
-    const start24 = habit.startTime;
-    const end24 = habit.endTime;
+    // Parse habit times
+    const [startHour, startMin] = habit.startTime.split(":").map(Number);
+    const [endHour, endMin] = habit.endTime.split(":").map(Number);
 
-    const now = new Date();
-    const start = new Date(`${todayISO}T${start24}`);
-    const end = new Date(`${todayISO}T${end24}`);
+    // Create date objects using local time
+    const startTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      startHour,
+      startMin
+    );
+    const endTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      endHour,
+      endMin
+    );
 
-    if (now < start)
+    if (now < startTime)
       return res.status(400).json({ message: "Too early to mark done." });
-    if (now > end)
+    if (now > endTime)
       return res.status(400).json({ message: "Time window expired." });
 
     await ChallengeLog.findOneAndUpdate(
