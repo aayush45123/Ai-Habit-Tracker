@@ -6,13 +6,10 @@ import ChallengeLog from "../models/ChallengeLog.js";
 ----------------------------------------------------- */
 function convertTo24FromString(fullTime) {
   if (!fullTime) return "";
-
   let [time, period] = fullTime.split(" ");
   let [hour, minute] = time.split(":").map(Number);
-
   if (period === "PM" && hour !== 12) hour += 12;
   if (period === "AM" && hour === 12) hour = 0;
-
   return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
@@ -22,7 +19,6 @@ function convertTo24FromString(fullTime) {
 export const startChallenge = async (req, res) => {
   try {
     let { habits } = req.body;
-
     if (!habits || habits.length < 6)
       return res
         .status(400)
@@ -93,7 +89,6 @@ export const getCurrentChallenge = async (req, res) => {
       return res.json({ active: false, message: "No active challenge" });
 
     const todayISO = new Date().toISOString().split("T")[0];
-
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
 
     const TOTAL_DAYS = 21;
@@ -150,7 +145,6 @@ export const getChallengeHeatmap = async (req, res) => {
 
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
     const todayISO = new Date().toISOString().split("T")[0];
-
     const TOTAL_DAYS = 21;
     const heatmap = [];
 
@@ -251,12 +245,11 @@ export const getChallengeHeatmap = async (req, res) => {
 };
 
 /* -----------------------------------------------------
-   MARK HABIT DONE
+   MARK HABIT DONE - FIXED
 ----------------------------------------------------- */
 export const markHabitDone = async (req, res) => {
   try {
     const { id, index } = req.params;
-
     const challenge = await Challenge.findById(id);
     if (!challenge)
       return res.status(404).json({ message: "Challenge not found" });
@@ -264,18 +257,10 @@ export const markHabitDone = async (req, res) => {
     const todayISO = new Date().toISOString().split("T")[0];
     const habit = challenge.habits[index];
 
-    function convertTo24(fullTime) {
-      let [t, p] = fullTime.split(" ");
-      let [h, m] = t.split(":").map(Number);
-
-      if (p === "PM" && h !== 12) h += 12;
-      if (p === "AM" && h === 12) h = 0;
-
-      return `${String(h).padStart(2, "0")}:${m}`;
-    }
-
-    const start24 = convertTo24(habit.startTime);
-    const end24 = convertTo24(habit.endTime);
+    // Habits are already stored in 24-hour format (HH:mm)
+    // No need to convert them again
+    const start24 = habit.startTime;
+    const end24 = habit.endTime;
 
     const now = new Date();
     const start = new Date(`${todayISO}T${start24}`);
@@ -283,7 +268,6 @@ export const markHabitDone = async (req, res) => {
 
     if (now < start)
       return res.status(400).json({ message: "Too early to mark done." });
-
     if (now > end)
       return res.status(400).json({ message: "Time window expired." });
 
