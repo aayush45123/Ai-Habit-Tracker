@@ -2,7 +2,7 @@
 .hamburger {
   position: fixed;
   top: 1rem;
-  left: 1rem;
+  right: 1rem;
   z-index: 50;
   background-color: var(--color-bg-primary);
   border: 2px solid var(--color-border);
