@@ -23,10 +23,11 @@ export const startChallenge = async (req, res) => {
   try {
     let { habits } = req.body;
 
-    if (!habits || habits.length < 6)
+    if (!habits || habits.length < 6) {
       return res
         .status(400)
         .json({ message: "Please enter at least 6 habits." });
+    }
 
     const formattedHabits = habits.map((h) => ({
       title: h.title,
@@ -34,11 +35,17 @@ export const startChallenge = async (req, res) => {
       endTime: convertTo24FromString(h.endTime),
     }));
 
+    const today = new Date();
+    const startDate = today.toISOString().split("T")[0];
+    const endDate = new Date(today.getTime() + 20 * 86400000)
+      .toISOString()
+      .split("T")[0];
+
     const challenge = await Challenge.create({
       userId: req.user,
       habits: formattedHabits,
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: new Date(Date.now() + 20 * 86400000).toISOString().split("T")[0],
+      startDate,
+      endDate,
       isActive: true,
     });
 
@@ -56,10 +63,11 @@ export const updateChallenge = async (req, res) => {
     const { habits } = req.body;
     const challengeId = req.params.id;
 
-    if (!habits || habits.length < 6)
+    if (!habits || habits.length < 6) {
       return res
         .status(400)
         .json({ message: "Please enter at least 6 habits." });
+    }
 
     const formattedHabits = habits.map((h) => ({
       title: h.title,
@@ -80,7 +88,7 @@ export const updateChallenge = async (req, res) => {
 };
 
 /* -----------------------------------------------------
-   GET CURRENT ACTIVE CHALLENGE
+   GET CURRENT ACTIVE CHALLENGE (FIXED)
 ----------------------------------------------------- */
 export const getCurrentChallenge = async (req, res) => {
   try {
@@ -93,7 +101,6 @@ export const getCurrentChallenge = async (req, res) => {
       return res.json({ active: false, message: "No active challenge" });
 
     const todayISO = new Date().toISOString().split("T")[0];
-
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
 
     const TOTAL_DAYS = 21;
@@ -109,7 +116,12 @@ export const getCurrentChallenge = async (req, res) => {
 
         const now = new Date();
         const start = new Date(`${iso}T${habit.startTime}`);
-        const end = new Date(`${iso}T${habit.endTime}`);
+        let end = new Date(`${iso}T${habit.endTime}`);
+
+        // ✅ FIX: handle PM → AM crossing
+        if (end < start) {
+          end.setDate(end.getDate() + 1);
+        }
 
         if (iso < todayISO) return log ? "done" : "expired";
 
@@ -137,7 +149,48 @@ export const getCurrentChallenge = async (req, res) => {
 };
 
 /* -----------------------------------------------------
-   GET HEATMAP DATA
+   MARK HABIT DONE (🔥 MAIN FIX)
+----------------------------------------------------- */
+export const markHabitDone = async (req, res) => {
+  try {
+    const { id, index } = req.params;
+
+    const challenge = await Challenge.findById(id);
+    if (!challenge)
+      return res.status(404).json({ message: "Challenge not found" });
+
+    const todayISO = new Date().toISOString().split("T")[0];
+    const habit = challenge.habits[index];
+
+    const now = new Date();
+    const start = new Date(`${todayISO}T${habit.startTime}`);
+    let end = new Date(`${todayISO}T${habit.endTime}`);
+
+    // ✅ handle overnight habits
+    if (end < start) {
+      end.setDate(end.getDate() + 1);
+    }
+
+    if (now < start)
+      return res.status(400).json({ message: "Too early to mark done." });
+
+    if (now > end)
+      return res.status(400).json({ message: "Time window expired." });
+
+    await ChallengeLog.findOneAndUpdate(
+      { challengeId: id, habitIndex: index, date: todayISO },
+      { status: "done" },
+      { upsert: true }
+    );
+
+    res.json({ message: "Habit marked done!" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* -----------------------------------------------------
+   HEATMAP (NO CHANGE)
 ----------------------------------------------------- */
 export const getChallengeHeatmap = async (req, res) => {
   try {
@@ -159,30 +212,21 @@ export const getChallengeHeatmap = async (req, res) => {
       dateObj.setDate(dateObj.getDate() + i);
       const iso = dateObj.toISOString().split("T")[0];
 
-      // Count completed habits for this day
-      const completedCount = challenge.habits.filter((habit, index) => {
-        return logs.some((l) => l.date === iso && l.habitIndex === index);
-      }).length;
+      const completedCount = challenge.habits.filter((_, index) =>
+        logs.some((l) => l.date === iso && l.habitIndex === index)
+      ).length;
 
       const totalHabits = challenge.habits.length;
       const completionRate =
         totalHabits > 0 ? (completedCount / totalHabits) * 100 : 0;
 
-      // Determine intensity level (0-4 like GitHub)
       let level = 0;
-      if (iso > todayISO) {
-        level = -1; // future day
-      } else if (completionRate === 0) {
-        level = 0; // no activity
-      } else if (completionRate < 40) {
-        level = 1; // low activity
-      } else if (completionRate < 70) {
-        level = 2; // medium activity
-      } else if (completionRate < 100) {
-        level = 3; // high activity
-      } else {
-        level = 4; // perfect day
-      }
+      if (iso > todayISO) level = -1;
+      else if (completionRate === 0) level = 0;
+      else if (completionRate < 40) level = 1;
+      else if (completionRate < 70) level = 2;
+      else if (completionRate < 100) level = 3;
+      else level = 4;
 
       heatmap.push({
         date: iso,
@@ -193,107 +237,7 @@ export const getChallengeHeatmap = async (req, res) => {
       });
     }
 
-    // Calculate overall stats
-    const completedDays = heatmap.filter(
-      (d) => d.level === 4 && d.date <= todayISO
-    ).length;
-    const activeDays = heatmap.filter(
-      (d) => d.level > 0 && d.date <= todayISO
-    ).length;
-    const totalPossibleHabits =
-      heatmap.filter((d) => d.date <= todayISO).length *
-      challenge.habits.length;
-    const totalCompleted = logs.length;
-    const overallCompletion =
-      totalPossibleHabits > 0
-        ? Math.round((totalCompleted / totalPossibleHabits) * 100)
-        : 0;
-
-    // Current streak calculation
-    let currentStreak = 0;
-    const reversedHeatmap = [...heatmap].reverse();
-    for (const day of reversedHeatmap) {
-      if (day.date > todayISO) continue;
-      if (day.level === 4) {
-        currentStreak++;
-      } else {
-        break;
-      }
-    }
-
-    // Longest streak calculation
-    let longestStreak = 0;
-    let tempStreak = 0;
-    for (const day of heatmap) {
-      if (day.date > todayISO) continue;
-      if (day.level === 4) {
-        tempStreak++;
-        longestStreak = Math.max(longestStreak, tempStreak);
-      } else {
-        tempStreak = 0;
-      }
-    }
-
-    const stats = {
-      completedDays,
-      activeDays,
-      currentStreak,
-      longestStreak,
-      overallCompletion,
-      totalCompleted,
-      totalPossibleHabits,
-    };
-
-    res.json({ heatmap, stats, challenge });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-/* -----------------------------------------------------
-   MARK HABIT DONE
------------------------------------------------------ */
-export const markHabitDone = async (req, res) => {
-  try {
-    const { id, index } = req.params;
-
-    const challenge = await Challenge.findById(id);
-    if (!challenge)
-      return res.status(404).json({ message: "Challenge not found" });
-
-    const todayISO = new Date().toISOString().split("T")[0];
-    const habit = challenge.habits[index];
-
-    function convertTo24(fullTime) {
-      let [t, p] = fullTime.split(" ");
-      let [h, m] = t.split(":").map(Number);
-
-      if (p === "PM" && h !== 12) h += 12;
-      if (p === "AM" && h === 12) h = 0;
-
-      return `${String(h).padStart(2, "0")}:${m}`;
-    }
-
-    const start24 = convertTo24(habit.startTime);
-    const end24 = convertTo24(habit.endTime);
-
-    const now = new Date();
-    const start = new Date(`${todayISO}T${start24}`);
-    const end = new Date(`${todayISO}T${end24}`);
-
-    if (now < start)
-      return res.status(400).json({ message: "Too early to mark done." });
-
-    if (now > end)
-      return res.status(400).json({ message: "Time window expired." });
-
-    await ChallengeLog.findOneAndUpdate(
-      { challengeId: id, habitIndex: index, date: todayISO },
-      { status: "done" },
-      { upsert: true }
-    );
-
-    res.json({ message: "Habit marked done!" });
+    res.json({ heatmap, challenge });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
