@@ -27,32 +27,41 @@ app.use(express.json());
 /* =======================
    ✅ PRODUCTION CORS (FIXED)
 ======================= */
-const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://ai-habit-tracker-eb72.vercel.app", // 👈 YOUR VERCEL FRONTEND
+];
 
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: function (origin, callback) {
       // Allow Postman / server-to-server
       if (!origin) return callback(null, true);
 
-      // Allow localhost
+      // Allow known origins
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // Allow ALL Vercel deployments
+      // Allow all Vercel preview deployments
       if (origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
 
-      // Block others silently
-      return callback(null, false);
+      // ❌ Reject others properly (not silently)
+      return callback(new Error("CORS not allowed"), false);
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+/* =======================
+   ✅ PREFLIGHT FIX (VERY IMPORTANT)
+======================= */
+app.options("*", cors());
 
 /* =======================
    ROUTES
