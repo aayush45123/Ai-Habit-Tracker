@@ -88,8 +88,13 @@ export const getCurrentChallenge = async (req, res) => {
     if (!challenge)
       return res.json({ active: false, message: "No active challenge" });
 
+    // Use client-provided local time to avoid timezone mismatches
+    const clientHour = req.query.hour ? Number(req.query.hour) : null;
+    const clientMinute = req.query.minute ? Number(req.query.minute) : null;
+    const clientToday = req.query.today || null; // expected "YYYY-MM-DD"
+
     const now = new Date();
-    const todayISO = now.toISOString().split("T")[0];
+    const todayISO = clientToday || now.toISOString().split("T")[0];
 
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
 
@@ -100,7 +105,8 @@ export const getCurrentChallenge = async (req, res) => {
     console.log("=== DEBUG INFO ===");
     console.log("Current time:", now.toISOString());
     console.log("Current time (local):", now.toString());
-    console.log("Today ISO:", todayISO);
+    console.log("Client Today ISO (if provided):", clientToday);
+    console.log("Today ISO used:", todayISO);
     console.log("Server timezone offset:", now.getTimezoneOffset(), "minutes");
 
     for (let i = 0; i < TOTAL_DAYS; i++) {
@@ -112,8 +118,8 @@ export const getCurrentChallenge = async (req, res) => {
         const log = logs.find((l) => l.date === iso && l.habitIndex === index);
 
         // Current time components
-        const currentHour = now.getHours();
-        const currentMinute = now.getMinutes();
+        const currentHour = clientHour ?? now.getHours();
+        const currentMinute = clientMinute ?? now.getMinutes();
         const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
         // Parse habit times
@@ -164,6 +170,9 @@ export const getCurrentChallenge = async (req, res) => {
         currentTime: now.toISOString(),
         currentTimeLocal: now.toString(),
         todayISO,
+        clientToday,
+        clientHour,
+        clientMinute,
         serverTimezoneOffset: now.getTimezoneOffset(),
       },
     });
@@ -292,18 +301,24 @@ export const getChallengeHeatmap = async (req, res) => {
 export const markHabitDone = async (req, res) => {
   try {
     const { id, index } = req.params;
+    const habitIndex = Number(index);
     const challenge = await Challenge.findById(id);
     if (!challenge)
       return res.status(404).json({ message: "Challenge not found" });
 
-    const now = new Date();
-    const todayISO = now.toISOString().split("T")[0];
+    // Use client-provided local time to avoid timezone mismatches
+    const clientHour = req.query.hour ? Number(req.query.hour) : null;
+    const clientMinute = req.query.minute ? Number(req.query.minute) : null;
+    const clientToday = req.query.today || null; // expected "YYYY-MM-DD"
 
-    const habit = challenge.habits[index];
+    const now = new Date();
+    const todayISO = clientToday || now.toISOString().split("T")[0];
+
+    const habit = challenge.habits[habitIndex];
 
     // Current time in minutes
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
+    const currentHour = clientHour ?? now.getHours();
+    const currentMinute = clientMinute ?? now.getMinutes();
     const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
     // Parse habit times
@@ -318,7 +333,7 @@ export const markHabitDone = async (req, res) => {
       return res.status(400).json({ message: "Time window expired." });
 
     await ChallengeLog.findOneAndUpdate(
-      { challengeId: id, habitIndex: index, date: todayISO },
+      { challengeId: id, habitIndex: habitIndex, date: todayISO },
       { status: "done" },
       { upsert: true }
     );
