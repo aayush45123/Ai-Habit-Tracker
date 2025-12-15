@@ -8,7 +8,8 @@ AI Habit Tracker is a full-stack, production-ready web application that helps us
 ## 🌐 Live Application
 
 **Frontend (Vercel)**  
-ai-habit-tracker-eb72.vercel.app/login
+https://ai-habit-tracker-eb72.vercel.app
+
 **Backend API (Render)**  
 https://ai-habit-tracker-n8w9.onrender.com
 
