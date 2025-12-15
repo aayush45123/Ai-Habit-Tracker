@@ -42,7 +42,16 @@ export default function ChallengePage() {
 
   async function loadChallenge() {
     try {
-      const res = await api.get("/challenge/current");
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split("T")[0];
+
+      const res = await api.get(
+        `/challenge/current?hour=${hour}&minute=${minute}&today=${today}`
+      );
 
       if (res.data.active) {
         const challenge = res.data.challenge;
@@ -125,7 +134,16 @@ export default function ChallengePage() {
   /* Mark habit done */
   async function markDone(dayIndex, habitIndex) {
     try {
-      await api.post(`/challenge/done/${existing._id}/${habitIndex}`);
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split("T")[0];
+
+      await api.post(
+        `/challenge/done/${existing._id}/${habitIndex}?hour=${hour}&minute=${minute}&today=${today}`
+      );
       loadChallenge();
     } catch (err) {
       console.error(err);
