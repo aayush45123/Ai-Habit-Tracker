@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
 import ChallengeHeatmap from "../../components/ChallengeHeatMap/ChallengeHeatMap";
+import ChallengeTrend from "../../components/ChallengeTrend/ChallengeTrend";
 
 /* Convert 24-hour → 12-hour */
 function convert24to12(time24) {
@@ -343,6 +344,9 @@ export default function ChallengePage() {
 
       {/* HEATMAP SECTION */}
       {existing && <ChallengeHeatmap />}
+
+      {/* TREND ANALYSIS SECTION */}
+      {existing && <ChallengeTrend />}
     </div>
   );
 }
