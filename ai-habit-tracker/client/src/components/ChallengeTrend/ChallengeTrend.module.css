@@ -1,0 +1,198 @@
+/* Container */
+.container {
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 8px 8px 0 var(--color-border);
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.container:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 10px 10px 0 var(--color-border);
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+/* Chart Container */
+.chartContainer {
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 2rem;
+  box-shadow: 4px 4px 0 var(--color-border);
+}
+
+.loadingText {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 3rem 0;
+}
+
+/* Custom Tooltip */
+.tooltip {
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 1rem;
+  box-shadow: 4px 4px 0 var(--color-border);
+}
+
+.tooltipLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tooltipDate {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 0.75rem 0;
+  font-weight: 600;
+}
+
+.tooltipValue {
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+}
+
+.tooltipPercentage {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-accent-primary);
+  margin: 0;
+}
+
+.tooltipFuture {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    padding: 1.75rem;
+  }
+
+  .chartContainer {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+    box-shadow: 6px 6px 0 var(--color-border);
+  }
+
+  .container:hover {
+    box-shadow: 8px 8px 0 var(--color-border);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .badge {
+    align-self: flex-start;
+    font-size: 0.6875rem;
+  }
+
+  .chartContainer {
+    padding: 1.25rem;
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1.25rem;
+    box-shadow: 4px 4px 0 var(--color-border);
+  }
+
+  .container:hover {
+    box-shadow: 6px 6px 0 var(--color-border);
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .badge {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.625rem;
+    box-shadow: 2px 2px 0 var(--color-border);
+  }
+
+  .chartContainer {
+    padding: 1rem;
+  }
+
+  .tooltip {
+    padding: 0.75rem;
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+
+  .tooltipLabel {
+    font-size: 0.8125rem;
+  }
+
+  .tooltipDate {
+    font-size: 0.6875rem;
+  }
+
+  .tooltipValue {
+    font-size: 0.875rem;
+  }
+
+  .tooltipPercentage {
+    font-size: 1rem;
+  }
+}
