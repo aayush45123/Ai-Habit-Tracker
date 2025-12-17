@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import HabitCard from "../../components/HabitCard/HabitCard";
+import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
 import styles from "./Dashboard.module.css";
 
 function formatDateISO(d = new Date()) {
@@ -19,6 +20,9 @@ export default function Dashboard() {
   const [ai, setAI] = useState(null);
   const [aiLoading, setAILoading] = useState(true);
 
+  // Floating AI Chat
+  const [chatOpen, setChatOpen] = useState(false);
+
   useEffect(() => {
     fetchHabits();
     fetchAnalytics();
@@ -28,7 +32,6 @@ export default function Dashboard() {
   async function fetchHabits() {
     try {
       setLoading(true);
-
       const res = await api.get("/habits/all");
       setHabits(res.data?.habits || []);
     } catch (err) {
@@ -96,7 +99,7 @@ export default function Dashboard() {
           <h1>Welcome back</h1>
           <p className={styles.dashDescription}>
             Track your daily habits, build powerful streaks, and transform your
-            life one day at a time. Your journey to consistency starts here.
+            life one day at a time.
           </p>
         </div>
 
@@ -227,7 +230,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* AI SHORT INSIGHTS */}
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>AI Insights</h3>
 
@@ -241,6 +243,17 @@ export default function Dashboard() {
           </div>
         </aside>
       </main>
+
+      {/* FLOATING AI CHAT */}
+      <AIChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
+
+      <button
+        className={styles.floatingAI}
+        onClick={() => setChatOpen(true)}
+        title="Chat with AI Coach"
+      >
+        🤖
+      </button>
     </div>
   );
 }

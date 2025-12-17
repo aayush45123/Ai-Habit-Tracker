@@ -16,57 +16,78 @@ export default function AIChat() {
       setInsights(res.data.ai);
     } catch (err) {
       console.error(err);
-      setInsights({ summary: "Error loading insights." });
+      setInsights({ summary: "Unable to generate insights right now." });
     } finally {
       setLoading(false);
     }
   }
 
   if (loading) {
-    return <div className={styles.aiLoading}>Analyzing your habits… ⏳</div>;
+    return (
+      <div className={styles.aiLoading}>
+        Analyzing your habits and patterns…
+      </div>
+    );
   }
 
   if (!insights) {
-    return <div className={styles.aiLoading}>No insights available.</div>;
+    return <div className={styles.aiLoading}>No AI insights available.</div>;
   }
 
   return (
     <div className={styles.aiRoot}>
-      <h2 className={styles.aiTitle}>AI Insights</h2>
+      <h2 className={styles.aiTitle}>AI Habit Insights</h2>
 
-      <div className={styles.aiCard}>
-        <div className={styles.aiMessage}>
-          <div className={styles.aiBotAvatar}>🤖</div>
+      {/* OVERALL SUMMARY */}
+      <section className={styles.aiSection}>
+        <h3>Overview</h3>
+        <p className={styles.aiHighlight}>{insights.summary}</p>
+      </section>
 
-          <div className={styles.aiText}>
-            <p>
-              <b>1. Daily Performance:</b> {insights.summary}
-            </p>
-            <p>
-              <b>2. Strongest Habit:</b> {insights.strongest}
-            </p>
-            <p>
-              <b>3. Weakest Habit:</b> {insights.weakest}
-            </p>
-            <p>
-              <b>4. Best Day of the Week:</b> {insights.bestDay}
-            </p>
+      {/* PERFORMANCE */}
+      <section className={styles.aiSection}>
+        <h3>Performance Breakdown</h3>
 
-            <p>
-              <b>5. Improvement Recommendations:</b>
-            </p>
-            <ul>
-              {insights.recommendations?.map((r, i) => (
-                <li key={i}>{r}</li>
-              ))}
-            </ul>
+        <div className={styles.aiGrid}>
+          <div className={styles.aiStat}>
+            <span>Strongest Habit</span>
+            <b>{insights.strongest || "Not enough data"}</b>
+          </div>
 
-            <p>
-              <b>6. Motivation:</b> {insights.motivation}
-            </p>
+          <div className={styles.aiStat}>
+            <span>Weakest Habit</span>
+            <b>{insights.weakest || "Not enough data"}</b>
+          </div>
+
+          <div className={styles.aiStat}>
+            <span>Best Day</span>
+            <b>{insights.bestDay || "Not identified yet"}</b>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* RECOMMENDATIONS */}
+      <section className={styles.aiSection}>
+        <h3>Actionable Recommendations</h3>
+
+        {insights.recommendations?.length > 0 ? (
+          <ul className={styles.aiList}>
+            {insights.recommendations.map((r, i) => (
+              <li key={i}>
+                <b>Tip {i + 1}:</b> {r}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No recommendations available yet.</p>
+        )}
+      </section>
+
+      {/* MOTIVATION */}
+      <section className={styles.aiSection}>
+        <h3>Motivation & Mindset</h3>
+        <p className={styles.aiMotivation}>{insights.motivation}</p>
+      </section>
     </div>
   );
 }
