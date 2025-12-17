@@ -89,7 +89,9 @@ export default function Dashboard() {
   const completedToday = habits.filter(
     (h) => h.lastDate === formatDateISO() && h.lastStatus === "done"
   ).length;
-  const streak = Math.max(...habits.map((h) => h.streak || 0), 0);
+
+  // FIXED: Now using longestStreak instead of current streak
+  const longestStreak = Math.max(...habits.map((h) => h.longestStreak || 0), 0);
 
   return (
     <div className={styles.dashRoot}>
@@ -163,7 +165,7 @@ export default function Dashboard() {
               </div>
 
               <div className={styles.summaryCard}>
-                <div className={styles.num}>{streak}</div>
+                <div className={styles.num}>{longestStreak}</div>
                 <div className={styles.label}>Longest Streak</div>
               </div>
 

@@ -1,3 +1,4 @@
+// server/src/models/Habit.js
 import mongoose from "mongoose";
 
 const habitSchema = new mongoose.Schema(
@@ -19,6 +20,10 @@ const habitSchema = new mongoose.Schema(
     lastDate: String,
     lastStatus: String,
     streak: {
+      type: Number,
+      default: 0,
+    },
+    longestStreak: {
       type: Number,
       default: 0,
     },
