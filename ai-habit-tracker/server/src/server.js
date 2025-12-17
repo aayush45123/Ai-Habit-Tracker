@@ -1,12 +1,16 @@
 import dotenv from "dotenv";
-dotenv.config(); // LOAD .env BEFORE ANYTHING ELSE!!!
+dotenv.config();
 
 import app from "./app.js";
 
-const PORT = process.env.PORT || 5000;
+// ❌ DO NOT FALL BACK TO 5000 ON RENDER
+const PORT = process.env.PORT;
 
-console.log("ENV Test:", process.env.GROQ_API_KEY);
+if (!PORT) {
+  console.error("❌ PORT is not defined. Exiting...");
+  process.exit(1);
+}
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
