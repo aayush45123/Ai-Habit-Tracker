@@ -1,10 +1,13 @@
-import OpenAI from "openai";
+import Groq from "groq-sdk";
 import AIChat from "../models/aiChat.js";
 
-function createOpenAIClient() {
-  const apiKey = process.env.OPENAI_API_KEY;
+/* ---------------------------
+   CREATE GROQ CLIENT
+---------------------------- */
+function createGroqClient() {
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return null;
-  return new OpenAI({ apiKey });
+  return new Groq({ apiKey });
 }
 
 /* ---------------------------
@@ -37,11 +40,10 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ message: "Message required" });
     }
 
-    // Check if OpenAI is configured
-    const openai = createOpenAIClient();
-    if (!openai) {
+    const groq = createGroqClient();
+    if (!groq) {
       return res.status(500).json({
-        message: "OPENAI_API_KEY not set. Add it to enable AI chat.",
+        message: "GROQ_API_KEY not set. Add it to enable AI chat.",
       });
     }
 
@@ -62,8 +64,9 @@ export const sendMessage = async (req, res) => {
       .reverse()
       .map((m) => ({ role: m.role, content: m.message }));
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.4,
       messages: [
         {
           role: "system",
@@ -72,7 +75,6 @@ export const sendMessage = async (req, res) => {
         },
         ...messages,
       ],
-      temperature: 0.4,
     });
 
     const reply = completion.choices[0].message.content;
@@ -86,7 +88,10 @@ export const sendMessage = async (req, res) => {
 
     res.json({ reply: aiMsg });
   } catch (err) {
-    console.error("AI chat error:", err);
-    res.status(500).json({ message: "AI chat error", error: err.message });
+    console.error("AI CHAT ERROR:", err);
+    res.status(500).json({
+      message: "AI chat error",
+      error: err.message,
+    });
   }
 };

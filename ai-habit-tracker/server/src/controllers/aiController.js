@@ -1,13 +1,19 @@
-import OpenAI from "openai";
+import Groq from "groq-sdk";
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
 
-function createOpenAIClient() {
-  const apiKey = process.env.OPENAI_API_KEY;
+/* ---------------------------
+   CREATE GROQ CLIENT
+---------------------------- */
+function createGroqClient() {
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return null;
-  return new OpenAI({ apiKey });
+  return new Groq({ apiKey });
 }
 
+/* ---------------------------
+   GET AI INSIGHTS
+---------------------------- */
 export const getAIInsights = async (req, res) => {
   try {
     const userId = req.user;
@@ -19,6 +25,7 @@ export const getAIInsights = async (req, res) => {
       habitId: { $in: habitIds },
     }).sort({ date: 1 });
 
+    // ✅ No data fallback
     if (logs.length === 0) {
       return res.json({
         ai: {
@@ -34,15 +41,16 @@ export const getAIInsights = async (req, res) => {
       });
     }
 
-    const openai = createOpenAIClient();
-    if (!openai) {
+    const groq = createGroqClient();
+    if (!groq) {
       return res.status(500).json({
-        message: "OPENAI_API_KEY not set. Add it to enable AI insights.",
+        message: "GROQ_API_KEY not set. Add it to enable AI insights.",
       });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // ✅ free-tier friendly & fast
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.3,
       messages: [
         {
           role: "system",
@@ -65,7 +73,6 @@ JSON STRUCTURE:
           content: JSON.stringify({ habits, logs }),
         },
       ],
-      temperature: 0.3,
     });
 
     const raw = completion.choices[0].message.content.trim();
@@ -74,40 +81,28 @@ JSON STRUCTURE:
     try {
       parsed = JSON.parse(raw);
     } catch (e) {
-      console.warn("Invalid JSON from OpenAI, attempting fix…");
-
-      const cleaned = raw
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .replace(/,\s*}/g, "}")
-        .replace(/,\s*]/g, "]");
-
-      try {
-        parsed = JSON.parse(cleaned);
-      } catch (err2) {
-        parsed = {
-          summary: raw,
-          strongest: "",
-          weakest: "",
-          bestDay: "",
-          recommendations: [],
-          motivation: "",
-        };
-      }
+      console.warn("Invalid JSON from Groq, fallback used");
+      parsed = {
+        summary: raw,
+        strongest: "",
+        weakest: "",
+        bestDay: "",
+        recommendations: [],
+        motivation: "",
+      };
     }
 
-    const shortSummary = `
+    // 🔥 Dashboard short summary
+    parsed.shortSummary = `
 ${parsed.summary || ""}
 Strongest habit: ${parsed.strongest || "None"}.
 Weakest habit: ${parsed.weakest || "None"}.
 Keep going — small wins add up!
     `.trim();
 
-    parsed.shortSummary = shortSummary;
-
     return res.json({ ai: parsed });
   } catch (err) {
-    console.error(err);
+    console.error("AI INSIGHTS ERROR:", err);
     return res.status(500).json({
       message: "AI insights error",
       error: err.message,
