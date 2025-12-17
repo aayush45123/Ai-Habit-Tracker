@@ -488,3 +488,17 @@
     box-shadow: 3px 3px 0px var(--color-accent-primary);
   }
 }
+.floatingAI {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #60a5fa;
+  color: black;
+  font-size: 22px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}

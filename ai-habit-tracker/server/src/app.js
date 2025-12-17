@@ -10,6 +10,7 @@ import challengeRoutes from "./routes/challengeRoutes.js";
 import adminTemplateRoutes from "./routes/adminTemplateRoutes.js";
 import publicTemplateRoutes from "./routes/habitTemplateRoutes.js";
 import focusRoutes from "./routes/focusRoutes.js";
+import aiChatRoutes from "./routes/aiChatRoutes.js";
 
 /* =======================
    ENV & DB
@@ -69,6 +70,7 @@ app.use("/api/challenge", challengeRoutes);
 app.use("/api/focus", focusRoutes);
 app.use("/api/admin/templates", adminTemplateRoutes);
 app.use("/api/templates", publicTemplateRoutes);
+app.use("/api/ai-chat", aiChatRoutes);
 
 /* =======================
    HEALTH CHECK

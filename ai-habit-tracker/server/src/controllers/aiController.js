@@ -1,11 +1,11 @@
-import Groq from "groq-sdk";
+import OpenAI from "openai";
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
 
-function createGroqClient() {
-  const apiKey = process.env.GROQ_API_KEY;
+function createOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
-  return new Groq({ apiKey });
+  return new OpenAI({ apiKey });
 }
 
 export const getAIInsights = async (req, res) => {
@@ -14,9 +14,10 @@ export const getAIInsights = async (req, res) => {
 
     const habits = await Habit.find({ userId });
     const habitIds = habits.map((h) => h._id);
-    const logs = await HabitLog.find({ habitId: { $in: habitIds } }).sort({
-      date: 1,
-    });
+
+    const logs = await HabitLog.find({
+      habitId: { $in: habitIds },
+    }).sort({ date: 1 });
 
     if (logs.length === 0) {
       return res.json({
@@ -33,20 +34,20 @@ export const getAIInsights = async (req, res) => {
       });
     }
 
-    const groq = createGroqClient();
-    if (!groq) {
+    const openai = createOpenAIClient();
+    if (!openai) {
       return res.status(500).json({
-        message: "GROQ_API_KEY not set. Add it to enable AI insights.",
+        message: "OPENAI_API_KEY not set. Add it to enable AI insights.",
       });
     }
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // ✅ free-tier friendly & fast
       messages: [
         {
           role: "system",
           content: `
-You MUST return ONLY valid JSON, no markdown, no bullets.
+You MUST return ONLY valid JSON. No markdown. No explanations.
 
 JSON STRUCTURE:
 {
@@ -73,7 +74,7 @@ JSON STRUCTURE:
     try {
       parsed = JSON.parse(raw);
     } catch (e) {
-      console.warn("Invalid JSON, attempting fix…");
+      console.warn("Invalid JSON from OpenAI, attempting fix…");
 
       const cleaned = raw
         .replace(/```json/g, "")
@@ -95,7 +96,6 @@ JSON STRUCTURE:
       }
     }
 
-    // 🔥 Create short 2–3 sentence dashboard summary
     const shortSummary = `
 ${parsed.summary || ""}
 Strongest habit: ${parsed.strongest || "None"}.
