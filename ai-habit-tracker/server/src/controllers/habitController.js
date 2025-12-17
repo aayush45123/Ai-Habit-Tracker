@@ -121,7 +121,6 @@ export const deleteHabit = async (req, res) => {
 // ----------------------------------------------------
 // LOG HABIT (DONE / MISSED) – ONE LOG PER DAY
 // ----------------------------------------------------
-// ---------------- LOG HABIT (fixed streak system) ----------------
 export const logHabit = async (req, res) => {
   try {
     const habitId = req.params.id;
@@ -136,7 +135,7 @@ export const logHabit = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // ---------- STREAK FIX ----------
+    // ---------- STREAK CALCULATION ----------
     let newStreak = 0;
 
     if (status === "done") {
@@ -162,11 +161,16 @@ export const logHabit = async (req, res) => {
       newStreak = 0;
     }
 
-    // update habit streak
+    // Get current habit to check longest streak
+    const habit = await Habit.findById(habitId);
+    const newLongestStreak = Math.max(habit.longestStreak || 0, newStreak);
+
+    // update habit streak AND longest streak
     await Habit.findByIdAndUpdate(habitId, {
       lastDate: todayISO,
       lastStatus: status,
       streak: newStreak,
+      longestStreak: newLongestStreak,
     });
 
     res.json({ message: "Habit logged", log });
@@ -176,9 +180,6 @@ export const logHabit = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------
-// ANALYTICS (WEEKLY, BEST DAY, CALENDAR COMPLETION)
-// ----------------------------------------------------
 // ----------------------------------------------------
 // ANALYTICS (WEEKLY, BEST DAY, CALENDAR COMPLETION)
 // ----------------------------------------------------
@@ -370,3 +371,4 @@ export const getAnalytics = async (req, res) => {
     res.status(500).json({ message: "Analytics error", error: error.message });
   }
 };
+
