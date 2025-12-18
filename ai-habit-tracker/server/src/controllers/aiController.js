@@ -63,7 +63,7 @@ export const getAIInsights = async (req, res) => {
     let completion;
     try {
       completion = await groq.chat.completions.create({
-        model: "llama3-8b-8192",
+        model: "llama-3.3-70b-versatile",
         temperature: 0.3,
         messages: [
           {
