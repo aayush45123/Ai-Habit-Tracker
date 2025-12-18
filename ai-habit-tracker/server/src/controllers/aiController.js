@@ -1,6 +1,8 @@
+// server/src/controllers/aiInsightsController.js
 import OpenAI from "openai";
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
+import { normalizeDateIST } from "../utils/getTodayIST.js";
 
 /* ===========================
    GROQ CLIENT
@@ -36,7 +38,7 @@ export const getAIInsights = async (req, res) => {
       return res.json({
         ai: {
           summary:
-            "You don’t have enough data yet. Start completing habits to unlock insights.",
+            "You don't have enough data yet. Start completing habits to unlock insights.",
           strongest: "",
           weakest: "",
           bestDay: "",
@@ -46,6 +48,12 @@ export const getAIInsights = async (req, res) => {
         },
       });
     }
+
+    // Normalize all dates to IST
+    const normalizedLogs = logs.map((l) => ({
+      ...l._doc,
+      date: normalizeDateIST(l.date),
+    }));
 
     /* ---------------------------
        INIT GROQ
@@ -87,7 +95,7 @@ Required JSON format:
           },
           {
             role: "user",
-            content: JSON.stringify({ habits, logs }),
+            content: JSON.stringify({ habits, logs: normalizedLogs }),
           },
         ],
       });
