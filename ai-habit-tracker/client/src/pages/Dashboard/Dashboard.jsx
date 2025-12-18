@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import HabitCard from "../../components/HabitCard/HabitCard";
 import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
+import { FaRobot } from "react-icons/fa";
 import styles from "./Dashboard.module.css";
 
 function formatDateISO(d = new Date()) {
@@ -254,7 +255,7 @@ export default function Dashboard() {
         onClick={() => setChatOpen(true)}
         title="Chat with AI Coach"
       >
-        🤖
+        <FaRobot size={24} />
       </button>
     </div>
   );
