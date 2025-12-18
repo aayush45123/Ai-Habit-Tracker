@@ -1,6 +1,11 @@
 // server/src/controllers/habitController.js
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
+import {
+  getTodayIST,
+  normalizeDateIST,
+  getYesterdayIST,
+} from "../utils/getTodayIST.js";
 
 // ----------------------------------------------------
 // ADD HABIT
@@ -14,7 +19,7 @@ export const addHabit = async (req, res) => {
       title,
       description,
       frequency,
-      startDate: new Date(),
+      startDate: getTodayIST(),
     });
 
     res.status(201).json({ message: "Habit added", habit });
@@ -126,7 +131,7 @@ export const logHabit = async (req, res) => {
     const habitId = req.params.id;
     const { status } = req.body;
 
-    const todayISO = new Date().toISOString().split("T")[0];
+    const todayISO = getTodayIST();
 
     // Upsert log for today
     const log = await HabitLog.findOneAndUpdate(
@@ -139,9 +144,7 @@ export const logHabit = async (req, res) => {
     let newStreak = 0;
 
     if (status === "done") {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayISO = yesterday.toISOString().split("T")[0];
+      const yesterdayISO = getYesterdayIST();
 
       const yesterdayLog = await HabitLog.findOne({
         habitId,
@@ -191,25 +194,23 @@ export const getAnalytics = async (req, res) => {
 
     const logs = await HabitLog.find({ habitId: { $in: habitIds } });
 
-    // Normalize date → "YYYY-MM-DD"
+    // Normalize all dates to IST
     const normalizedLogs = logs.map((l) => ({
       ...l._doc,
-      date: new Date(l.date.getTime() - l.date.getTimezoneOffset() * 60000)
-        .toISOString()
-        .split("T")[0],
+      date: normalizeDateIST(l.date),
     }));
 
     // ----------------------------------------------------
     // WEEKLY TREND (LAST 7 DAYS)
     // ----------------------------------------------------
-    const today = new Date();
+    const todayISO = getTodayIST();
     const weekly = {};
 
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-
-      const key = d.toISOString().split("T")[0];
+      const now = new Date();
+      const targetDate = new Date(now.getTime() + 330 * 60000); // IST
+      targetDate.setDate(targetDate.getDate() - i);
+      const key = targetDate.toISOString().split("T")[0];
 
       weekly[key] = normalizedLogs.filter(
         (l) => l.status === "done" && l.date === key
@@ -235,9 +236,9 @@ export const getAnalytics = async (req, res) => {
 
     normalizedLogs.forEach((l) => {
       if (l.status === "done") {
-        const wd = new Date(l.date).toLocaleDateString("en-IN", {
-          weekday: "long",
-        });
+        const d = new Date(l.date + "T00:00:00Z");
+        const istDate = new Date(d.getTime() + 330 * 60000);
+        const wd = istDate.toLocaleDateString("en-US", { weekday: "long" });
         dayCount[wd]++;
       }
     });
@@ -252,8 +253,9 @@ export const getAnalytics = async (req, res) => {
     const getWeekDays = (offset) => {
       const arr = [];
       for (let i = 0; i < 7; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - (offset + i));
+        const now = new Date();
+        const d = new Date(now.getTime() + 330 * 60000); // IST
+        d.setDate(d.getDate() - (offset + i));
         arr.push(d.toISOString().split("T")[0]);
       }
       return arr;
@@ -299,7 +301,8 @@ export const getAnalytics = async (req, res) => {
     // ----------------------------------------------------
     // CONSISTENCY SCORE – Last 30 days
     // ----------------------------------------------------
-    const last30 = new Date();
+    const now = new Date();
+    const last30 = new Date(now.getTime() + 330 * 60000);
     last30.setDate(last30.getDate() - 29);
 
     let completedDays = new Set();
@@ -371,4 +374,3 @@ export const getAnalytics = async (req, res) => {
     res.status(500).json({ message: "Analytics error", error: error.message });
   }
 };
-

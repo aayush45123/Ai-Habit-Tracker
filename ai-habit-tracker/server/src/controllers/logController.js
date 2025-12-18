@@ -1,5 +1,7 @@
+// server/src/controllers/habitLogController.js
 import HabitLog from "../models/HabitLog.js";
 import Habit from "../models/Habit.js";
+import { getTodayIST, normalizeDateIST } from "../utils/getTodayIST.js";
 
 // MARK HABIT DONE OR MISSED
 export const logHabit = async (req, res) => {
@@ -16,7 +18,7 @@ export const logHabit = async (req, res) => {
     if (!habit) return res.status(404).json({ message: "Habit not found" });
 
     // Check if already logged today
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayIST();
 
     const existingLog = await HabitLog.findOne({
       habitId,
@@ -74,7 +76,10 @@ export const getHabitAnalytics = async (req, res) => {
     let completedCount = 0;
 
     logs.forEach((log) => {
-      const logDate = new Date(log.date);
+      // Normalize date to IST
+      const normalizedDate = normalizeDateIST(log.date);
+      const logDate = new Date(normalizedDate + "T00:00:00Z");
+      const istLogDate = new Date(logDate.getTime() + 330 * 60000);
 
       // Count completion rate
       if (log.status === "done") completedCount++;
@@ -82,9 +87,10 @@ export const getHabitAnalytics = async (req, res) => {
       // Streak logic
       if (log.status === "done") {
         if (prevDate) {
-          const diff = (logDate - prevDate) / (1000 * 60 * 60 * 24); // difference in days
+          const diff = (istLogDate - prevDate) / (1000 * 60 * 60 * 24); // difference in days
 
-          if (diff === 1) {
+          if (Math.abs(diff - 1) < 0.5) {
+            // Allow small floating point differences
             currentStreak++;
           } else {
             currentStreak = 1; // reset streak
@@ -96,7 +102,7 @@ export const getHabitAnalytics = async (req, res) => {
         longestStreak = Math.max(longestStreak, currentStreak);
       }
 
-      prevDate = logDate;
+      prevDate = istLogDate;
     });
 
     // Percentage completed

@@ -1,9 +1,6 @@
 // server/src/controllers/focusController.js
 import FocusLog from "../models/FocusLog.js";
-
-function todayISO() {
-  return new Date().toISOString().split("T")[0];
-}
+import { getTodayIST, normalizeDateIST } from "../utils/getTodayIST.js";
 
 // POST /api/focus/log  (auth required)
 // body: { durationMin: number, sessionType?: string, status?: string }
@@ -18,7 +15,7 @@ export const logFocus = async (req, res) => {
       return res.status(400).json({ message: "Invalid duration" });
     }
 
-    const date = todayISO();
+    const date = getTodayIST();
 
     // Create a new log entry
     const log = await FocusLog.create({
@@ -40,7 +37,7 @@ export const logFocus = async (req, res) => {
 export const getTodayCount = async (req, res) => {
   try {
     const userId = req.user._id || req.user;
-    const date = todayISO();
+    const date = getTodayIST();
 
     // Count completed sessions
     const count = await FocusLog.countDocuments({
@@ -80,8 +77,11 @@ export const getStats = async (req, res) => {
   try {
     const userId = req.user._id || req.user;
     const days = Number(req.query.days) || 30;
-    const start = new Date();
-    start.setDate(start.getDate() - (days - 1));
+
+    const now = new Date();
+    const istNow = new Date(now.getTime() + 330 * 60000);
+    const start = new Date(istNow);
+    start.setDate(istNow.getDate() - (days - 1));
     const startISO = start.toISOString().split("T")[0];
 
     // Aggregate completed sessions - ONLY count minutes from completed sessions
