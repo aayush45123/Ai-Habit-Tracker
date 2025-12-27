@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../utils/api";
+import api from "../../utils/api";
 
 export default function Calories() {
   const [food, setFood] = useState("");
