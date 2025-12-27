@@ -7,7 +7,7 @@ import { normalizeDateIST } from "../utils/getTodayIST.js";
 ============================ */
 export const addFoodLog = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user?._id;
     const { foodName, calories, imageUrl } = req.body;
 
     if (!foodName || !calories) {
@@ -36,7 +36,7 @@ export const addFoodLog = async (req, res) => {
 ============================ */
 export const deleteFoodLog = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user?._id;
     const { id } = req.params;
 
     const food = await FoodLog.findOneAndDelete({
@@ -62,7 +62,7 @@ export const deleteFoodLog = async (req, res) => {
 ============================ */
 export const getCalorieProfile = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user?._id;
     const profile = await CalorieProfile.findOne({ userId });
 
     if (!profile) {
@@ -83,7 +83,7 @@ export const getCalorieProfile = async (req, res) => {
 ============================ */
 export const saveCalorieProfile = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user?._id;
     const { age, height, weight, activityLevel, dailyGoal } = req.body;
 
     // Validate required fields
@@ -118,7 +118,7 @@ export const saveCalorieProfile = async (req, res) => {
 ============================ */
 export const getCalorieStatus = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user?._id;
     const today = normalizeDateIST(new Date());
 
     const profile = await CalorieProfile.findOne({ userId });
