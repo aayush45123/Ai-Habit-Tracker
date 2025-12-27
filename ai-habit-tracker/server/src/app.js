@@ -11,6 +11,7 @@ import adminTemplateRoutes from "./routes/adminTemplateRoutes.js";
 import publicTemplateRoutes from "./routes/habitTemplateRoutes.js";
 import focusRoutes from "./routes/focusRoutes.js";
 import aiChatRoutes from "./routes/aiChatRoutes.js";
+import calorieRoutes from "./routes/calorieRoutes.js";
 
 /* =======================
    ENV & DB
@@ -71,6 +72,7 @@ app.use("/api/focus", focusRoutes);
 app.use("/api/admin/templates", adminTemplateRoutes);
 app.use("/api/templates", publicTemplateRoutes);
 app.use("/api/ai-chat", aiChatRoutes);
+app.use("/api/calorie", calorieRoutes);
 
 /* =======================
    HEALTH CHECK
