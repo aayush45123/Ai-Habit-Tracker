@@ -4,6 +4,7 @@ import {
   addFoodLog,
   saveCalorieProfile,
   getCalorieStatus,
+  getCalorieProfile,
 } from "../controllers/calorieController.js";
 
 import {
@@ -13,10 +14,15 @@ import {
 
 const router = express.Router();
 
+// Profile routes
 router.post("/profile", auth, saveCalorieProfile);
+router.get("/profile", auth, getCalorieProfile);
+
+// Food logging routes
 router.post("/food", auth, addFoodLog);
 router.get("/status", auth, getCalorieStatus);
 
+// AI routes
 router.post("/ai/estimate", auth, estimateFoodCalories);
 router.get("/ai/summary", auth, getDailyCalorieSummary);
 
