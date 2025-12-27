@@ -2,13 +2,14 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   FiZap,
-  FiHome,
-  FiPlus,
-  FiBarChart2,
+  FiGrid,
+  FiPlusCircle,
+  FiTrendingUp,
   FiCpu,
-  FiClock,
-  FiLayers,
+  FiCalendar,
+  FiCopy,
   FiTarget,
+  FiActivity,
   FiInfo,
   FiLogOut,
   FiMenu,
@@ -24,17 +25,12 @@ function Sidebar() {
     window.location.href = "/login";
   };
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const closeSidebar = () => {
-    setIsOpen(false);
-  };
+  const toggleSidebar = () => setIsOpen(!isOpen);
+  const closeSidebar = () => setIsOpen(false);
 
   return (
     <>
-      {/* Hamburger Menu Button - Only visible on mobile */}
+      {/* Hamburger Menu (Mobile) */}
       <button
         onClick={toggleSidebar}
         className={styles.hamburger}
@@ -43,11 +39,12 @@ function Sidebar() {
         {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
       </button>
 
-      {/* Overlay - Only visible on mobile when sidebar is open */}
+      {/* Overlay */}
       {isOpen && <div className={styles.overlay} onClick={closeSidebar} />}
 
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
+        {/* Header */}
         <div className={styles.header}>
           <div className={styles.logo}>
             <FiZap className={styles.logoIcon} />
@@ -55,6 +52,7 @@ function Sidebar() {
           </div>
         </div>
 
+        {/* Navigation */}
         <nav className={styles.nav}>
           <NavLink
             to="/"
@@ -63,7 +61,7 @@ function Sidebar() {
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
           >
-            <FiHome className={styles.navIcon} />
+            <FiGrid className={styles.navIcon} />
             <span>Dashboard</span>
           </NavLink>
 
@@ -74,7 +72,7 @@ function Sidebar() {
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
           >
-            <FiPlus className={styles.navIcon} />
+            <FiPlusCircle className={styles.navIcon} />
             <span>Add Habit</span>
           </NavLink>
 
@@ -85,7 +83,7 @@ function Sidebar() {
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
           >
-            <FiBarChart2 className={styles.navIcon} />
+            <FiTrendingUp className={styles.navIcon} />
             <span>Analytics</span>
           </NavLink>
 
@@ -107,7 +105,7 @@ function Sidebar() {
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
           >
-            <FiClock className={styles.navIcon} />
+            <FiCalendar className={styles.navIcon} />
             <span>21-Day Challenge</span>
           </NavLink>
 
@@ -118,7 +116,7 @@ function Sidebar() {
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
           >
-            <FiLayers className={styles.navIcon} />
+            <FiCopy className={styles.navIcon} />
             <span>Habit Templates</span>
           </NavLink>
 
@@ -134,6 +132,18 @@ function Sidebar() {
           </NavLink>
 
           <NavLink
+            to="/calories"
+            onClick={closeSidebar}
+            className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+            }
+          >
+            <FiActivity className={styles.navIcon} />
+            <span>Calorie Tracker</span>
+          </NavLink>
+
+          {/* ABOUT US – LAST */}
+          <NavLink
             to="/about"
             onClick={closeSidebar}
             className={({ isActive }) =>
@@ -143,18 +153,9 @@ function Sidebar() {
             <FiInfo className={styles.navIcon} />
             <span>About Us</span>
           </NavLink>
-          <NavLink
-            to="/calories"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiInfo className={styles.navIcon} />
-            <span>Calorie Tracker</span>
-          </NavLink>
         </nav>
 
+        {/* Footer */}
         <div className={styles.footer}>
           <button className={styles.logoutBtn} onClick={logout}>
             <FiLogOut />
