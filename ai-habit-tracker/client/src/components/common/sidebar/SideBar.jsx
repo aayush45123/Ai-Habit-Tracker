@@ -143,6 +143,16 @@ function Sidebar() {
             <FiInfo className={styles.navIcon} />
             <span>About Us</span>
           </NavLink>
+          <NavLink
+            to="/calories"
+            onClick={closeSidebar}
+            className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+            }
+          >
+            <FiInfo className={styles.navIcon} />
+            <span>Calorie Tracker</span>
+          </NavLink>
         </nav>
 
         <div className={styles.footer}>
