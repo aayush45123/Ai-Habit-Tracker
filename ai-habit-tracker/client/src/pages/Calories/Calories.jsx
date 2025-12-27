@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
+import CalorieSummary from "../../components/CalorieSummary/CalorieSummary";
 import styles from "./Calories.module.css";
 
 export default function Calories() {
@@ -7,6 +8,7 @@ export default function Calories() {
   const [status, setStatus] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showProfileForm, setShowProfileForm] = useState(false);
+  const [refreshSummary, setRefreshSummary] = useState(0);
   const [profileData, setProfileData] = useState({
     age: "",
     height: "",
@@ -92,6 +94,7 @@ export default function Calories() {
 
       setFood("");
       loadStatus();
+      setRefreshSummary((prev) => prev + 1); // Trigger summary refresh
     } catch (err) {
       console.error("Error adding food:", err);
       alert("Failed to add food. Please try again.");
@@ -255,6 +258,9 @@ export default function Calories() {
           </div>
         </>
       )}
+
+      {/* Add Summary Component */}
+      {profile && !showProfileForm && <CalorieSummary key={refreshSummary} />}
     </div>
   );
 }

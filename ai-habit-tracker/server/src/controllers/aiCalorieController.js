@@ -91,7 +91,7 @@ Guidelines:
 ============================ */
 export const getDailyCalorieSummary = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user?._id;
     const today = normalizeDateIST(new Date());
 
     const logs = await FoodLog.find({ userId, date: today }).sort({

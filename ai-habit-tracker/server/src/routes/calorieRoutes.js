@@ -5,6 +5,7 @@ import {
   saveCalorieProfile,
   getCalorieStatus,
   getCalorieProfile,
+  deleteFoodLog,
 } from "../controllers/calorieController.js";
 
 import {
