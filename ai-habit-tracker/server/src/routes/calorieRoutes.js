@@ -22,6 +22,7 @@ router.get("/profile", auth, getCalorieProfile);
 // Food logging routes
 router.post("/food", auth, addFoodLog);
 router.get("/status", auth, getCalorieStatus);
+router.delete("/food/:id", auth, deleteFoodLog);
 
 // AI routes
 router.post("/ai/estimate", auth, estimateFoodCalories);
