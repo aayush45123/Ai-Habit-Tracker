@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
 import Login from "./pages/Auth/Login/Login";
@@ -23,37 +24,42 @@ import Calories from "./pages/Calories/Calories";
 
 function App() {
   return (
-    <Routes>
-      {/* Public Auth Routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+    <>
+      {/* 🔹 Vercel Speed Insights */}
+      <SpeedInsights />
 
-      {/* Protected Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/add" element={<AddHabit />} />
-          <Route path="/habit/:id" element={<HabitDetail />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/ai" element={<AIChat />} />
-          <Route path="/challenge" element={<ChallengePage />} />
-          <Route path="/templates" element={<HabitTemplates />} />
-          <Route path="/focus" element={<Pomodoro />} />
-          <Route path="/calories" element={<Calories />} />
-          <Route path="/about" element={<About />} />
+      <Routes>
+        {/* Public Auth Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-          {/* ADMIN ONLY (Hidden from sidebar) */}
-          <Route
-            path="/admin/templates"
-            element={
-              <ProtectedAdminRoute>
-                <AdminTemplates />
-              </ProtectedAdminRoute>
-            }
-          />
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/add" element={<AddHabit />} />
+            <Route path="/habit/:id" element={<HabitDetail />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/ai" element={<AIChat />} />
+            <Route path="/challenge" element={<ChallengePage />} />
+            <Route path="/templates" element={<HabitTemplates />} />
+            <Route path="/focus" element={<Pomodoro />} />
+            <Route path="/calories" element={<Calories />} />
+            <Route path="/about" element={<About />} />
+
+            {/* ADMIN ONLY */}
+            <Route
+              path="/admin/templates"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminTemplates />
+                </ProtectedAdminRoute>
+              }
+            />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+    </>
   );
 }
 
