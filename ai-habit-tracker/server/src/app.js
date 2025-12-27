@@ -62,7 +62,7 @@ app.use(
 app.options(/.*/, cors());
 
 /* =======================
-   ROUTES
+   ROUTES - FIXED CALORIE PATH
 ======================= */
 app.use("/api/auth", authRoutes);
 app.use("/api/habits", habitRoutes);
@@ -72,13 +72,23 @@ app.use("/api/focus", focusRoutes);
 app.use("/api/admin/templates", adminTemplateRoutes);
 app.use("/api/templates", publicTemplateRoutes);
 app.use("/api/ai-chat", aiChatRoutes);
-app.use("/api/calorie", calorieRoutes);
+app.use("/api/calories", calorieRoutes); // ✅ Changed from /calorie to /calories
 
 /* =======================
    HEALTH CHECK
 ======================= */
 app.get("/", (req, res) => {
   res.status(200).send("AI Habit Tracker Backend Running 🚀");
+});
+
+/* =======================
+   ERROR HANDLER
+======================= */
+app.use((err, req, res, next) => {
+  console.error("Error:", err.message);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+  });
 });
 
 export default app;

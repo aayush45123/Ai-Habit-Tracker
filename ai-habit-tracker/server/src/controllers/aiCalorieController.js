@@ -16,6 +16,12 @@ export const estimateFoodCalories = async (req, res) => {
   try {
     const { foodName } = req.body;
 
+    if (!foodName || !foodName.trim()) {
+      return res.status(400).json({
+        message: "foodName is required",
+      });
+    }
+
     const groq = createGroqClient();
 
     const completion = await groq.chat.completions.create({
@@ -24,24 +30,59 @@ export const estimateFoodCalories = async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `
-Return ONLY JSON.
-Format:
+          content: `You are a nutrition expert. Estimate the calories for the given food item.
+Return ONLY valid JSON in this exact format:
 { "calories": number }
-          `.trim(),
+
+Guidelines:
+- Provide realistic calorie estimates
+- For vague items, estimate a typical serving
+- Always return a number between 10 and 3000`,
         },
         {
           role: "user",
-          content: `Estimate calories for: ${foodName}`,
+          content: `Estimate calories for: ${foodName.trim()}`,
         },
       ],
     });
 
-    const parsed = JSON.parse(completion.choices[0].message.content);
+    const content = completion.choices[0].message.content.trim();
 
-    res.json(parsed);
+    // Remove markdown code blocks if present
+    const cleanContent = content
+      .replace(/```json\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleanContent);
+    } catch (parseErr) {
+      console.error("JSON parse error:", cleanContent);
+      // Fallback: try to extract number from response
+      const match = cleanContent.match(/\d+/);
+      if (match) {
+        parsed = { calories: parseInt(match[0]) };
+      } else {
+        throw new Error("Could not parse calorie estimate");
+      }
+    }
+
+    // Validate the response
+    if (!parsed.calories || typeof parsed.calories !== "number") {
+      return res.status(500).json({
+        message: "Invalid calorie estimate received",
+        calories: 200, // Fallback
+      });
+    }
+
+    res.json({ calories: Math.round(parsed.calories) });
   } catch (err) {
-    res.status(500).json({ message: "Calorie estimation failed" });
+    console.error("Calorie estimation error:", err);
+    res.status(500).json({
+      message: "Calorie estimation failed",
+      calories: 200, // Fallback value
+    });
   }
 };
 
@@ -49,15 +90,26 @@ Format:
    DAILY CALORIE INSIGHTS
 ============================ */
 export const getDailyCalorieSummary = async (req, res) => {
-  const userId = req.user;
-  const today = normalizeDateIST(new Date());
+  try {
+    const userId = req.user;
+    const today = normalizeDateIST(new Date());
 
-  const logs = await FoodLog.find({ userId, date: today });
+    const logs = await FoodLog.find({ userId, date: today }).sort({
+      createdAt: -1,
+    });
 
-  const total = logs.reduce((sum, f) => sum + f.calories, 0);
+    const total = logs.reduce((sum, f) => sum + (f.calories || 0), 0);
 
-  res.json({
-    totalCalories: total,
-    items: logs,
-  });
+    res.json({
+      totalCalories: total,
+      items: logs,
+    });
+  } catch (err) {
+    console.error("Error getting summary:", err);
+    res.status(500).json({
+      message: "Failed to get calorie summary",
+      totalCalories: 0,
+      items: [],
+    });
+  }
 };
