@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../utils/api";
+import api from "../../utils/api";
 import styles from "./CalorieSummary.module.css";
 
 export default function CalorieSummary() {
@@ -16,6 +16,7 @@ export default function CalorieSummary() {
       setLoading(true);
       setError(null);
       const res = await api.get("/calories/ai/summary");
+      console.log("Summary response:", res.data);
       setSummary(res.data);
     } catch (err) {
       console.error("Error loading summary:", err);
@@ -25,10 +26,22 @@ export default function CalorieSummary() {
     }
   }
 
+  async function deleteFood(foodId) {
+    if (!window.confirm("Delete this food item?")) return;
+
+    try {
+      await api.delete(`/calories/food/${foodId}`);
+      loadSummary();
+    } catch (err) {
+      console.error("Error deleting food:", err);
+      alert("Failed to delete food item");
+    }
+  }
+
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading summary...</div>
+        <div className={styles.loading}>Loading today's meals...</div>
       </div>
     );
   }
@@ -44,8 +57,13 @@ export default function CalorieSummary() {
   if (!summary || !summary.items || summary.items.length === 0) {
     return (
       <div className={styles.container}>
-        <h3 className={styles.title}>Today's Summary</h3>
-        <p className={styles.empty}>No food logged today</p>
+        <h3 className={styles.title}>Today's Meals</h3>
+        <div className={styles.empty}>
+          <p>No meals logged yet today</p>
+          <p className={styles.emptyHint}>
+            Start tracking by adding what you ate above
+          </p>
+        </div>
       </div>
     );
   }
@@ -53,23 +71,56 @@ export default function CalorieSummary() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Today's Summary</h3>
+        <h3 className={styles.title}>Today's Meals</h3>
         <div className={styles.total}>
-          <span className={styles.totalLabel}>Total</span>
+          <span className={styles.totalLabel}>Total Consumed</span>
           <span className={styles.totalValue}>
             {summary.totalCalories} kcal
           </span>
         </div>
       </div>
 
-      <ul className={styles.list}>
-        {summary.items.map((f) => (
-          <li key={f._id} className={styles.item}>
-            <span className={styles.foodName}>{f.foodName}</span>
-            <span className={styles.calories}>{f.calories} kcal</span>
-          </li>
+      <div className={styles.list}>
+        {summary.items.map((food, index) => (
+          <div key={food._id} className={styles.item}>
+            <div className={styles.itemLeft}>
+              <span className={styles.itemNumber}>{index + 1}</span>
+              <div className={styles.itemDetails}>
+                <span className={styles.foodName}>{food.foodName}</span>
+                <span className={styles.timestamp}>
+                  {new Date(food.createdAt).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </div>
+            <div className={styles.itemRight}>
+              <span className={styles.calories}>{food.calories} kcal</span>
+              <button
+                onClick={() => deleteFood(food._id)}
+                className={styles.deleteBtn}
+                title="Delete"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
+
+      <div className={styles.stats}>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>Items Logged</span>
+          <span className={styles.statValue}>{summary.items.length}</span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>Avg Per Item</span>
+          <span className={styles.statValue}>
+            {Math.round(summary.totalCalories / summary.items.length)} kcal
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

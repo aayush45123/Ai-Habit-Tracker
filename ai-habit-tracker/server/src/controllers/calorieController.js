@@ -32,6 +32,32 @@ export const addFoodLog = async (req, res) => {
 };
 
 /* ============================
+   DELETE FOOD LOG
+============================ */
+export const deleteFoodLog = async (req, res) => {
+  try {
+    const userId = req.user;
+    const { id } = req.params;
+
+    const food = await FoodLog.findOneAndDelete({
+      _id: id,
+      userId,
+    });
+
+    if (!food) {
+      return res.status(404).json({
+        message: "Food log not found",
+      });
+    }
+
+    res.json({ message: "Food log deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting food log:", err);
+    res.status(500).json({ message: "Failed to delete food log" });
+  }
+};
+
+/* ============================
    GET PROFILE
 ============================ */
 export const getCalorieProfile = async (req, res) => {
