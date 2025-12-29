@@ -18,7 +18,7 @@ export const addHabit = async (req, res) => {
       userId: req.user,
       title,
       description,
-      frequency,
+      frequency: frequency || "daily",
       startDate: getTodayIST(),
     });
 
@@ -157,20 +157,19 @@ export const logHabit = async (req, res) => {
     }
 
     // ---------- RECALCULATE STREAK FROM SCRATCH ----------
-    const allLogs = await HabitLog.find({ habitId }).sort({ date: 1 }); // Sort ascending by date
+    const allLogs = await HabitLog.find({ habitId }).sort({ date: 1 });
 
     let currentStreak = 0;
     let longestStreak = 0;
     let tempStreak = 0;
 
-    // Get all dates and check for consecutive "done" days
+    // Calculate streaks
     for (let i = 0; i < allLogs.length; i++) {
       const log = allLogs[i];
       const logDate = new Date(log.date + "T00:00:00Z");
 
       if (log.status === "done") {
         if (i === 0) {
-          // First log
           tempStreak = 1;
         } else {
           const prevLog = allLogs[i - 1];
@@ -181,26 +180,22 @@ export const logHabit = async (req, res) => {
           );
 
           if (diffDays === 1 && prevLog.status === "done") {
-            // Consecutive day
             tempStreak++;
           } else {
-            // Streak broken
             tempStreak = 1;
           }
         }
 
         longestStreak = Math.max(longestStreak, tempStreak);
       } else {
-        // Status is "missed" - break the streak
         tempStreak = 0;
       }
     }
 
     // Current streak = check if today and recent days are "done"
-    const todayLog = allLogs[allLogs.length - 1]; // Last log (most recent)
+    const todayLog = allLogs[allLogs.length - 1];
 
     if (todayLog && todayLog.date === todayISO && todayLog.status === "done") {
-      // Count backwards from today
       currentStreak = 1;
       for (let i = allLogs.length - 2; i >= 0; i--) {
         const currentLog = allLogs[i];
@@ -278,7 +273,7 @@ export const getAnalytics = async (req, res) => {
 
     for (let i = 6; i >= 0; i--) {
       const now = new Date();
-      const targetDate = new Date(now.getTime() + 330 * 60000); // IST
+      const targetDate = new Date(now.getTime() + 330 * 60000);
       targetDate.setDate(targetDate.getDate() - i);
       const key = targetDate.toISOString().split("T")[0];
 
@@ -313,9 +308,12 @@ export const getAnalytics = async (req, res) => {
       }
     });
 
-    const bestDay = Object.keys(dayCount).reduce((a, b) =>
-      dayCount[a] > dayCount[b] ? a : b
-    );
+    const bestDay =
+      Object.keys(dayCount).length > 0
+        ? Object.keys(dayCount).reduce((a, b) =>
+            dayCount[a] > dayCount[b] ? a : b
+          )
+        : "N/A";
 
     // ----------------------------------------------------
     // WEEK-OVER-WEEK TREND
@@ -324,7 +322,7 @@ export const getAnalytics = async (req, res) => {
       const arr = [];
       for (let i = 0; i < 7; i++) {
         const now = new Date();
-        const d = new Date(now.getTime() + 330 * 60000); // IST
+        const d = new Date(now.getTime() + 330 * 60000);
         d.setDate(d.getDate() - (offset + i));
         arr.push(d.toISOString().split("T")[0]);
       }
@@ -404,40 +402,63 @@ export const getAnalytics = async (req, res) => {
     // HABIT SUCCESS RANKING (LEADERBOARD) - FIXED
     // ----------------------------------------------------
     const leaderboard = [];
+    const todayIST = new Date(now.getTime() + 330 * 60000);
+    const todayISO = todayIST.toISOString().split("T")[0];
 
     for (let habit of habits) {
       const hLogs = normalizedLogs.filter(
         (l) => l.habitId.toString() === habit._id.toString()
       );
 
-      if (hLogs.length === 0) {
-        leaderboard.push({
-          habit: habit.title,
-          completionRate: 0,
-          totalLogs: 0,
-          doneCount: 0,
-        });
-        continue;
-      }
+      // Get habit start date
+      const startDate = habit.startDate
+        ? new Date(habit.startDate + "T00:00:00Z")
+        : new Date(habit.createdAt);
+      const startIST = new Date(startDate.getTime() + 330 * 60000);
+      const today = new Date(todayISO + "T00:00:00Z");
+      const todayIST_Date = new Date(today.getTime() + 330 * 60000);
 
+      // Calculate total days since habit was created (up to today)
+      const totalDaysSinceStart =
+        Math.floor((todayIST_Date - startIST) / (1000 * 60 * 60 * 24)) + 1;
+
+      // Count how many days were actually completed
       const doneCount = hLogs.filter((l) => l.status === "done").length;
-      const totalCount = hLogs.length;
 
-      // Completion rate = (done / total logs) * 100
-      const rate = Math.round((doneCount / totalCount) * 100);
+      // Calculate completion rate based on expected days
+      let completionRate = 0;
+      let expectedDays = totalDaysSinceStart;
+
+      if (totalDaysSinceStart > 0) {
+        if (habit.frequency === "daily") {
+          // For daily habits: done / total days since start
+          completionRate = Math.round((doneCount / totalDaysSinceStart) * 100);
+        } else if (habit.frequency === "weekly") {
+          // For weekly habits: done / (weeks since start)
+          expectedDays = Math.ceil(totalDaysSinceStart / 7);
+          completionRate = Math.round((doneCount / expectedDays) * 100);
+        } else {
+          // Default: use actual logs if no frequency set
+          const totalLogs = hLogs.length;
+          completionRate =
+            totalLogs > 0 ? Math.round((doneCount / totalLogs) * 100) : 0;
+          expectedDays = totalLogs;
+        }
+      }
 
       leaderboard.push({
         habit: habit.title,
-        completionRate: rate,
-        totalLogs: totalCount,
+        completionRate: Math.min(completionRate, 100), // Cap at 100%
+        totalLogs: hLogs.length,
         doneCount: doneCount,
+        expectedDays: expectedDays,
       });
     }
 
     // Sort by completion rate (highest first)
     leaderboard.sort((a, b) => {
       if (b.completionRate === a.completionRate) {
-        return b.totalLogs - a.totalLogs; // If same rate, sort by total logs
+        return b.doneCount - a.doneCount; // If same rate, sort by done count
       }
       return b.completionRate - a.completionRate;
     });
