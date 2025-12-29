@@ -410,40 +410,36 @@ export const getAnalytics = async (req, res) => {
         (l) => l.habitId.toString() === habit._id.toString()
       );
 
-      // Get habit start date
-      const startDate = habit.startDate
-        ? new Date(habit.startDate + "T00:00:00Z")
-        : new Date(habit.createdAt);
-      const startIST = new Date(startDate.getTime() + 330 * 60000);
-      const today = new Date(todayISO + "T00:00:00Z");
-      const todayIST_Date = new Date(today.getTime() + 330 * 60000);
-
-      // Calculate total days since habit was created (up to today)
-      const totalDaysSinceStart =
-        Math.floor((todayIST_Date - startIST) / (1000 * 60 * 60 * 24)) + 1;
-
       // Count how many days were actually completed
       const doneCount = hLogs.filter((l) => l.status === "done").length;
 
-      // Calculate completion rate based on expected days
-      let completionRate = 0;
-      let expectedDays = totalDaysSinceStart;
+      // If no logs exist, completion rate is 0
+      if (hLogs.length === 0) {
+        leaderboard.push({
+          habit: habit.title,
+          completionRate: 0,
+          totalLogs: 0,
+          doneCount: 0,
+          expectedDays: 0,
+        });
+        continue;
+      }
 
-      if (totalDaysSinceStart > 0) {
-        if (habit.frequency === "daily") {
-          // For daily habits: done / total days since start
-          completionRate = Math.round((doneCount / totalDaysSinceStart) * 100);
-        } else if (habit.frequency === "weekly") {
-          // For weekly habits: done / (weeks since start)
-          expectedDays = Math.ceil(totalDaysSinceStart / 7);
-          completionRate = Math.round((doneCount / expectedDays) * 100);
-        } else {
-          // Default: use actual logs if no frequency set
-          const totalLogs = hLogs.length;
-          completionRate =
-            totalLogs > 0 ? Math.round((doneCount / totalLogs) * 100) : 0;
-          expectedDays = totalLogs;
-        }
+      // Calculate completion rate based on logs
+      let completionRate = 0;
+      let expectedDays = hLogs.length;
+
+      if (habit.frequency === "daily") {
+        // For daily habits: done / total logs
+        completionRate = Math.round((doneCount / hLogs.length) * 100);
+      } else if (habit.frequency === "weekly") {
+        // For weekly habits: done / (weeks based on logs)
+        expectedDays = Math.ceil(hLogs.length / 7);
+        completionRate = Math.round((doneCount / expectedDays) * 100);
+      } else {
+        // Default: use actual logs if no frequency set
+        completionRate = Math.round((doneCount / hLogs.length) * 100);
+        expectedDays = hLogs.length;
       }
 
       leaderboard.push({
