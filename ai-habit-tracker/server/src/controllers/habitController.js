@@ -131,54 +131,113 @@ export const logHabit = async (req, res) => {
     const habitId = req.params.id;
     const { status } = req.body;
 
-    const todayISO = getTodayIST();
-
-    // Upsert log for today
-    const log = await HabitLog.findOneAndUpdate(
-      { habitId, date: todayISO },
-      { status },
-      { upsert: true, new: true }
-    );
-
-    // ---------- STREAK CALCULATION ----------
-    let newStreak = 0;
-
-    if (status === "done") {
-      const yesterdayISO = getYesterdayIST();
-
-      const yesterdayLog = await HabitLog.findOne({
-        habitId,
-        date: yesterdayISO,
-        status: "done",
-      });
-
-      if (yesterdayLog) {
-        // continue streak
-        const habit = await Habit.findById(habitId);
-        newStreak = (habit.streak || 0) + 1;
-      } else {
-        // start new streak
-        newStreak = 1;
-      }
-    } else {
-      newStreak = 0;
+    if (!["done", "missed"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
     }
 
-    // Get current habit to check longest streak
-    const habit = await Habit.findById(habitId);
-    const newLongestStreak = Math.max(habit.longestStreak || 0, newStreak);
+    const todayISO = getTodayIST();
 
-    // update habit streak AND longest streak
+    // Check if already logged today
+    const existingLog = await HabitLog.findOne({
+      habitId,
+      date: todayISO,
+    });
+
+    if (existingLog) {
+      // Update existing log instead of creating duplicate
+      existingLog.status = status;
+      await existingLog.save();
+    } else {
+      // Create new log
+      await HabitLog.create({
+        habitId,
+        date: todayISO,
+        status,
+      });
+    }
+
+    // ---------- RECALCULATE STREAK FROM SCRATCH ----------
+    const allLogs = await HabitLog.find({ habitId }).sort({ date: 1 }); // Sort ascending by date
+
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 0;
+
+    // Get all dates and check for consecutive "done" days
+    for (let i = 0; i < allLogs.length; i++) {
+      const log = allLogs[i];
+      const logDate = new Date(log.date + "T00:00:00Z");
+
+      if (log.status === "done") {
+        if (i === 0) {
+          // First log
+          tempStreak = 1;
+        } else {
+          const prevLog = allLogs[i - 1];
+          const prevDate = new Date(prevLog.date + "T00:00:00Z");
+
+          const diffDays = Math.round(
+            (logDate - prevDate) / (1000 * 60 * 60 * 24)
+          );
+
+          if (diffDays === 1 && prevLog.status === "done") {
+            // Consecutive day
+            tempStreak++;
+          } else {
+            // Streak broken
+            tempStreak = 1;
+          }
+        }
+
+        longestStreak = Math.max(longestStreak, tempStreak);
+      } else {
+        // Status is "missed" - break the streak
+        tempStreak = 0;
+      }
+    }
+
+    // Current streak = check if today and recent days are "done"
+    const todayLog = allLogs[allLogs.length - 1]; // Last log (most recent)
+
+    if (todayLog && todayLog.date === todayISO && todayLog.status === "done") {
+      // Count backwards from today
+      currentStreak = 1;
+      for (let i = allLogs.length - 2; i >= 0; i--) {
+        const currentLog = allLogs[i];
+        const nextLog = allLogs[i + 1];
+
+        const currentDate = new Date(currentLog.date + "T00:00:00Z");
+        const nextDate = new Date(nextLog.date + "T00:00:00Z");
+
+        const diffDays = Math.round(
+          (nextDate - currentDate) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diffDays === 1 && currentLog.status === "done") {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+    } else {
+      currentStreak = 0;
+    }
+
+    // Update habit with recalculated streaks
     await Habit.findByIdAndUpdate(habitId, {
       lastDate: todayISO,
       lastStatus: status,
-      streak: newStreak,
-      longestStreak: newLongestStreak,
+      streak: currentStreak,
+      longestStreak: longestStreak,
     });
 
-    res.json({ message: "Habit logged", log });
+    res.json({
+      message: "Habit logged",
+      currentStreak,
+      longestStreak,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Error in logHabit:", err);
     res.status(500).json({ message: "Error logging habit" });
   }
 };
@@ -192,6 +251,18 @@ export const getAnalytics = async (req, res) => {
     const habitIds = habits.map((h) => h._id);
     const totalHabits = habits.length;
 
+    if (totalHabits === 0) {
+      return res.json({
+        weekly: {},
+        dayCount: {},
+        bestDay: "N/A",
+        weekChange: 0,
+        dailyCompletion: {},
+        consistencyScore: 0,
+        leaderboard: [],
+      });
+    }
+
     const logs = await HabitLog.find({ habitId: { $in: habitIds } });
 
     // Normalize all dates to IST
@@ -203,7 +274,6 @@ export const getAnalytics = async (req, res) => {
     // ----------------------------------------------------
     // WEEKLY TREND (LAST 7 DAYS)
     // ----------------------------------------------------
-    const todayISO = getTodayIST();
     const weekly = {};
 
     for (let i = 6; i >= 0; i--) {
@@ -248,7 +318,7 @@ export const getAnalytics = async (req, res) => {
     );
 
     // ----------------------------------------------------
-    // WEEK-OVER-WEEK TREND (SMOOTHED)
+    // WEEK-OVER-WEEK TREND
     // ----------------------------------------------------
     const getWeekDays = (offset) => {
       const arr = [];
@@ -274,11 +344,7 @@ export const getAnalytics = async (req, res) => {
 
     const thisRate = Math.round((thisWeekDone / 7) * 100);
     const lastRate = Math.round((lastWeekDone / 7) * 100);
-
-    let rawChange = thisRate - lastRate;
-
-    // 🔥 smoothen drastic changes
-    let weekChange = Math.round(rawChange * 0.7);
+    const weekChange = thisRate - lastRate;
 
     // ----------------------------------------------------
     // DAILY COMPLETION FOR CALENDAR (PERCENTAGE)
@@ -286,16 +352,22 @@ export const getAnalytics = async (req, res) => {
     const dailyCompletion = {};
 
     normalizedLogs.forEach((l) => {
-      if (!dailyCompletion[l.date]) dailyCompletion[l.date] = new Set();
+      if (!dailyCompletion[l.date]) {
+        dailyCompletion[l.date] = { done: new Set(), total: new Set() };
+      }
 
-      if (l.status === "done")
-        dailyCompletion[l.date].add(l.habitId.toString());
+      dailyCompletion[l.date].total.add(l.habitId.toString());
+
+      if (l.status === "done") {
+        dailyCompletion[l.date].done.add(l.habitId.toString());
+      }
     });
 
     Object.keys(dailyCompletion).forEach((date) => {
-      dailyCompletion[date] = Math.round(
-        (dailyCompletion[date].size / totalHabits) * 100
-      );
+      const doneCount = dailyCompletion[date].done.size;
+      const totalCount = dailyCompletion[date].total.size;
+
+      dailyCompletion[date] = Math.round((doneCount / totalCount) * 100);
     });
 
     // ----------------------------------------------------
@@ -306,7 +378,7 @@ export const getAnalytics = async (req, res) => {
     last30.setDate(last30.getDate() - 29);
 
     let completedDays = new Set();
-    let totalDays = 0;
+    let totalDaysWithLogs = 0;
 
     for (let i = 0; i < 30; i++) {
       const d = new Date(last30);
@@ -316,7 +388,7 @@ export const getAnalytics = async (req, res) => {
       const logsForDay = normalizedLogs.filter((l) => l.date === iso);
 
       if (logsForDay.length > 0) {
-        totalDays++;
+        totalDaysWithLogs++;
         if (logsForDay.some((l) => l.status === "done")) {
           completedDays.add(iso);
         }
@@ -324,10 +396,12 @@ export const getAnalytics = async (req, res) => {
     }
 
     const consistencyScore =
-      totalDays === 0 ? 0 : Math.round((completedDays.size / totalDays) * 100);
+      totalDaysWithLogs === 0
+        ? 0
+        : Math.round((completedDays.size / totalDaysWithLogs) * 100);
 
     // ----------------------------------------------------
-    // HABIT SUCCESS RANKING (LEADERBOARD)
+    // HABIT SUCCESS RANKING (LEADERBOARD) - FIXED
     // ----------------------------------------------------
     const leaderboard = [];
 
@@ -341,22 +415,32 @@ export const getAnalytics = async (req, res) => {
           habit: habit.title,
           completionRate: 0,
           totalLogs: 0,
+          doneCount: 0,
         });
         continue;
       }
 
-      const done = hLogs.filter((l) => l.status === "done").length;
-      const rate = Math.round((done / hLogs.length) * 100);
+      const doneCount = hLogs.filter((l) => l.status === "done").length;
+      const totalCount = hLogs.length;
+
+      // Completion rate = (done / total logs) * 100
+      const rate = Math.round((doneCount / totalCount) * 100);
 
       leaderboard.push({
         habit: habit.title,
         completionRate: rate,
-        totalLogs: hLogs.length,
+        totalLogs: totalCount,
+        doneCount: doneCount,
       });
     }
 
-    // sort — highest success first
-    leaderboard.sort((a, b) => b.completionRate - a.completionRate);
+    // Sort by completion rate (highest first)
+    leaderboard.sort((a, b) => {
+      if (b.completionRate === a.completionRate) {
+        return b.totalLogs - a.totalLogs; // If same rate, sort by total logs
+      }
+      return b.completionRate - a.completionRate;
+    });
 
     // ----------------------------------------------------
     // RETURN ANALYTICS
@@ -371,6 +455,7 @@ export const getAnalytics = async (req, res) => {
       leaderboard,
     });
   } catch (error) {
+    console.error("Analytics error:", error);
     res.status(500).json({ message: "Analytics error", error: error.message });
   }
 };
