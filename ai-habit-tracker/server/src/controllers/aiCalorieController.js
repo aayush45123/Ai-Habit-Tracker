@@ -10,7 +10,7 @@ function createGroqClient() {
 }
 
 /* ============================
-   ESTIMATE FOOD CALORIES
+   ESTIMATE FOOD CALORIES & PROTEIN
 ============================ */
 export const estimateFoodCalories = async (req, res) => {
   try {
@@ -30,18 +30,20 @@ export const estimateFoodCalories = async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `You are a nutrition expert. Estimate the calories for the given food item.
+          content: `You are a nutrition expert. Estimate the calories and protein for the given food item.
 Return ONLY valid JSON in this exact format:
-{ "calories": number }
+{ "calories": number, "protein": number }
 
 Guidelines:
-- Provide realistic calorie estimates
-- For vague items, estimate a typical serving
-- Always return a number between 10 and 3000`,
+- Provide realistic estimates for a typical serving
+- Calories should be between 10 and 3000
+- Protein should be in grams (0-200g)
+- For vague items, estimate a standard portion
+- Consider common preparation methods`,
         },
         {
           role: "user",
-          content: `Estimate calories for: ${foodName.trim()}`,
+          content: `Estimate calories and protein for: ${foodName.trim()}`,
         },
       ],
     });
@@ -59,35 +61,48 @@ Guidelines:
       parsed = JSON.parse(cleanContent);
     } catch (parseErr) {
       console.error("JSON parse error:", cleanContent);
-      // Fallback: try to extract number from response
-      const match = cleanContent.match(/\d+/);
-      if (match) {
-        parsed = { calories: parseInt(match[0]) };
+      // Fallback: try to extract numbers from response
+      const calorieMatch = cleanContent.match(/"calories"\s*:\s*(\d+)/);
+      const proteinMatch = cleanContent.match(/"protein"\s*:\s*(\d+)/);
+
+      if (calorieMatch && proteinMatch) {
+        parsed = {
+          calories: parseInt(calorieMatch[1]),
+          protein: parseInt(proteinMatch[1]),
+        };
       } else {
-        throw new Error("Could not parse calorie estimate");
+        throw new Error("Could not parse nutrition estimate");
       }
     }
 
     // Validate the response
-    if (!parsed.calories || typeof parsed.calories !== "number") {
+    if (
+      typeof parsed.calories !== "number" ||
+      typeof parsed.protein !== "number"
+    ) {
       return res.status(500).json({
-        message: "Invalid calorie estimate received",
-        calories: 200, // Fallback
+        message: "Invalid nutrition estimate received",
+        calories: 200,
+        protein: 10,
       });
     }
 
-    res.json({ calories: Math.round(parsed.calories) });
+    res.json({
+      calories: Math.round(parsed.calories),
+      protein: Math.round(parsed.protein),
+    });
   } catch (err) {
-    console.error("Calorie estimation error:", err);
+    console.error("Nutrition estimation error:", err);
     res.status(500).json({
-      message: "Calorie estimation failed",
-      calories: 200, // Fallback value
+      message: "Nutrition estimation failed",
+      calories: 200,
+      protein: 10,
     });
   }
 };
 
 /* ============================
-   DAILY CALORIE INSIGHTS
+   DAILY NUTRITION SUMMARY
 ============================ */
 export const getDailyCalorieSummary = async (req, res) => {
   try {
@@ -98,17 +113,20 @@ export const getDailyCalorieSummary = async (req, res) => {
       createdAt: -1,
     });
 
-    const total = logs.reduce((sum, f) => sum + (f.calories || 0), 0);
+    const totalCalories = logs.reduce((sum, f) => sum + (f.calories || 0), 0);
+    const totalProtein = logs.reduce((sum, f) => sum + (f.protein || 0), 0);
 
     res.json({
-      totalCalories: total,
+      totalCalories,
+      totalProtein,
       items: logs,
     });
   } catch (err) {
     console.error("Error getting summary:", err);
     res.status(500).json({
-      message: "Failed to get calorie summary",
+      message: "Failed to get nutrition summary",
       totalCalories: 0,
+      totalProtein: 0,
       items: [],
     });
   }
