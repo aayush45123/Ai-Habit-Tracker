@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Flame, Dumbbell, Droplets, Lightbulb } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./NutritionRecommendation.module.css";
 
@@ -45,7 +46,9 @@ export default function NutritionRecommendation({ profile }) {
 
       <div className={styles.grid}>
         <div className={styles.card}>
-          <div className={styles.cardIcon}>🔥</div>
+          <div className={styles.cardIcon}>
+            <Flame size={24} />
+          </div>
           <div className={styles.cardContent}>
             <span className={styles.cardLabel}>Daily Calories</span>
             <span className={styles.cardValue}>
@@ -58,7 +61,9 @@ export default function NutritionRecommendation({ profile }) {
         </div>
 
         <div className={styles.card}>
-          <div className={styles.cardIcon}>💪</div>
+          <div className={styles.cardIcon}>
+            <Dumbbell size={24} />
+          </div>
           <div className={styles.cardContent}>
             <span className={styles.cardLabel}>Daily Protein</span>
             <span className={styles.cardValue}>{recommendations.protein}g</span>
@@ -69,7 +74,9 @@ export default function NutritionRecommendation({ profile }) {
         </div>
 
         <div className={styles.card}>
-          <div className={styles.cardIcon}>🥤</div>
+          <div className={styles.cardIcon}>
+            <Droplets size={24} />
+          </div>
           <div className={styles.cardContent}>
             <span className={styles.cardLabel}>Water Intake</span>
             <span className={styles.cardValue}>{recommendations.water}L</span>
@@ -122,7 +129,13 @@ export default function NutritionRecommendation({ profile }) {
 
       {recommendations.tips && (
         <div className={styles.tips}>
-          <h4 className={styles.tipsTitle}>💡 Tips for Your Goal</h4>
+          <h4 className={styles.tipsTitle}>
+            <Lightbulb
+              size={20}
+              style={{ display: "inline", marginRight: "8px" }}
+            />
+            Tips for Your Goal
+          </h4>
           <ul className={styles.tipsList}>
             {recommendations.tips.map((tip, idx) => (
               <li key={idx} className={styles.tipItem}>

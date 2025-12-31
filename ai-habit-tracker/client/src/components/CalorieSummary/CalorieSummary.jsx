@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./CalorieSummary.module.css";
 
@@ -110,7 +111,7 @@ export default function CalorieSummary() {
                 className={styles.deleteBtn}
                 title="Delete"
               >
-                ✕
+                <X size={16} />
               </button>
             </div>
           </div>

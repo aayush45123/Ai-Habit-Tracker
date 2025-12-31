@@ -17,6 +17,7 @@
     "dotenv": "^17.2.3",
     "highcharts": "^12.4.0",
     "highcharts-react-official": "^3.2.3",
+    "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-bits": "^1.0.5",
     "react-chartjs-2": "^5.3.1",

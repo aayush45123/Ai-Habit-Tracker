@@ -1,4 +1,12 @@
 import React, { useEffect, useState } from "react";
+import {
+  BarChart3,
+  Flame,
+  Dumbbell,
+  AlertTriangle,
+  CheckCircle2,
+  X,
+} from "lucide-react";
 import api from "../../utils/api";
 import styles from "./CalorieAnalytics.module.css";
 
@@ -56,7 +64,9 @@ export default function CalorieAnalytics() {
 
       <div className={styles.summaryGrid}>
         <div className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>📊</div>
+          <div className={styles.summaryIcon}>
+            <BarChart3 size={24} />
+          </div>
           <div className={styles.summaryContent}>
             <span className={styles.summaryLabel}>Total Days Tracked</span>
             <span className={styles.summaryValue}>{analytics.totalDays}</span>
@@ -64,7 +74,9 @@ export default function CalorieAnalytics() {
         </div>
 
         <div className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>🔥</div>
+          <div className={styles.summaryIcon}>
+            <Flame size={24} />
+          </div>
           <div className={styles.summaryContent}>
             <span className={styles.summaryLabel}>Avg Daily Calories</span>
             <span className={styles.summaryValue}>
@@ -74,7 +86,9 @@ export default function CalorieAnalytics() {
         </div>
 
         <div className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>💪</div>
+          <div className={styles.summaryIcon}>
+            <Dumbbell size={24} />
+          </div>
           <div className={styles.summaryContent}>
             <span className={styles.summaryLabel}>Avg Daily Protein</span>
             <span className={styles.summaryValue}>{analytics.avgProtein}g</span>
@@ -83,7 +97,11 @@ export default function CalorieAnalytics() {
 
         <div className={styles.summaryCard}>
           <div className={styles.summaryIcon}>
-            {analytics.daysOverGoal > analytics.totalDays / 2 ? "⚠️" : "✅"}
+            {analytics.daysOverGoal > analytics.totalDays / 2 ? (
+              <AlertTriangle size={24} />
+            ) : (
+              <CheckCircle2 size={24} />
+            )}
           </div>
           <div className={styles.summaryContent}>
             <span className={styles.summaryLabel}>Days Over Goal</span>
@@ -164,7 +182,7 @@ export default function CalorieAnalytics() {
                 className={styles.modalClose}
                 onClick={() => setDateDetails(null)}
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
