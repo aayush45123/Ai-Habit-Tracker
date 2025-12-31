@@ -9,6 +9,7 @@ const foodLogSchema = new mongoose.Schema(
     },
     foodName: { type: String, required: true },
     calories: { type: Number, required: true },
+    protein: { type: Number, default: 0 },
     imageUrl: String,
     date: { type: String, required: true }, // IST yyyy-mm-dd
   },

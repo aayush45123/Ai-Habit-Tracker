@@ -1,0 +1,262 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 6px 6px 0 var(--color-border);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.header {
+  padding: 2rem;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 2px solid var(--color-border);
+  text-align: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.step {
+  padding: 2rem;
+}
+
+.question {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin: 0.5rem 0 1.5rem 0;
+  text-align: center;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.option {
+  padding: 1rem 1.5rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.option:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.option.selected {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.toggleGroup {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.toggle {
+  padding: 1rem 2rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.toggle:hover {
+  transform: translateY(-2px);
+}
+
+.toggleActive {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+}
+
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  transition: all var(--transition-speed) var(--transition-easing);
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--color-border);
+  transform: translate(-2px, -2px);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.btnPrimary,
+.btnSecondary {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid var(--color-border);
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btnPrimary {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--color-border);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.btnSecondary:hover {
+  background-color: var(--color-bg-tertiary);
+  transform: translateY(-2px);
+}
+
+.skipButton {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-top: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.skipButton:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 768px) {
+  .modal {
+    max-width: 100%;
+  }
+
+  .header,
+  .step {
+    padding: 1.5rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+}
