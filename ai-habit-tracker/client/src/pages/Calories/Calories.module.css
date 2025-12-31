@@ -27,143 +27,6 @@
   gap: 0.75rem;
 }
 
-/* Profile Form */
-.profileForm {
-  background-color: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.profileForm:hover {
-  box-shadow: 4px 4px 0 var(--color-border);
-}
-
-.formTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.formSubtitle {
-  color: var(--color-text-secondary);
-  margin: 0 0 1.5rem 0;
-  font-size: 0.95rem;
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.label {
-  font-weight: 600;
-  color: var(--color-text-primary);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.input,
-.select {
-  padding: 0.75rem;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: var(--font-primary);
-  font-size: 1rem;
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.input:focus,
-.select:focus {
-  outline: none;
-  box-shadow: 3px 3px 0 var(--color-border);
-  transform: translate(-2px, -2px);
-}
-
-.input::placeholder {
-  color: var(--color-text-secondary);
-}
-
-/* Status Card */
-.statusCard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background-color: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
-}
-
-.statusItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem;
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.statusItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 3px 3px 0 var(--color-border);
-}
-
-.statusLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-secondary);
-}
-
-.statusValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.statusValue.over {
-  color: var(--color-error);
-}
-
-/* Input Section */
-.inputSection {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.foodInput {
-  flex: 1;
-  padding: 1rem;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: var(--font-primary);
-  font-size: 1rem;
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.foodInput:focus {
-  outline: none;
-  box-shadow: 3px 3px 0 var(--color-border);
-  transform: translate(-2px, -2px);
-}
-
 /* Buttons */
 .btnPrimary,
 .btnSecondary {
@@ -204,36 +67,385 @@
   transform: translateY(-2px);
 }
 
+/* Status Card Styles */
+.statusCard {
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statusHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.statusTitle {
+  font-family: var(--font-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.editButton:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-success);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.saveButton:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.cancelButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-error);
+  color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cancelButton:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.statusItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.statusItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.statusLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+.statusValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.statusValue.over {
+  color: var(--color-error);
+}
+
+.goalInput {
+  font-family: var(--font-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-accent-primary);
+  background-color: var(--color-bg-primary);
+  padding: 0.5rem;
+  width: 100%;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.goalInput:focus {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--color-border);
+  transform: translate(-2px, -2px);
+}
+
+.statusHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.statusTitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editButton:hover {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton:hover {
+  background-color: #059669;
+}
+
+.cancelButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #dc2626;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.statusItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.statusLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.statusValue.over {
+  color: #ef4444;
+}
+
+.goalInput {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background-color: #eff6ff;
+  width: 100%;
+  max-width: 150px;
+}
+
+.goalInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: white;
+}
+
+/* Profile Form Styles */
+.profileForm {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.formTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.formSubtitle {
+  color: #6b7280;
+  margin: 0 0 24px 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.input,
+.select {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #000;
+}
+
+/* Input Section */
+.inputSection {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.foodInput {
+  flex: 1;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.foodInput:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.foodInput::placeholder {
+  color: #9ca3af;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  .container {
-    padding: 1rem 0.5rem;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .headerButtons {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .btnSecondary {
-    width: 100%;
+  .statusGrid {
+    grid-template-columns: 1fr;
   }
 
   .formGrid {
     grid-template-columns: 1fr;
   }
 
-  .inputSection {
+  .headerButtons {
     flex-direction: column;
   }
 
-  .statusCard {
-    grid-template-columns: 1fr;
+  .editActions {
+    flex-direction: column;
   }
 }
