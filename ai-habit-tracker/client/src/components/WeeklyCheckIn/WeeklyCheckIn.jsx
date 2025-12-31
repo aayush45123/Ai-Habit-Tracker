@@ -1,4 +1,16 @@
 import React, { useState } from "react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Star,
+  Smile,
+  Meh,
+  Frown,
+  Zap,
+  Sparkles,
+  Battery,
+} from "lucide-react";
 import api from "../../utils/api";
 import styles from "./WeeklyCheckIn.module.css";
 
@@ -50,7 +62,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                   setAnswers({ ...answers, weightChange: "increased" })
                 }
               >
-                ⬆️ Increased
+                <TrendingUp size={20} style={{ marginRight: "8px" }} />
+                Increased
               </button>
               <button
                 className={`${styles.option} ${
@@ -60,7 +73,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                   setAnswers({ ...answers, weightChange: "decreased" })
                 }
               >
-                ⬇️ Decreased
+                <TrendingDown size={20} style={{ marginRight: "8px" }} />
+                Decreased
               </button>
               <button
                 className={`${styles.option} ${
@@ -68,7 +82,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                 }`}
                 onClick={() => setAnswers({ ...answers, weightChange: "same" })}
               >
-                ➡️ No Change
+                <Minus size={20} style={{ marginRight: "8px" }} />
+                No Change
               </button>
             </div>
             <button
@@ -93,7 +108,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                   setAnswers({ ...answers, feelingBetter: "much_better" })
                 }
               >
-                🌟 Much Better
+                <Star size={20} style={{ marginRight: "8px" }} />
+                Much Better
               </button>
               <button
                 className={`${styles.option} ${
@@ -103,7 +119,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                   setAnswers({ ...answers, feelingBetter: "better" })
                 }
               >
-                😊 Better
+                <Smile size={20} style={{ marginRight: "8px" }} />
+                Better
               </button>
               <button
                 className={`${styles.option} ${
@@ -113,7 +130,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                   setAnswers({ ...answers, feelingBetter: "same" })
                 }
               >
-                😐 Same
+                <Meh size={20} style={{ marginRight: "8px" }} />
+                Same
               </button>
               <button
                 className={`${styles.option} ${
@@ -123,7 +141,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                   setAnswers({ ...answers, feelingBetter: "worse" })
                 }
               >
-                😔 Worse
+                <Frown size={20} style={{ marginRight: "8px" }} />
+                Worse
               </button>
             </div>
             <div className={styles.buttonGroup}>
@@ -154,7 +173,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                 }`}
                 onClick={() => setAnswers({ ...answers, energyLevel: "high" })}
               >
-                ⚡ High Energy
+                <Zap size={20} style={{ marginRight: "8px" }} />
+                High Energy
               </button>
               <button
                 className={`${styles.option} ${
@@ -164,7 +184,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                   setAnswers({ ...answers, energyLevel: "moderate" })
                 }
               >
-                💫 Moderate
+                <Sparkles size={20} style={{ marginRight: "8px" }} />
+                Moderate
               </button>
               <button
                 className={`${styles.option} ${
@@ -172,7 +193,8 @@ export default function WeeklyCheckIn({ onComplete }) {
                 }`}
                 onClick={() => setAnswers({ ...answers, energyLevel: "low" })}
               >
-                🔋 Low Energy
+                <Battery size={20} style={{ marginRight: "8px" }} />
+                Low Energy
               </button>
             </div>
             <div className={styles.buttonGroup}>
