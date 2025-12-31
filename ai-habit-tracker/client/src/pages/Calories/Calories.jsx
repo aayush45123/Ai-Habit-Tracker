@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Edit2, Check, X } from "lucide-react";
 import api from "../../utils/api";
 import CalorieSummary from "../../components/CalorieSummary/CalorieSummary";
 import NutritionRecommendation from "../../components/NutritionRecommendation/NutritionRecommendation";
@@ -14,6 +15,11 @@ export default function Calories() {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [refreshSummary, setRefreshSummary] = useState(0);
   const [showWeeklyCheckIn, setShowWeeklyCheckIn] = useState(false);
+  const [editingGoals, setEditingGoals] = useState(false);
+  const [goalData, setGoalData] = useState({
+    dailyGoal: 2000,
+    proteinGoal: 100,
+  });
   const [profileData, setProfileData] = useState({
     age: "",
     height: "",
@@ -22,6 +28,7 @@ export default function Calories() {
     activityLevel: "moderate",
     goal: "maintain",
     dailyGoal: 2000,
+    proteinGoal: 100,
   });
 
   useEffect(() => {
@@ -35,6 +42,21 @@ export default function Calories() {
 
       if (profileRes && profileRes.data) {
         setProfile(profileRes.data);
+        // Populate form with existing data
+        setProfileData({
+          age: profileRes.data.age || "",
+          height: profileRes.data.height || "",
+          weight: profileRes.data.weight || "",
+          gender: profileRes.data.gender || "male",
+          activityLevel: profileRes.data.activityLevel || "moderate",
+          goal: profileRes.data.goal || "maintain",
+          dailyGoal: profileRes.data.dailyGoal || 2000,
+          proteinGoal: profileRes.data.proteinGoal || 100,
+        });
+        setGoalData({
+          dailyGoal: profileRes.data.dailyGoal || 2000,
+          proteinGoal: profileRes.data.proteinGoal || 100,
+        });
         loadStatus();
       } else {
         setShowProfileForm(true);
@@ -76,6 +98,7 @@ export default function Calories() {
         activityLevel: profileData.activityLevel,
         goal: profileData.goal,
         dailyGoal: parseInt(profileData.dailyGoal),
+        proteinGoal: parseInt(profileData.proteinGoal),
       });
 
       setProfile(res.data);
@@ -85,6 +108,32 @@ export default function Calories() {
       console.error("Error saving profile:", err);
       alert("Failed to save profile. Please try again.");
     }
+  }
+
+  async function saveGoals() {
+    try {
+      const res = await api.post("/calories/profile", {
+        ...profile,
+        dailyGoal: parseInt(goalData.dailyGoal),
+        proteinGoal: parseInt(goalData.proteinGoal),
+      });
+
+      setProfile(res.data);
+      setEditingGoals(false);
+      loadStatus();
+      alert("Goals updated successfully!");
+    } catch (err) {
+      console.error("Error saving goals:", err);
+      alert("Failed to update goals. Please try again.");
+    }
+  }
+
+  function cancelEditGoals() {
+    setGoalData({
+      dailyGoal: profile.dailyGoal || 2000,
+      proteinGoal: profile.proteinGoal || 100,
+    });
+    setEditingGoals(false);
   }
 
   async function addFood() {
@@ -258,6 +307,41 @@ export default function Calories() {
                 <option value="gain">Gain Weight</option>
               </select>
             </div>
+
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Daily Calorie Goal</label>
+              <input
+                type="number"
+                required
+                min="500"
+                max="10000"
+                className={styles.input}
+                value={profileData.dailyGoal}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, dailyGoal: e.target.value })
+                }
+                placeholder="2000"
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Daily Protein Goal (g)</label>
+              <input
+                type="number"
+                required
+                min="20"
+                max="500"
+                className={styles.input}
+                value={profileData.proteinGoal}
+                onChange={(e) =>
+                  setProfileData({
+                    ...profileData,
+                    proteinGoal: e.target.value,
+                  })
+                }
+                placeholder="100"
+              />
+            </div>
           </div>
 
           <button type="submit" className={styles.btnPrimary}>
@@ -272,35 +356,102 @@ export default function Calories() {
 
           {status && (
             <div className={styles.statusCard}>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Calorie Goal</span>
-                <span className={styles.statusValue}>
-                  {status.calorieGoal} kcal
-                </span>
+              <div className={styles.statusHeader}>
+                <h3 className={styles.statusTitle}>Today's Progress</h3>
+                {!editingGoals ? (
+                  <button
+                    className={styles.editButton}
+                    onClick={() => setEditingGoals(true)}
+                    title="Edit Goals"
+                  >
+                    <Edit2 size={18} />
+                    Edit Goals
+                  </button>
+                ) : (
+                  <div className={styles.editActions}>
+                    <button
+                      className={styles.saveButton}
+                      onClick={saveGoals}
+                      title="Save"
+                    >
+                      <Check size={18} />
+                      Save
+                    </button>
+                    <button
+                      className={styles.cancelButton}
+                      onClick={cancelEditGoals}
+                      title="Cancel"
+                    >
+                      <X size={18} />
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Consumed</span>
-                <span className={styles.statusValue}>
-                  {status.caloriesConsumed} kcal
-                </span>
-              </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>
-                  {status.caloriesRemaining >= 0 ? "Remaining" : "Over"}
-                </span>
-                <span
-                  className={`${styles.statusValue} ${
-                    status.caloriesRemaining < 0 ? styles.over : ""
-                  }`}
-                >
-                  {Math.abs(status.caloriesRemaining)} kcal
-                </span>
-              </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Protein Goal</span>
-                <span className={styles.statusValue}>
-                  {status.proteinConsumed}g / {status.proteinGoal}g
-                </span>
+
+              <div className={styles.statusGrid}>
+                <div className={styles.statusItem}>
+                  <span className={styles.statusLabel}>Calorie Goal</span>
+                  {editingGoals ? (
+                    <input
+                      type="number"
+                      className={styles.goalInput}
+                      value={goalData.dailyGoal}
+                      onChange={(e) =>
+                        setGoalData({ ...goalData, dailyGoal: e.target.value })
+                      }
+                      min="500"
+                      max="10000"
+                    />
+                  ) : (
+                    <span className={styles.statusValue}>
+                      {status.calorieGoal} kcal
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.statusItem}>
+                  <span className={styles.statusLabel}>Consumed</span>
+                  <span className={styles.statusValue}>
+                    {status.caloriesConsumed} kcal
+                  </span>
+                </div>
+
+                <div className={styles.statusItem}>
+                  <span className={styles.statusLabel}>
+                    {status.caloriesRemaining >= 0 ? "Remaining" : "Over"}
+                  </span>
+                  <span
+                    className={`${styles.statusValue} ${
+                      status.caloriesRemaining < 0 ? styles.over : ""
+                    }`}
+                  >
+                    {Math.abs(status.caloriesRemaining)} kcal
+                  </span>
+                </div>
+
+                <div className={styles.statusItem}>
+                  <span className={styles.statusLabel}>Protein Goal</span>
+                  {editingGoals ? (
+                    <input
+                      type="number"
+                      className={styles.goalInput}
+                      value={goalData.proteinGoal}
+                      onChange={(e) =>
+                        setGoalData({
+                          ...goalData,
+                          proteinGoal: e.target.value,
+                        })
+                      }
+                      min="20"
+                      max="500"
+                    />
+                  ) : (
+                    <span className={styles.statusValue}>
+                      {status.proteinConsumed}g / {status.proteinGoal}g
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
