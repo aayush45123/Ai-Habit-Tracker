@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import CalorieSummary from "../../components/CalorieSummary/CalorieSummary";
+import NutritionRecommendation from "../../components/NutritionRecommendation/NutritionRecommendation";
+import CalorieAnalytics from "../../components/CalorieAnalytics/CalorieAnalytics";
+import WeeklyCheckIn from "../../components/WeeklyCheckIn/WeeklyCheckIn";
 import styles from "./Calories.module.css";
 
 export default function Calories() {
@@ -8,27 +11,30 @@ export default function Calories() {
   const [status, setStatus] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showProfileForm, setShowProfileForm] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [refreshSummary, setRefreshSummary] = useState(0);
+  const [showWeeklyCheckIn, setShowWeeklyCheckIn] = useState(false);
   const [profileData, setProfileData] = useState({
     age: "",
     height: "",
     weight: "",
+    gender: "male",
     activityLevel: "moderate",
+    goal: "maintain",
     dailyGoal: 2000,
   });
 
   useEffect(() => {
     loadData();
+    checkWeeklyCheckIn();
   }, []);
 
   async function loadData() {
     try {
-      // Load profile first
       const profileRes = await api.get("/calories/profile").catch(() => null);
 
       if (profileRes && profileRes.data) {
         setProfile(profileRes.data);
-        // Only load status if profile exists
         loadStatus();
       } else {
         setShowProfileForm(true);
@@ -48,6 +54,17 @@ export default function Calories() {
     }
   }
 
+  async function checkWeeklyCheckIn() {
+    try {
+      const res = await api.get("/calories/check-weekly");
+      if (res.data.shouldShow) {
+        setShowWeeklyCheckIn(true);
+      }
+    } catch (err) {
+      console.error("Error checking weekly:", err);
+    }
+  }
+
   async function saveProfile(e) {
     e.preventDefault();
     try {
@@ -55,7 +72,9 @@ export default function Calories() {
         age: parseInt(profileData.age),
         height: parseInt(profileData.height),
         weight: parseInt(profileData.weight),
+        gender: profileData.gender,
         activityLevel: profileData.activityLevel,
+        goal: profileData.goal,
         dailyGoal: parseInt(profileData.dailyGoal),
       });
 
@@ -81,39 +100,57 @@ export default function Calories() {
     }
 
     try {
-      // Estimate calories using AI
       const aiRes = await api.post("/calories/ai/estimate", {
         foodName: food.trim(),
       });
 
-      // Save food log
       await api.post("/calories/food", {
         foodName: food.trim(),
         calories: aiRes.data.calories,
+        protein: aiRes.data.protein,
       });
 
       setFood("");
       loadStatus();
-      setRefreshSummary((prev) => prev + 1); // Trigger summary refresh
+      setRefreshSummary((prev) => prev + 1);
     } catch (err) {
       console.error("Error adding food:", err);
       alert("Failed to add food. Please try again.");
     }
   }
 
+  function handleWeeklyCheckInComplete() {
+    setShowWeeklyCheckIn(false);
+    loadData();
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>Calorie Tracker</h2>
-        {profile && (
-          <button
-            className={styles.btnSecondary}
-            onClick={() => setShowProfileForm(!showProfileForm)}
-          >
-            {showProfileForm ? "Close Profile" : "Edit Profile"}
-          </button>
-        )}
+        <div className={styles.headerButtons}>
+          {profile && (
+            <>
+              <button
+                className={styles.btnSecondary}
+                onClick={() => setShowAnalytics(!showAnalytics)}
+              >
+                {showAnalytics ? "Hide Analytics" : "View Analytics"}
+              </button>
+              <button
+                className={styles.btnSecondary}
+                onClick={() => setShowProfileForm(!showProfileForm)}
+              >
+                {showProfileForm ? "Close Profile" : "Edit Profile"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
+
+      {showWeeklyCheckIn && (
+        <WeeklyCheckIn onComplete={handleWeeklyCheckInComplete} />
+      )}
 
       {showProfileForm && (
         <form onSubmit={saveProfile} className={styles.profileForm}>
@@ -121,7 +158,7 @@ export default function Calories() {
             {profile ? "Update Profile" : "Set Up Your Profile"}
           </h3>
           <p className={styles.formSubtitle}>
-            Required for AI-powered calorie recommendations
+            Get personalized calorie and protein recommendations
           </p>
 
           <div className={styles.formGrid}>
@@ -174,6 +211,20 @@ export default function Calories() {
             </div>
 
             <div className={styles.inputGroup}>
+              <label className={styles.label}>Gender</label>
+              <select
+                className={styles.select}
+                value={profileData.gender}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, gender: e.target.value })
+                }
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+
+            <div className={styles.inputGroup}>
               <label className={styles.label}>Activity Level</label>
               <select
                 className={styles.select}
@@ -185,60 +236,70 @@ export default function Calories() {
                   })
                 }
               >
-                <option value="low">Low (0-1 days/week)</option>
-                <option value="moderate">Moderate (3-4 days/week)</option>
-                <option value="high">High (5-7 days/week)</option>
+                <option value="sedentary">Sedentary (0-1 days/week)</option>
+                <option value="light">Light (1-3 days/week)</option>
+                <option value="moderate">Moderate (3-5 days/week)</option>
+                <option value="active">Active (6-7 days/week)</option>
+                <option value="very_active">Very Active (2x per day)</option>
               </select>
             </div>
 
             <div className={styles.inputGroup}>
-              <label className={styles.label}>Daily Calorie Goal</label>
-              <input
-                type="number"
-                required
-                min="1000"
-                max="5000"
-                step="100"
-                className={styles.input}
-                value={profileData.dailyGoal}
+              <label className={styles.label}>Goal</label>
+              <select
+                className={styles.select}
+                value={profileData.goal}
                 onChange={(e) =>
-                  setProfileData({ ...profileData, dailyGoal: e.target.value })
+                  setProfileData({ ...profileData, goal: e.target.value })
                 }
-                placeholder="2000"
-              />
+              >
+                <option value="lose">Lose Weight</option>
+                <option value="maintain">Maintain Weight</option>
+                <option value="gain">Gain Weight</option>
+              </select>
             </div>
           </div>
 
           <button type="submit" className={styles.btnPrimary}>
-            Save Profile
+            Save Profile & Get Recommendations
           </button>
         </form>
       )}
 
-      {profile && !showProfileForm && (
+      {profile && !showProfileForm && !showAnalytics && (
         <>
+          <NutritionRecommendation profile={profile} />
+
           {status && (
             <div className={styles.statusCard}>
               <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Goal</span>
-                <span className={styles.statusValue}>{status.goal} kcal</span>
+                <span className={styles.statusLabel}>Calorie Goal</span>
+                <span className={styles.statusValue}>
+                  {status.calorieGoal} kcal
+                </span>
               </div>
               <div className={styles.statusItem}>
                 <span className={styles.statusLabel}>Consumed</span>
                 <span className={styles.statusValue}>
-                  {status.consumed} kcal
+                  {status.caloriesConsumed} kcal
                 </span>
               </div>
               <div className={styles.statusItem}>
                 <span className={styles.statusLabel}>
-                  {status.remaining >= 0 ? "Remaining" : "Over"}
+                  {status.caloriesRemaining >= 0 ? "Remaining" : "Over"}
                 </span>
                 <span
                   className={`${styles.statusValue} ${
-                    status.remaining < 0 ? styles.over : ""
+                    status.caloriesRemaining < 0 ? styles.over : ""
                   }`}
                 >
-                  {Math.abs(status.remaining)} kcal
+                  {Math.abs(status.caloriesRemaining)} kcal
+                </span>
+              </div>
+              <div className={styles.statusItem}>
+                <span className={styles.statusLabel}>Protein Goal</span>
+                <span className={styles.statusValue}>
+                  {status.proteinConsumed}g / {status.proteinGoal}g
                 </span>
               </div>
             </div>
@@ -256,11 +317,12 @@ export default function Calories() {
               Add
             </button>
           </div>
+
+          <CalorieSummary key={refreshSummary} />
         </>
       )}
 
-      {/* Add Summary Component */}
-      {profile && !showProfileForm && <CalorieSummary key={refreshSummary} />}
+      {showAnalytics && <CalorieAnalytics />}
     </div>
   );
 }
