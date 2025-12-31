@@ -16,7 +16,6 @@ export default function CalorieSummary() {
       setLoading(true);
       setError(null);
       const res = await api.get("/calories/ai/summary");
-      console.log("Summary response:", res.data);
       setSummary(res.data);
     } catch (err) {
       console.error("Error loading summary:", err);
@@ -72,11 +71,17 @@ export default function CalorieSummary() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h3 className={styles.title}>Today's Meals</h3>
-        <div className={styles.total}>
-          <span className={styles.totalLabel}>Total Consumed</span>
-          <span className={styles.totalValue}>
-            {summary.totalCalories} kcal
-          </span>
+        <div className={styles.totals}>
+          <div className={styles.totalItem}>
+            <span className={styles.totalLabel}>Calories</span>
+            <span className={styles.totalValue}>
+              {summary.totalCalories} kcal
+            </span>
+          </div>
+          <div className={styles.totalItem}>
+            <span className={styles.totalLabel}>Protein</span>
+            <span className={styles.totalValue}>{summary.totalProtein}g</span>
+          </div>
         </div>
       </div>
 
@@ -96,7 +101,10 @@ export default function CalorieSummary() {
               </div>
             </div>
             <div className={styles.itemRight}>
-              <span className={styles.calories}>{food.calories} kcal</span>
+              <div className={styles.nutrition}>
+                <span className={styles.calories}>{food.calories} kcal</span>
+                <span className={styles.protein}>{food.protein}g protein</span>
+              </div>
               <button
                 onClick={() => deleteFood(food._id)}
                 className={styles.deleteBtn}
@@ -115,9 +123,15 @@ export default function CalorieSummary() {
           <span className={styles.statValue}>{summary.items.length}</span>
         </div>
         <div className={styles.statItem}>
-          <span className={styles.statLabel}>Avg Per Item</span>
+          <span className={styles.statLabel}>Avg Calories/Item</span>
           <span className={styles.statValue}>
             {Math.round(summary.totalCalories / summary.items.length)} kcal
+          </span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>Avg Protein/Item</span>
+          <span className={styles.statValue}>
+            {Math.round(summary.totalProtein / summary.items.length)}g
           </span>
         </div>
       </div>
