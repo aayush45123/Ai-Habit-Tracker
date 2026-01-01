@@ -18,7 +18,33 @@ const connectDB = async () => {
   }
 };
 
-// Calculate streak for a single habit
+// Helper: Check if two dates are consecutive
+const areConsecutiveDays = (date1String, date2String) => {
+  const date1 = new Date(date1String + "T00:00:00Z");
+  const date2 = new Date(date2String + "T00:00:00Z");
+
+  const diffMs = Math.abs(date2 - date1);
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  return diffDays === 1;
+};
+
+// Helper: Get date N days ago in IST
+const getDaysAgo = (n) => {
+  const now = new Date();
+  const istDate = new Date(now.getTime() + 330 * 60000);
+  istDate.setDate(istDate.getDate() - n);
+  return istDate.toISOString().split("T")[0];
+};
+
+// Helper: Get today in IST
+const getTodayIST = () => {
+  const now = new Date();
+  const istDate = new Date(now.getTime() + 330 * 60000);
+  return istDate.toISOString().split("T")[0];
+};
+
+// Calculate streak for a single habit (FIXED VERSION)
 const calculateStreakForHabit = async (habitId) => {
   const allLogs = await HabitLog.find({ habitId }).sort({ date: 1 });
 
@@ -26,72 +52,66 @@ const calculateStreakForHabit = async (habitId) => {
     return { currentStreak: 0, longestStreak: 0 };
   }
 
-  let currentStreak = 0;
-  let longestStreak = 0;
-  let tempStreak = 0;
-
   // Normalize all log dates
   const normalizedLogs = allLogs.map((log) => ({
     ...log._doc,
     date: normalizeDateIST(log.date),
   }));
 
-  // Calculate streaks
+  let longestStreak = 0;
+  let tempStreak = 0;
+
+  // Calculate LONGEST streak
   for (let i = 0; i < normalizedLogs.length; i++) {
     const log = normalizedLogs[i];
-    const logDate = new Date(log.date + "T00:00:00Z");
 
     if (log.status === "done") {
       if (i === 0) {
         tempStreak = 1;
       } else {
         const prevLog = normalizedLogs[i - 1];
-        const prevDate = new Date(prevLog.date + "T00:00:00Z");
 
-        const diffDays = Math.round(
-          (logDate - prevDate) / (1000 * 60 * 60 * 24)
-        );
-
-        if (diffDays === 1 && prevLog.status === "done") {
+        // Check if consecutive days
+        if (
+          areConsecutiveDays(prevLog.date, log.date) &&
+          prevLog.status === "done"
+        ) {
           tempStreak++;
         } else {
           tempStreak = 1;
         }
       }
-
       longestStreak = Math.max(longestStreak, tempStreak);
     } else {
       tempStreak = 0;
     }
   }
 
-  // Calculate current streak (from most recent log backwards)
-  const lastLog = normalizedLogs[normalizedLogs.length - 1];
-  const today = new Date();
-  const todayIST = new Date(today.getTime() + 330 * 60000);
-  const todayISO = todayIST.toISOString().split("T")[0];
+  // Calculate CURRENT streak - must include today
+  const todayISO = getTodayIST();
+  const todayLog = normalizedLogs.find((log) => log.date === todayISO);
 
-  if (lastLog.status === "done") {
+  let currentStreak = 0;
+
+  if (todayLog && todayLog.status === "done") {
     currentStreak = 1;
 
-    for (let i = normalizedLogs.length - 2; i >= 0; i--) {
-      const currentLog = normalizedLogs[i];
-      const nextLog = normalizedLogs[i + 1];
+    // Count backwards from today by calendar date
+    let checkDate = getDaysAgo(1); // Yesterday
 
-      const currentDate = new Date(currentLog.date + "T00:00:00Z");
-      const nextDate = new Date(nextLog.date + "T00:00:00Z");
+    for (let daysBack = 1; daysBack <= normalizedLogs.length; daysBack++) {
+      const logForDate = normalizedLogs.find((log) => log.date === checkDate);
 
-      const diffDays = Math.round(
-        (nextDate - currentDate) / (1000 * 60 * 60 * 24)
-      );
-
-      if (diffDays === 1 && currentLog.status === "done") {
+      if (logForDate && logForDate.status === "done") {
         currentStreak++;
+        checkDate = getDaysAgo(daysBack + 1);
       } else {
+        // Streak broken
         break;
       }
     }
   } else {
+    // Today is not done, so current streak is 0
     currentStreak = 0;
   }
 
@@ -238,15 +258,17 @@ const recalculateAllStreaks = async () => {
 
     console.log("✨ Migration completed!");
     console.log("\n📋 What was fixed:");
-    console.log("   ✓ Streaks recalculated from all logs");
-    console.log("   ✓ Longest streaks updated");
+    console.log("   ✓ Streaks recalculated with FIXED logic");
+    console.log("   ✓ Current streaks now check if today is done");
+    console.log("   ✓ Longest streaks updated correctly");
     console.log("   ✓ Missing startDate fields filled");
     console.log("   ✓ Missing frequency fields set to 'daily'");
     console.log("   ✓ Completion rates now calculated correctly");
     console.log("\n💡 Next steps:");
     console.log("   1. Restart your server");
-    console.log("   2. Check the Analytics page");
-    console.log("   3. Leaderboard should now show accurate percentages\n");
+    console.log("   2. Check the Dashboard to see your streaks");
+    console.log("   3. Check Analytics page for leaderboard");
+    console.log("   4. Log a new habit to test real-time updates\n");
   } catch (error) {
     console.error("❌ Migration failed:", error);
     throw error;
