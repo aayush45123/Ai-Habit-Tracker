@@ -2,7 +2,6 @@ import { useState } from "react";
 import api from "../../../utils/api";
 import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
-import styles from "./Login.module.css";
 
 function Login() {
   const navigate = useNavigate();
