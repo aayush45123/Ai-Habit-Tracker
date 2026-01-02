@@ -395,7 +395,7 @@ export default function Calories() {
 
               <div className={styles.statusGrid}>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>Calorie Goal</span>
+                  <span className={styles.statusLabel}>Your Calorie Goal</span>
                   {editingGoals ? (
                     <input
                       type="number"
