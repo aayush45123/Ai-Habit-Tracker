@@ -40,7 +40,7 @@ export default function NutritionRecommendation({ profile }) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Your Daily Targets</h3>
+        <h3 className={styles.title}>Ai Recommends Your Daily Targets</h3>
         <span className={styles.badge}>{recommendations.goalLabel}</span>
       </div>
 
