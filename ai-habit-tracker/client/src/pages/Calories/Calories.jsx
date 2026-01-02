@@ -119,6 +119,10 @@ export default function Calories() {
       });
 
       setProfile(res.data);
+      setGoalData({
+        dailyGoal: res.data.dailyGoal,
+        proteinGoal: res.data.proteinGoal,
+      });
       setEditingGoals(false);
       loadStatus();
       alert("Goals updated successfully!");
