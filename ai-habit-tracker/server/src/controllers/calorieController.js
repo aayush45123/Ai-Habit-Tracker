@@ -170,18 +170,57 @@ function calculateRecommendations(profile) {
 
 /* ============================
    SET / UPDATE PROFILE
+   ✅ FIXED: Now properly handles manual goal updates
 ============================ */
 export const saveCalorieProfile = async (req, res) => {
   try {
     const userId = req.user?._id;
-    const { age, height, weight, gender, activityLevel, goal } = req.body;
+    const {
+      age,
+      height,
+      weight,
+      gender,
+      activityLevel,
+      goal,
+      dailyGoal,
+      proteinGoal,
+    } = req.body;
 
+    // Check if this is just a goal update (no age/height/weight changes)
+    const existingProfile = await CalorieProfile.findOne({ userId });
+
+    // If updating existing profile and only goals are provided
+    if (existingProfile && dailyGoal && proteinGoal) {
+      // Manual goal update - don't recalculate, just save the custom values
+      console.log("Updating goals manually:", { dailyGoal, proteinGoal });
+
+      const updatedProfile = await CalorieProfile.findOneAndUpdate(
+        { userId },
+        {
+          dailyGoal: Number(dailyGoal),
+          proteinGoal: Number(proteinGoal),
+          // Update other fields if they're provided
+          ...(age && { age: Number(age) }),
+          ...(height && { height: Number(height) }),
+          ...(weight && { weight: Number(weight) }),
+          ...(gender && { gender }),
+          ...(activityLevel && { activityLevel }),
+          ...(goal && { goal }),
+        },
+        { new: true }
+      );
+
+      return res.json(updatedProfile);
+    }
+
+    // New profile creation or full profile update - validate all fields
     if (!age || !height || !weight || !gender || !activityLevel || !goal) {
       return res.status(400).json({
         message: "All profile fields are required",
       });
     }
 
+    // Calculate AI recommendations
     const recommendations = calculateRecommendations({
       age: Number(age),
       height: Number(height),
@@ -189,6 +228,23 @@ export const saveCalorieProfile = async (req, res) => {
       gender,
       activityLevel,
       goal,
+    });
+
+    // Use custom goals if provided, otherwise use AI recommendations
+    const finalDailyGoal = dailyGoal
+      ? Number(dailyGoal)
+      : recommendations.calories;
+    const finalProteinGoal = proteinGoal
+      ? Number(proteinGoal)
+      : recommendations.protein;
+
+    console.log("Creating/updating profile with goals:", {
+      dailyGoal: finalDailyGoal,
+      proteinGoal: finalProteinGoal,
+      aiRecommended: {
+        calories: recommendations.calories,
+        protein: recommendations.protein,
+      },
     });
 
     const profile = await CalorieProfile.findOneAndUpdate(
@@ -201,8 +257,8 @@ export const saveCalorieProfile = async (req, res) => {
         gender,
         activityLevel,
         goal,
-        dailyGoal: recommendations.calories,
-        proteinGoal: recommendations.protein,
+        dailyGoal: finalDailyGoal,
+        proteinGoal: finalProteinGoal,
       },
       { upsert: true, new: true }
     );
@@ -210,7 +266,9 @@ export const saveCalorieProfile = async (req, res) => {
     res.json(profile);
   } catch (err) {
     console.error("Error saving profile:", err);
-    res.status(500).json({ message: "Failed to save profile" });
+    res
+      .status(500)
+      .json({ message: "Failed to save profile", error: err.message });
   }
 };
 
@@ -415,6 +473,7 @@ export const checkWeeklyCheckIn = async (req, res) => {
 
 /* ============================
    SAVE WEEKLY CHECK-IN
+   ✅ FIXED: Better error handling and validation
 ============================ */
 export const saveWeeklyCheckIn = async (req, res) => {
   try {
@@ -427,31 +486,83 @@ export const saveWeeklyCheckIn = async (req, res) => {
       newWeight,
     } = req.body;
 
-    await WeeklyCheckIn.create({
+    console.log("Weekly check-in received:", {
+      weightChange,
+      feelingBetter,
+      energyLevel,
+      updateProfile,
+      newWeight,
+    });
+
+    // Validate required fields
+    if (!weightChange || !feelingBetter || !energyLevel) {
+      return res.status(400).json({
+        message: "Please answer all questions",
+      });
+    }
+
+    // Validate if updateProfile is true, newWeight must be provided
+    if (updateProfile && (!newWeight || isNaN(newWeight))) {
+      return res.status(400).json({
+        message: "Please provide a valid weight",
+      });
+    }
+
+    // Create check-in record
+    const checkIn = await WeeklyCheckIn.create({
       userId,
       weightChange,
       feelingBetter,
       energyLevel,
-      updatedProfile: updateProfile,
+      updatedProfile: updateProfile || false,
     });
+
+    console.log("Check-in saved:", checkIn);
 
     // Update profile if requested
     if (updateProfile && newWeight) {
       const profile = await CalorieProfile.findOne({ userId });
-      if (profile) {
-        profile.weight = Number(newWeight);
 
-        const recommendations = calculateRecommendations(profile);
-        profile.dailyGoal = recommendations.calories;
-        profile.proteinGoal = recommendations.protein;
-
-        await profile.save();
+      if (!profile) {
+        console.warn("Profile not found for weight update");
+        return res.status(404).json({
+          message: "Profile not found. Please create a profile first.",
+        });
       }
+
+      console.log(
+        "Updating profile weight from",
+        profile.weight,
+        "to",
+        newWeight
+      );
+
+      // Update weight
+      profile.weight = Number(newWeight);
+
+      // Recalculate recommendations with new weight
+      const recommendations = calculateRecommendations(profile);
+      profile.dailyGoal = recommendations.calories;
+      profile.proteinGoal = recommendations.protein;
+
+      await profile.save();
+
+      console.log("Profile updated with new recommendations:", {
+        weight: profile.weight,
+        dailyGoal: profile.dailyGoal,
+        proteinGoal: profile.proteinGoal,
+      });
     }
 
-    res.json({ message: "Check-in saved successfully" });
+    res.json({
+      message: "Check-in saved successfully",
+      checkIn,
+    });
   } catch (err) {
     console.error("Error saving check-in:", err);
-    res.status(500).json({ message: "Failed to save check-in" });
+    res.status(500).json({
+      message: "Failed to save check-in",
+      error: err.message,
+    });
   }
 };
