@@ -1,6 +1,6 @@
 /*
 |--------------------------------------------------------------------------
-| Signup.module.css - Pokemon Themed with 2D Nihilism Effect
+| Signup.module.css - AI Habit Tracker with 2D Nihilism Effect
 |--------------------------------------------------------------------------
 */
 
@@ -14,110 +14,6 @@
   position: relative;
   overflow: hidden;
   padding: 2rem;
-}
-
-/* Floating Pokeballs Animation */
-.pokemonFloat {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.pokeball {
-  position: absolute;
-  font-size: 2rem;
-  opacity: 0.15;
-  animation: float 6s ease-in-out infinite;
-}
-
-.pokeball1 {
-  top: 10%;
-  left: 10%;
-  animation-delay: 0s;
-}
-
-.pokeball2 {
-  top: 60%;
-  right: 15%;
-  animation-delay: 2s;
-}
-
-.pokeball3 {
-  bottom: 20%;
-  left: 20%;
-  animation-delay: 4s;
-}
-
-.pokeball4 {
-  top: 30%;
-  right: 30%;
-  animation-delay: 3s;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-  50% {
-    transform: translateY(-40px) rotate(-5deg);
-  }
-  75% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-}
-
-/* Charmander Character */
-.charmanderChar {
-  position: absolute;
-  font-size: 4rem;
-  top: 10%;
-  left: 10%;
-  animation: flame 2s ease-in-out infinite;
-  cursor: pointer;
-  transition: all var(--transition-speed) var(--transition-easing);
-  z-index: 10;
-  filter: drop-shadow(0 0 15px rgba(255, 100, 0, 0.3));
-}
-
-.charmanderChar:hover,
-.charmanderHover {
-  transform: scale(1.4) rotate(-15deg);
-  animation: burn 0.6s ease-in-out;
-  filter: drop-shadow(0 0 25px rgba(255, 100, 0, 0.6));
-}
-
-@keyframes flame {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-10px) scale(1.1);
-  }
-}
-
-@keyframes burn {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-  25% {
-    transform: scale(1.2) rotate(-15deg);
-  }
-  50% {
-    transform: scale(1.3) rotate(15deg);
-  }
-  75% {
-    transform: scale(1.2) rotate(-10deg);
-  }
 }
 
 /* Main Card - 2D Nihilism Effect */
@@ -148,7 +44,7 @@
   position: relative;
 }
 
-.pokemonIcon {
+.aiIcon {
   font-size: 3rem;
   margin-bottom: 1rem;
   animation: var(--animation-pulse);
@@ -186,8 +82,8 @@
 
 /* Success Box */
 .successBox {
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
+  background-color: var(--color-success-bg);
+  border: 2px solid var(--color-success-border);
   border-radius: 0;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -195,8 +91,7 @@
   align-items: center;
   gap: 0.75rem;
   animation: slideDown 0.3s ease-out;
-  background-color: var(--color-success);
-  color: var(--color-bg-primary);
+  color: var(--color-success-text);
 }
 
 @keyframes slideDown {
@@ -214,10 +109,10 @@
 .successIcon {
   font-size: 1.25rem;
   flex-shrink: 0;
+  font-weight: bold;
 }
 
-.errorText,
-.successText {
+.errorText {
   color: var(--color-text-primary);
   font-size: 0.9rem;
   margin: 0;
@@ -225,7 +120,9 @@
 }
 
 .successText {
-  color: var(--color-bg-primary);
+  font-size: 0.9rem;
+  margin: 0;
+  font-weight: 500;
 }
 
 /* Form */
@@ -248,9 +145,6 @@
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: 0.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .input {
@@ -300,7 +194,7 @@
   margin-top: -0.25rem;
 }
 
-/* Submit Button - Pokemon Style */
+/* Submit Button */
 .submitBtn {
   width: 100%;
   padding: 1rem;
@@ -349,22 +243,17 @@
 }
 
 .submitBtn:hover:not(:disabled) .btnIcon {
-  animation: rocketLaunch 0.8s ease-in-out infinite;
+  transform: translateX(5px);
+  animation: arrowBounce 0.6s ease-in-out infinite;
 }
 
-@keyframes rocketLaunch {
+@keyframes arrowBounce {
   0%,
   100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-5px) rotate(-10deg);
+    transform: translateX(0);
   }
   50% {
-    transform: translateY(-10px) rotate(10deg);
-  }
-  75% {
-    transform: translateY(-5px) rotate(-10deg);
+    transform: translateX(5px);
   }
 }
 
@@ -436,8 +325,8 @@
   transform: translateX(0);
 }
 
-/* Decorative Pokemon Elements */
-.decorPokemon {
+/* Decorative Elements */
+.decorElements {
   position: absolute;
   bottom: 1rem;
   right: 1rem;
@@ -446,22 +335,22 @@
   opacity: 0.3;
 }
 
-.miniPokemon {
+.miniElement {
   font-size: 1.2rem;
   animation: twinkle 2s ease-in-out infinite;
   display: inline-block;
 }
 
-.miniPokemon:nth-child(1) {
+.miniElement:nth-child(1) {
   animation-delay: 0s;
 }
-.miniPokemon:nth-child(2) {
+.miniElement:nth-child(2) {
   animation-delay: 0.5s;
 }
-.miniPokemon:nth-child(3) {
+.miniElement:nth-child(3) {
   animation-delay: 1s;
 }
-.miniPokemon:nth-child(4) {
+.miniElement:nth-child(4) {
   animation-delay: 1.5s;
 }
 
@@ -473,7 +362,7 @@
   }
   50% {
     opacity: 1;
-    transform: scale(1.2) rotate(180deg);
+    transform: scale(1.2);
   }
 }
 
@@ -496,16 +385,6 @@
   }
 
   .authTitle {
-    font-size: 1.5rem;
-  }
-
-  .charmanderChar {
-    font-size: 2.5rem;
-    top: 5%;
-    left: 5%;
-  }
-
-  .pokeball {
     font-size: 1.5rem;
   }
 }
