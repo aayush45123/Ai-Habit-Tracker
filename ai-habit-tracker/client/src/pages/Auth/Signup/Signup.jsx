@@ -14,7 +14,6 @@ function Signup() {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pokemonHover, setPokemonHover] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleChange = (e) => {
@@ -43,36 +42,19 @@ function Signup() {
 
   return (
     <div className={styles.authContainer}>
-      {/* Floating Pokemon Characters */}
-      <div className={styles.pokemonFloat}>
-        <div className={`${styles.pokeball} ${styles.pokeball1}`}>⚪</div>
-        <div className={`${styles.pokeball} ${styles.pokeball2}`}>⚪</div>
-        <div className={`${styles.pokeball} ${styles.pokeball3}`}>⚪</div>
-        <div className={`${styles.pokeball} ${styles.pokeball4}`}>⚪</div>
-      </div>
-
-      {/* Charmander Character */}
-      <div
-        className={`${styles.charmanderChar} ${
-          pokemonHover ? styles.charmanderHover : ""
-        }`}
-        onMouseEnter={() => setPokemonHover(true)}
-        onMouseLeave={() => setPokemonHover(false)}
-      >
-        🔥
-      </div>
-
       <div className={styles.authCard}>
-        {/* Pokemon Header */}
+        {/* AI Habit Tracker Header */}
         <div className={styles.authHeader}>
-          <div className={styles.pokemonIcon}>🎮</div>
-          <h2 className={styles.authTitle}>Begin Your Adventure!</h2>
-          <p className={styles.authSubtitle}>Create your trainer account</p>
+          <div className={styles.aiIcon}>🤖</div>
+          <h2 className={styles.authTitle}>Get Started</h2>
+          <p className={styles.authSubtitle}>
+            Create your habit tracker account
+          </p>
         </div>
 
         {error && (
           <div className={styles.errorBox}>
-            <span className={styles.errorIcon}>⚠️</span>
+            <span className={styles.errorIcon}>!</span>
             <p className={styles.errorText}>{error}</p>
           </div>
         )}
@@ -86,11 +68,11 @@ function Signup() {
 
         <form onSubmit={handleSubmit} className={styles.authForm}>
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>👤 Trainer Name</label>
+            <label className={styles.inputLabel}>Name</label>
             <input
               type="text"
               name="name"
-              placeholder="Ash Ketchum"
+              placeholder="Your Name"
               value={form.name}
               onChange={handleChange}
               className={styles.input}
@@ -100,11 +82,11 @@ function Signup() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>📧 Email</label>
+            <label className={styles.inputLabel}>Email</label>
             <input
               type="email"
               name="email"
-              placeholder="ash@pokemon.com"
+              placeholder="your@email.com"
               value={form.email}
               onChange={handleChange}
               className={styles.input}
@@ -114,7 +96,7 @@ function Signup() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>🔒 Password</label>
+            <label className={styles.inputLabel}>Password</label>
             <input
               type="password"
               name="password"
@@ -143,8 +125,8 @@ function Signup() {
               </>
             ) : (
               <>
-                <span className={styles.btnText}>Start Journey</span>
-                <span className={styles.btnIcon}>🚀</span>
+                <span className={styles.btnText}>Create Account</span>
+                <span className={styles.btnIcon}>➜</span>
               </>
             )}
           </button>
@@ -159,12 +141,12 @@ function Signup() {
           </p>
         </div>
 
-        {/* Decorative Pokemon Elements */}
-        <div className={styles.decorPokemon}>
-          <span className={styles.miniPokemon}>🌟</span>
-          <span className={styles.miniPokemon}>✨</span>
-          <span className={styles.miniPokemon}>⭐</span>
-          <span className={styles.miniPokemon}>💫</span>
+        {/* Decorative Elements */}
+        <div className={styles.decorElements}>
+          <span className={styles.miniElement}>•</span>
+          <span className={styles.miniElement}>•</span>
+          <span className={styles.miniElement}>•</span>
+          <span className={styles.miniElement}>•</span>
         </div>
       </div>
     </div>
