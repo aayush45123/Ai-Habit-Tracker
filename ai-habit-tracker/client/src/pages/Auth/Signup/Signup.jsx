@@ -45,7 +45,7 @@ function Signup() {
       <div className={styles.authCard}>
         {/* AI Habit Tracker Header */}
         <div className={styles.authHeader}>
-          <div className={styles.aiIcon}>🤖</div>
+          <div className={styles.aiIcon}>AI</div>
           <h2 className={styles.authTitle}>Get Started</h2>
           <p className={styles.authSubtitle}>
             Create your habit tracker account

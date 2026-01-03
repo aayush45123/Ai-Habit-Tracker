@@ -42,7 +42,7 @@ function Login() {
       <div className={styles.authCard}>
         {/* AI Habit Tracker Header */}
         <div className={styles.authHeader}>
-          <div className={styles.aiIcon}>🤖</div>
+          <div className={styles.aiIcon}>AI</div>
           <h2 className={styles.authTitle}>Welcome Back</h2>
           <p className={styles.authSubtitle}>Access your habit tracker</p>
         </div>
