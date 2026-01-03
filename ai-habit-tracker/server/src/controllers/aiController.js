@@ -177,7 +177,7 @@ Keep going — small wins add up!
 
     return res.json({ ai: parsed });
   } catch (err) {
-    console.error("🔥 AI INSIGHTS ERROR:", err);
+    console.error(" AI INSIGHTS ERROR:", err);
     return res.status(500).json({
       message: "AI insights failed",
       error: err.message,
