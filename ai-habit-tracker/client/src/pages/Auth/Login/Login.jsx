@@ -13,7 +13,6 @@ function Login() {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pokemonHover, setPokemonHover] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -40,46 +39,28 @@ function Login() {
 
   return (
     <div className={styles.authContainer}>
-      {/* Floating Pokemon Characters */}
-      <div className={styles.pokemonFloat}>
-        <div className={`${styles.pokeball} ${styles.pokeball1}`}>⚪</div>
-        <div className={`${styles.pokeball} ${styles.pokeball2}`}>⚪</div>
-        <div className={`${styles.pokeball} ${styles.pokeball3}`}>⚪</div>
-      </div>
-
-      {/* Pikachu Character */}
-      <div
-        className={`${styles.pikachuChar} ${
-          pokemonHover ? styles.pikachuHover : ""
-        }`}
-        onMouseEnter={() => setPokemonHover(true)}
-        onMouseLeave={() => setPokemonHover(false)}
-      >
-        ⚡
-      </div>
-
       <div className={styles.authCard}>
-        {/* Pokemon Header */}
+        {/* AI Habit Tracker Header */}
         <div className={styles.authHeader}>
-          <div className={styles.pokemonIcon}>🎮</div>
-          <h2 className={styles.authTitle}>Welcome Back, Trainer!</h2>
-          <p className={styles.authSubtitle}>Login to continue your journey</p>
+          <div className={styles.aiIcon}>🤖</div>
+          <h2 className={styles.authTitle}>Welcome Back</h2>
+          <p className={styles.authSubtitle}>Access your habit tracker</p>
         </div>
 
         {error && (
           <div className={styles.errorBox}>
-            <span className={styles.errorIcon}>⚠️</span>
+            <span className={styles.errorIcon}>!</span>
             <p className={styles.errorText}>{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className={styles.authForm}>
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>📧 Email</label>
+            <label className={styles.inputLabel}>Email</label>
             <input
               type="email"
               name="email"
-              placeholder="ash@pokemon.com"
+              placeholder="your@email.com"
               value={form.email}
               onChange={handleChange}
               className={styles.input}
@@ -89,7 +70,7 @@ function Login() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>🔒 Password</label>
+            <label className={styles.inputLabel}>Password</label>
             <input
               type="password"
               name="password"
@@ -127,16 +108,16 @@ function Login() {
           <p className={styles.footerText}>
             Don't have an account?
             <Link to="/signup" className={styles.authLink}>
-              Join the Adventure
+              Create Account
             </Link>
           </p>
         </div>
 
-        {/* Decorative Pokemon Elements */}
-        <div className={styles.decorPokemon}>
-          <span className={styles.miniPokemon}>🌟</span>
-          <span className={styles.miniPokemon}>✨</span>
-          <span className={styles.miniPokemon}>⭐</span>
+        {/* Decorative Elements */}
+        <div className={styles.decorElements}>
+          <span className={styles.miniElement}>•</span>
+          <span className={styles.miniElement}>•</span>
+          <span className={styles.miniElement}>•</span>
         </div>
       </div>
     </div>
