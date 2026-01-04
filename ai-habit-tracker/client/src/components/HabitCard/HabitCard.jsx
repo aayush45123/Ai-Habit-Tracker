@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { Flame, Check, Circle } from "lucide-react";
 import styles from "./HabitCard.module.css";
 
 /**
@@ -22,7 +23,12 @@ export default function HabitCard({ habit, onToggle }) {
       {/* LEFT SECTION – clickable title */}
       <div className={styles.hcLeft}>
         <Link to={`/habit/${habit._id}`} className={styles.hcTitleLink}>
-          <div className={styles.hcTitle}>{habit.title}</div>
+          <div className={styles.hcTitle}>
+            {habit.title}
+            {doneToday && (
+              <Check className={styles.checkIcon} size={20} strokeWidth={3} />
+            )}
+          </div>
         </Link>
 
         <div className={`${styles.hcDesc} ${styles.muted}`}>
@@ -37,10 +43,23 @@ export default function HabitCard({ habit, onToggle }) {
           onClick={() => onToggle(!doneToday)}
           title={doneToday ? "Mark as missed" : "Mark as done"}
         >
-          {doneToday ? "Done" : "Mark"}
+          {doneToday ? (
+            <>
+              <Check size={16} strokeWidth={3} />
+              <span>Done</span>
+            </>
+          ) : (
+            <>
+              <Circle size={16} strokeWidth={2} />
+              <span>Mark</span>
+            </>
+          )}
         </button>
 
-        <div className={styles.hcStreak}>{habit.streak || 0} 🔥</div>
+        <div className={styles.hcStreak}>
+          <Flame size={18} strokeWidth={2.5} className={styles.flameIcon} />
+          <span>{habit.streak || 0}</span>
+        </div>
       </div>
     </div>
   );
