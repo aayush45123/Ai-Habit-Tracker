@@ -10,6 +10,7 @@ import {
   Globe,
 } from "lucide-react";
 import styles from "./About.module.css";
+import me from "../../assets/me.jpg";
 
 export default function About() {
   return (
@@ -80,11 +81,7 @@ export default function About() {
 
         <div className={styles.creatorContent}>
           <div className={styles.imageWrapper}>
-            <img
-              src="/profile.jpg"
-              alt="Aayush Bharda"
-              className={styles.creatorImage}
-            />
+            <img src={me} alt="Aayush Bharda" className={styles.creatorImage} />
           </div>
 
           <div className={styles.creatorInfo}>
@@ -104,17 +101,17 @@ export default function About() {
                 label="GitHub"
               />
               <Social
-                href="https://linkedin.com/in/your-profile"
+                href="https://www.linkedin.com/in/aayush-bharda-399958311/"
                 icon={<Linkedin size={20} strokeWidth={2} />}
                 label="LinkedIn"
               />
               <Social
-                href="https://twitter.com/your-handle"
+                href="https://x.com/AayushBhar56806"
                 icon={<Twitter size={20} strokeWidth={2} />}
                 label="Twitter"
               />
               <Social
-                href="https://your-portfolio.com"
+                href="https://aayush45123.github.io/My-PortFolio/"
                 icon={<Globe size={20} strokeWidth={2} />}
                 label="Portfolio"
               />
