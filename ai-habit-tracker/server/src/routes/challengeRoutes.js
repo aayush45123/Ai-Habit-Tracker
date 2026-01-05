@@ -1,3 +1,4 @@
+// server/src/routes/challengeRoutes.js (UPDATED)
 import express from "express";
 import {
   startChallenge,
@@ -5,6 +6,8 @@ import {
   updateChallenge,
   markHabitDone,
   getChallengeHeatmap,
+  getChallengeHistory, // ✅ NEW
+  deleteChallenge, // ✅ NEW
 } from "../controllers/challengeController.js";
 import auth from "../middleware/authMiddleware.js";
 
@@ -15,5 +18,7 @@ router.get("/current", auth, getCurrentChallenge);
 router.put("/update/:id", auth, updateChallenge);
 router.post("/done/:id/:index", auth, markHabitDone);
 router.get("/heatmap", auth, getChallengeHeatmap);
+router.get("/history", auth, getChallengeHistory); // ✅ NEW
+router.delete("/:id", auth, deleteChallenge); // ✅ NEW
 
 export default router;
