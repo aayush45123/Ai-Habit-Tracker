@@ -1,4 +1,4 @@
-// server/src/controllers/challengeController.js
+// server/src/controllers/challengeController.js (FIXED)
 import Challenge from "../models/Challenge.js";
 import ChallengeLog from "../models/ChallengeLog.js";
 import { getTodayIST, normalizeDateIST } from "../utils/getTodayIST.js";
@@ -17,6 +17,7 @@ function convertTo24FromString(fullTime) {
 
 /* -----------------------------------------------------
    START 21-DAY CHALLENGE
+   ✅ FIXED: Deactivates old challenges before starting new one
 ----------------------------------------------------- */
 export const startChallenge = async (req, res) => {
   try {
@@ -25,6 +26,12 @@ export const startChallenge = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Please enter at least 6 habits." });
+
+    // ✅ Deactivate any existing active challenges
+    await Challenge.updateMany(
+      { userId: req.user, isActive: true },
+      { isActive: false }
+    );
 
     const formattedHabits = habits.map((h) => ({
       title: h.title,
@@ -87,18 +94,34 @@ export const updateChallenge = async (req, res) => {
 
 /* -----------------------------------------------------
    GET CURRENT ACTIVE CHALLENGE
+   ✅ FIXED: Auto-deactivates expired challenges
 ----------------------------------------------------- */
 export const getCurrentChallenge = async (req, res) => {
   try {
-    const challenge = await Challenge.findOne({
+    const todayISO = getTodayIST();
+
+    // ✅ Find active challenge
+    let challenge = await Challenge.findOne({
       userId: req.user,
       isActive: true,
     });
 
-    if (!challenge)
-      return res.json({ active: false, message: "No active challenge" });
+    // ✅ If challenge exists and has expired, deactivate it
+    if (challenge && challenge.endDate < todayISO) {
+      challenge.isActive = false;
+      await challenge.save();
 
-    const todayISO = getTodayIST();
+      return res.json({
+        active: false,
+        message: "Challenge completed! Start a new one.",
+        completed: true,
+        stats: await getChallengeStats(challenge._id, todayISO),
+      });
+    }
+
+    if (!challenge) {
+      return res.json({ active: false, message: "No active challenge" });
+    }
 
     // Get IST time components
     const now = new Date();
@@ -157,14 +180,48 @@ export const getCurrentChallenge = async (req, res) => {
 };
 
 /* -----------------------------------------------------
+   GET CHALLENGE STATS (HELPER)
+----------------------------------------------------- */
+async function getChallengeStats(challengeId, todayISO) {
+  try {
+    const challenge = await Challenge.findById(challengeId);
+    const logs = await ChallengeLog.find({ challengeId });
+
+    const totalHabits = challenge.habits.length * 21;
+    const completedHabits = logs.length;
+    const completionRate = Math.round((completedHabits / totalHabits) * 100);
+
+    // Count perfect days
+    const perfectDays = new Set();
+    logs.forEach((log) => {
+      const dayLogs = logs.filter((l) => l.date === log.date);
+      if (dayLogs.length === challenge.habits.length) {
+        perfectDays.add(log.date);
+      }
+    });
+
+    return {
+      totalHabits,
+      completedHabits,
+      completionRate,
+      perfectDays: perfectDays.size,
+      daysCompleted: 21,
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+/* -----------------------------------------------------
    GET HEATMAP DATA
+   ✅ FIXED: Works for completed challenges too
 ----------------------------------------------------- */
 export const getChallengeHeatmap = async (req, res) => {
   try {
+    // ✅ Get most recent challenge (active or completed)
     const challenge = await Challenge.findOne({
       userId: req.user,
-      isActive: true,
-    });
+    }).sort({ createdAt: -1 });
 
     if (!challenge) return res.json({ heatmap: [], stats: null });
 
@@ -190,7 +247,10 @@ export const getChallengeHeatmap = async (req, res) => {
 
       // Determine intensity level (0-4 like GitHub)
       let level = 0;
-      if (iso > todayISO) {
+      // ✅ For completed challenges, show all days
+      const isFuture = challenge.isActive && iso > todayISO;
+
+      if (isFuture) {
         level = -1; // future day
       } else if (completionRate === 0) {
         level = 0; // no activity
@@ -215,14 +275,18 @@ export const getChallengeHeatmap = async (req, res) => {
 
     // Calculate overall stats
     const completedDays = heatmap.filter(
-      (d) => d.level === 4 && d.date <= todayISO
+      (d) => d.level === 4 && (challenge.isActive ? d.date <= todayISO : true)
     ).length;
+
     const activeDays = heatmap.filter(
-      (d) => d.level > 0 && d.date <= todayISO
+      (d) => d.level > 0 && (challenge.isActive ? d.date <= todayISO : true)
     ).length;
-    const totalPossibleHabits =
-      heatmap.filter((d) => d.date <= todayISO).length *
-      challenge.habits.length;
+
+    const relevantDays = challenge.isActive
+      ? heatmap.filter((d) => d.date <= todayISO).length
+      : 21;
+
+    const totalPossibleHabits = relevantDays * challenge.habits.length;
     const totalCompleted = logs.length;
     const overallCompletion =
       totalPossibleHabits > 0
@@ -233,7 +297,7 @@ export const getChallengeHeatmap = async (req, res) => {
     let currentStreak = 0;
     const reversedHeatmap = [...heatmap].reverse();
     for (const day of reversedHeatmap) {
-      if (day.date > todayISO) continue;
+      if (challenge.isActive && day.date > todayISO) continue;
       if (day.level === 4) {
         currentStreak++;
       } else {
@@ -245,7 +309,7 @@ export const getChallengeHeatmap = async (req, res) => {
     let longestStreak = 0;
     let tempStreak = 0;
     for (const day of heatmap) {
-      if (day.date > todayISO) continue;
+      if (challenge.isActive && day.date > todayISO) continue;
       if (day.level === 4) {
         tempStreak++;
         longestStreak = Math.max(longestStreak, tempStreak);
@@ -262,6 +326,8 @@ export const getChallengeHeatmap = async (req, res) => {
       overallCompletion,
       totalCompleted,
       totalPossibleHabits,
+      isCompleted: !challenge.isActive,
+      endDate: challenge.endDate,
     };
 
     res.json({ heatmap, stats, challenge });
@@ -282,6 +348,14 @@ export const markHabitDone = async (req, res) => {
       return res.status(404).json({ message: "Challenge not found" });
 
     const todayISO = getTodayIST();
+
+    // ✅ Check if challenge has expired
+    if (challenge.endDate < todayISO) {
+      return res.status(400).json({
+        message: "Challenge has ended. Start a new one!",
+        challengeEnded: true,
+      });
+    }
 
     // Get IST time components
     const now = new Date();
@@ -310,6 +384,67 @@ export const markHabitDone = async (req, res) => {
     );
 
     res.json({ message: "Habit marked done!" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* -----------------------------------------------------
+   ✅ NEW: GET CHALLENGE HISTORY
+----------------------------------------------------- */
+export const getChallengeHistory = async (req, res) => {
+  try {
+    const challenges = await Challenge.find({ userId: req.user })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    const history = await Promise.all(
+      challenges.map(async (challenge) => {
+        const logs = await ChallengeLog.find({ challengeId: challenge._id });
+        const totalPossible = challenge.habits.length * 21;
+        const completed = logs.length;
+        const completionRate = Math.round((completed / totalPossible) * 100);
+
+        return {
+          _id: challenge._id,
+          startDate: challenge.startDate,
+          endDate: challenge.endDate,
+          isActive: challenge.isActive,
+          completionRate,
+          totalCompleted: completed,
+          totalPossible,
+          habitCount: challenge.habits.length,
+        };
+      })
+    );
+
+    res.json({ history });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* -----------------------------------------------------
+   ✅ NEW: DELETE OLD CHALLENGE (for cleanup)
+----------------------------------------------------- */
+export const deleteChallenge = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const challenge = await Challenge.findOne({
+      _id: id,
+      userId: req.user,
+    });
+
+    if (!challenge) {
+      return res.status(404).json({ message: "Challenge not found" });
+    }
+
+    // Delete challenge and all its logs
+    await ChallengeLog.deleteMany({ challengeId: id });
+    await Challenge.findByIdAndDelete(id);
+
+    res.json({ message: "Challenge deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
