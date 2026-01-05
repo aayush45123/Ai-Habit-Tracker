@@ -1,5 +1,23 @@
-// client/src/pages/ChallengePage/ChallengePage.jsx (FIXED - Persistent Completion)
+// client/src/pages/ChallengePage/ChallengePage.jsx (ENHANCED)
 import React, { useEffect, useState } from "react";
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Circle,
+  Timer,
+  Edit,
+  Save,
+  Plus,
+  Trash2,
+  History,
+  Award,
+  Target,
+  TrendingUp,
+  Sparkles,
+  X as CloseIcon,
+} from "lucide-react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
 import ChallengeHeatmap from "../../components/ChallengeHeatMap/ChallengeHeatMap";
@@ -38,14 +56,14 @@ export default function ChallengePage() {
   const [message, setMessage] = useState("");
   const [challengeCompleted, setChallengeCompleted] = useState(false);
   const [completionStats, setCompletionStats] = useState(null);
-  const [showHistory, setShowHistory] = useState(false); // ✅ NEW
-  const [challengeHistory, setChallengeHistory] = useState([]); // ✅ NEW
-  const [loadingHistory, setLoadingHistory] = useState(false); // ✅ NEW
+  const [showHistory, setShowHistory] = useState(false);
+  const [challengeHistory, setChallengeHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   /* Load challenge */
   useEffect(() => {
     loadChallenge();
-    loadHistory(); // ✅ Load history on mount
+    loadHistory();
   }, []);
 
   async function loadChallenge() {
@@ -61,13 +79,11 @@ export default function ChallengePage() {
         `/challenge/current?hour=${hour}&minute=${minute}&today=${today}`
       );
 
-      // ✅ Handle completed challenge - DON'T auto-reload
       if (res.data.completed) {
         setChallengeCompleted(true);
         setCompletionStats(res.data.stats);
         setExisting(null);
         setMessage("");
-        // ✅ REMOVED: Don't call loadChallenge again
         return;
       }
 
@@ -102,7 +118,6 @@ export default function ChallengePage() {
     }
   }
 
-  // ✅ NEW: Load challenge history
   async function loadHistory() {
     try {
       setLoadingHistory(true);
@@ -121,7 +136,6 @@ export default function ChallengePage() {
     setHabits(updated);
   }
 
-  /* Start challenge */
   async function startChallenge() {
     setMessage("");
 
@@ -142,15 +156,14 @@ export default function ChallengePage() {
       setChallengeCompleted(false);
       setCompletionStats(null);
       loadChallenge();
-      loadHistory(); // ✅ Refresh history
-      setMessage("Challenge started! 🚀");
+      loadHistory();
+      setMessage("Challenge started!");
     } catch (err) {
       console.error(err);
       setMessage("Error starting challenge.");
     }
   }
 
-  /* Update existing challenge */
   async function updateChallenge() {
     const formatted = habits.map((h) => ({
       title: h.title,
@@ -173,7 +186,6 @@ export default function ChallengePage() {
     }
   }
 
-  /* Mark habit done */
   async function markDone(dayIndex, habitIndex) {
     try {
       const now = new Date();
@@ -190,14 +202,12 @@ export default function ChallengePage() {
     } catch (err) {
       console.error(err);
       if (err.response?.data?.challengeEnded) {
-        // ✅ Don't reload, just show message
-        setMessage("🎉 Challenge completed! Start a new one.");
+        setMessage("Challenge completed! Start a new one.");
         setChallengeCompleted(true);
       }
     }
   }
 
-  /* Reset form to start new challenge */
   function resetForm() {
     setHabits(
       Array.from({ length: 6 }, () => ({
@@ -214,7 +224,6 @@ export default function ChallengePage() {
     setExisting(null);
   }
 
-  // ✅ NEW: Delete old challenge
   async function deleteOldChallenge(challengeId) {
     if (!confirm("Are you sure you want to delete this challenge?")) return;
 
@@ -232,48 +241,82 @@ export default function ChallengePage() {
     <div className={styles.root}>
       {/* HEADER SECTION */}
       <div className={styles.header}>
-        <h2 className={styles.title}>21-Day Challenge</h2>
-        <p className={styles.subtitle}>
-          Commit to 21 days of powerful habit building.
-        </p>
+        <div className={styles.headerContent}>
+          <div className={styles.headerIcon}>
+            <Target className={styles.targetIcon} />
+          </div>
+          <div className={styles.headerText}>
+            <h2 className={styles.title}>21-Day Challenge</h2>
+            <p className={styles.subtitle}>
+              Commit to 21 days of powerful habit building
+            </p>
+          </div>
+        </div>
 
-        {/* ✅ NEW: History Button */}
         <button
           className={styles.historyBtn}
           onClick={() => setShowHistory(!showHistory)}
         >
-          {showHistory ? "📊 Hide History" : "📜 View History"}
+          {showHistory ? (
+            <>
+              <CloseIcon className={styles.btnIcon} />
+              <span>Hide History</span>
+            </>
+          ) : (
+            <>
+              <History className={styles.btnIcon} />
+              <span>View History</span>
+            </>
+          )}
         </button>
       </div>
 
-      {/* ✅ NEW: HISTORY SECTION */}
+      {/* HISTORY SECTION */}
       {showHistory && (
         <div className={styles.historySection}>
-          <h3 className={styles.historyTitle}>Your Challenge History</h3>
+          <div className={styles.historySectionHeader}>
+            <History className={styles.sectionIcon} />
+            <h3 className={styles.historyTitle}>Your Challenge History</h3>
+          </div>
+
           {loadingHistory ? (
-            <p className={styles.historyLoading}>Loading history...</p>
+            <div className={styles.loadingContainer}>
+              <div className={styles.spinner}></div>
+              <p className={styles.loadingText}>Loading history...</p>
+            </div>
           ) : challengeHistory.length === 0 ? (
-            <p className={styles.historyEmpty}>
-              No past challenges yet. Complete your first one!
-            </p>
+            <div className={styles.emptyState}>
+              <Calendar className={styles.emptyIcon} />
+              <p className={styles.emptyText}>No past challenges yet</p>
+              <p className={styles.emptySubtext}>Complete your first one!</p>
+            </div>
           ) : (
             <div className={styles.historyGrid}>
               {challengeHistory.map((challenge, index) => (
                 <div key={challenge._id} className={styles.historyCard}>
                   <div className={styles.historyCardHeader}>
                     <span className={styles.historyBadge}>
-                      {challenge.isActive ? "🟢 Active" : "✅ Completed"}
+                      {challenge.isActive ? (
+                        <>
+                          <Award className={styles.badgeIcon} /> Active
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className={styles.badgeIcon} /> Completed
+                        </>
+                      )}
                     </span>
                     <span className={styles.historyNumber}>
-                      Challenge #{challengeHistory.length - index}
+                      #{challengeHistory.length - index}
                     </span>
                   </div>
 
                   <div className={styles.historyDates}>
+                    <Calendar className={styles.dateIcon} />
                     <span>
                       {new Date(challenge.startDate).toLocaleDateString()}
                     </span>
-                    <span>→</span>
+                    <TrendingUp className={styles.arrowIcon} />
                     <span>
                       {new Date(challenge.endDate).toLocaleDateString()}
                     </span>
@@ -307,7 +350,8 @@ export default function ChallengePage() {
                       className={styles.historyDeleteBtn}
                       onClick={() => deleteOldChallenge(challenge._id)}
                     >
-                      🗑️ Delete
+                      <Trash2 className={styles.deleteIcon} />
+                      <span>Delete</span>
                     </button>
                   )}
                 </div>
@@ -319,25 +363,29 @@ export default function ChallengePage() {
 
       {/* DESCRIPTION BANNER */}
       <div className={styles.descriptionBanner}>
+        <div className={styles.bannerIcon}>
+          <Sparkles className={styles.sparkleIcon} />
+        </div>
         <div className={styles.bannerContent}>
           <h3 className={styles.bannerTitle}>Why 21 Days?</h3>
           <p className={styles.bannerText}>
             Research shows it takes approximately 21 days to form a new habit.
             This challenge helps you build consistency, track your progress
-            daily, and transform your routines into lasting behaviors. Choose 6
-            meaningful habits and commit to completing them every day for the
-            next three weeks.
+            daily, and transform your routines into lasting behaviors.
           </p>
           <div className={styles.bannerStats}>
             <div className={styles.stat}>
+              <Target className={styles.statIcon} />
               <span className={styles.statNumber}>6</span>
               <span className={styles.statLabel}>Daily Habits</span>
             </div>
             <div className={styles.stat}>
+              <Calendar className={styles.statIcon} />
               <span className={styles.statNumber}>21</span>
               <span className={styles.statLabel}>Days to Success</span>
             </div>
             <div className={styles.stat}>
+              <CheckCircle className={styles.statIcon} />
               <span className={styles.statNumber}>126</span>
               <span className={styles.statLabel}>Total Completions</span>
             </div>
@@ -345,11 +393,14 @@ export default function ChallengePage() {
         </div>
       </div>
 
-      {/* ✅ COMPLETION CELEBRATION - PERSISTENT */}
+      {/* COMPLETION CELEBRATION */}
       {challengeCompleted && completionStats && (
         <div className={styles.completionCard}>
           <div className={styles.completionHeader}>
-            <h2 className={styles.completionTitle}>🎉 Challenge Completed!</h2>
+            <div className={styles.completionIcon}>
+              <Award className={styles.awardIcon} />
+            </div>
+            <h2 className={styles.completionTitle}>Challenge Completed!</h2>
             <p className={styles.completionSubtitle}>
               Congratulations on completing your 21-day journey!
             </p>
@@ -357,136 +408,184 @@ export default function ChallengePage() {
 
           <div className={styles.completionStats}>
             <div className={styles.completionStat}>
+              <TrendingUp className={styles.completionStatIcon} />
               <span className={styles.completionStatNumber}>
                 {completionStats.completionRate}%
               </span>
-              <span className={styles.completionStatLabel}>
-                Overall Completion
-              </span>
+              <span className={styles.completionStatLabel}>Overall</span>
             </div>
             <div className={styles.completionStat}>
+              <Award className={styles.completionStatIcon} />
               <span className={styles.completionStatNumber}>
                 {completionStats.perfectDays}
               </span>
               <span className={styles.completionStatLabel}>Perfect Days</span>
             </div>
             <div className={styles.completionStat}>
+              <CheckCircle className={styles.completionStatIcon} />
               <span className={styles.completionStatNumber}>
                 {completionStats.completedHabits}/{completionStats.totalHabits}
               </span>
-              <span className={styles.completionStatLabel}>Habits Done</span>
+              <span className={styles.completionStatLabel}>Habits</span>
             </div>
           </div>
 
           <button className={styles.startNewBtn} onClick={resetForm}>
-            🚀 Start New Challenge
+            <Plus className={styles.btnIcon} />
+            <span>Start New Challenge</span>
           </button>
         </div>
       )}
 
       {existing && !editMode && !challengeCompleted && (
         <button className={styles.editBtn} onClick={() => setEditMode(true)}>
-          ✏️ Edit Challenge
+          <Edit className={styles.btnIcon} />
+          <span>Edit Challenge</span>
         </button>
       )}
 
-      {/* Only show form if no active challenge or in edit mode */}
+      {/* FORM - Create/Edit Mode */}
       {(!existing || editMode) && !challengeCompleted && (
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>
-            {existing && editMode
-              ? "Edit Your Challenge"
-              : "Set Up Your Challenge"}
-          </h3>
+          <div className={styles.cardHeader}>
+            <Plus className={styles.cardIcon} />
+            <h3 className={styles.cardTitle}>
+              {existing && editMode
+                ? "Edit Your Challenge"
+                : "Set Up Your Challenge"}
+            </h3>
+          </div>
 
-          {habits.map((h, i) => (
-            <div key={i} className={styles.row}>
-              <div className={styles.habitNumber}>{i + 1}</div>
-              <input
-                className={styles.textInput}
-                placeholder={`Enter habit ${i + 1} (e.g., Morning Exercise)`}
-                value={h.title}
-                onChange={(e) => updateHabit(i, "title", e.target.value)}
-              />
+          <div className={styles.formContent}>
+            {habits.map((h, i) => (
+              <div key={i} className={styles.habitRow}>
+                <div className={styles.habitNumber}>{i + 1}</div>
 
-              <div className={styles.timeGroup}>
-                <label className={styles.timeLabel}>Start</label>
-                <input
-                  className={styles.timeInput}
-                  placeholder="06:00"
-                  value={h.startTime}
-                  onChange={(e) => updateHabit(i, "startTime", e.target.value)}
-                />
-                <select
-                  className={styles.periodSelect}
-                  value={h.startPeriod}
-                  onChange={(e) =>
-                    updateHabit(i, "startPeriod", e.target.value)
-                  }
-                >
-                  <option>AM</option>
-                  <option>PM</option>
-                </select>
+                <div className={styles.habitInput}>
+                  <input
+                    className={styles.textInput}
+                    placeholder={`Enter habit ${
+                      i + 1
+                    } (e.g., Morning Exercise)`}
+                    value={h.title}
+                    onChange={(e) => updateHabit(i, "title", e.target.value)}
+                  />
+                </div>
+
+                <div className={styles.timeControls}>
+                  <div className={styles.timeGroup}>
+                    <Clock className={styles.timeIcon} />
+                    <label className={styles.timeLabel}>Start</label>
+                    <input
+                      className={styles.timeInput}
+                      placeholder="06:00"
+                      value={h.startTime}
+                      onChange={(e) =>
+                        updateHabit(i, "startTime", e.target.value)
+                      }
+                    />
+                    <select
+                      className={styles.periodSelect}
+                      value={h.startPeriod}
+                      onChange={(e) =>
+                        updateHabit(i, "startPeriod", e.target.value)
+                      }
+                    >
+                      <option>AM</option>
+                      <option>PM</option>
+                    </select>
+                  </div>
+
+                  <div className={styles.timeGroup}>
+                    <Clock className={styles.timeIcon} />
+                    <label className={styles.timeLabel}>End</label>
+                    <input
+                      className={styles.timeInput}
+                      placeholder="08:00"
+                      value={h.endTime}
+                      onChange={(e) =>
+                        updateHabit(i, "endTime", e.target.value)
+                      }
+                    />
+                    <select
+                      className={styles.periodSelect}
+                      value={h.endPeriod}
+                      onChange={(e) =>
+                        updateHabit(i, "endPeriod", e.target.value)
+                      }
+                    >
+                      <option>AM</option>
+                      <option>PM</option>
+                    </select>
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
 
-              <div className={styles.timeGroup}>
-                <label className={styles.timeLabel}>End</label>
-                <input
-                  className={styles.timeInput}
-                  placeholder="08:00"
-                  value={h.endTime}
-                  onChange={(e) => updateHabit(i, "endTime", e.target.value)}
-                />
-                <select
-                  className={styles.periodSelect}
-                  value={h.endPeriod}
-                  onChange={(e) => updateHabit(i, "endPeriod", e.target.value)}
-                >
-                  <option>AM</option>
-                  <option>PM</option>
-                </select>
-              </div>
-            </div>
-          ))}
-
-          <button
-            className={styles.submitBtn}
-            onClick={existing ? updateChallenge : startChallenge}
-          >
-            {existing ? "💾 Save Changes" : "🚀 Start 21-Day Challenge"}
-          </button>
-
-          {editMode && (
+          <div className={styles.formActions}>
             <button
-              className={styles.cancelBtn}
-              onClick={() => {
-                setEditMode(false);
-                loadChallenge();
-              }}
+              className={styles.submitBtn}
+              onClick={existing ? updateChallenge : startChallenge}
             >
-              Cancel
+              {existing ? (
+                <>
+                  <Save className={styles.btnIcon} />
+                  <span>Save Changes</span>
+                </>
+              ) : (
+                <>
+                  <Target className={styles.btnIcon} />
+                  <span>Start 21-Day Challenge</span>
+                </>
+              )}
             </button>
-          )}
 
-          {message && <p className={styles.msg}>{message}</p>}
+            {editMode && (
+              <button
+                className={styles.cancelBtn}
+                onClick={() => {
+                  setEditMode(false);
+                  loadChallenge();
+                }}
+              >
+                <CloseIcon className={styles.btnIcon} />
+                <span>Cancel</span>
+              </button>
+            )}
+          </div>
+
+          {message && (
+            <div className={styles.messageBox}>
+              <Sparkles className={styles.messageIcon} />
+              <p className={styles.msg}>{message}</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* VIEW MODE */}
       {existing && !editMode && !challengeCompleted && (
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Your Challenge</h3>
+          <div className={styles.cardHeader}>
+            <CheckCircle className={styles.cardIcon} />
+            <h3 className={styles.cardTitle}>Your Challenge</h3>
+          </div>
+
           <div className={styles.reviewBox}>
             {existing.habits.map((h, i) => {
               const s = convert24to12(h.startTime);
               const e = convert24to12(h.endTime);
               return (
                 <div key={i} className={styles.reviewRow}>
-                  <div className={styles.reviewHabitNum}>#{i + 1}</div>
+                  <div className={styles.reviewHabitNum}>{i + 1}</div>
                   <strong className={styles.reviewHabitTitle}>{h.title}</strong>
-                  <span className={styles.reviewHabitTime}>
-                    {s.time} {s.period} — {e.time} {e.period}
-                  </span>
+                  <div className={styles.reviewHabitTime}>
+                    <Clock className={styles.reviewTimeIcon} />
+                    <span>
+                      {s.time} {s.period} — {e.time} {e.period}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -498,10 +597,13 @@ export default function ChallengePage() {
       {existing && !challengeCompleted && (
         <>
           <div className={styles.progressHeader}>
-            <h3 className={styles.progressTitle}>Your Progress Journey</h3>
-            <p className={styles.progressSubtitle}>
-              Track your daily completion across all 21 days
-            </p>
+            <Calendar className={styles.sectionIcon} />
+            <div className={styles.progressHeaderText}>
+              <h3 className={styles.progressTitle}>Your Progress Journey</h3>
+              <p className={styles.progressSubtitle}>
+                Track your daily completion across all 21 days
+              </p>
+            </div>
           </div>
 
           <div className={styles.progressGrid}>
@@ -516,27 +618,24 @@ export default function ChallengePage() {
                   {day.statuses.map((status, habitIndex) => (
                     <div key={habitIndex} className={styles.statusRow}>
                       {status === "done" && (
-                        <span className={styles.done}>✔</span>
+                        <CheckCircle className={styles.done} />
                       )}
-
                       {status === "expired" && (
-                        <span className={styles.expired}>✖</span>
+                        <XCircle className={styles.expired} />
                       )}
-
                       {status === "future" && (
-                        <span className={styles.future}>○</span>
+                        <Circle className={styles.future} />
                       )}
-
                       {status === "pending" && (
-                        <span className={styles.comingSoon}>⏳</span>
+                        <Timer className={styles.pending} />
                       )}
-
                       {status === "ongoing" && (
                         <button
                           className={styles.markBtn}
                           onClick={() => markDone(dayIndex, habitIndex)}
                         >
-                          ✓ Mark Done
+                          <CheckCircle className={styles.markIcon} />
+                          <span>Mark Done</span>
                         </button>
                       )}
                     </div>
@@ -548,10 +647,8 @@ export default function ChallengePage() {
         </>
       )}
 
-      {/* HEATMAP SECTION */}
+      {/* HEATMAP & TREND */}
       {(existing || challengeCompleted) && <ChallengeHeatmap />}
-
-      {/* TREND ANALYSIS SECTION */}
       {(existing || challengeCompleted) && <ChallengeTrend />}
     </div>
   );
