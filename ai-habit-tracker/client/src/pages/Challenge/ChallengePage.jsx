@@ -1,4 +1,4 @@
-// client/src/pages/ChallengePage/ChallengePage.jsx (FIXED)
+// client/src/pages/ChallengePage/ChallengePage.jsx (FIXED - Persistent Completion)
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
@@ -36,12 +36,16 @@ export default function ChallengePage() {
   const [days, setDays] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [message, setMessage] = useState("");
-  const [challengeCompleted, setChallengeCompleted] = useState(false); // ✅ NEW
-  const [completionStats, setCompletionStats] = useState(null); // ✅ NEW
+  const [challengeCompleted, setChallengeCompleted] = useState(false);
+  const [completionStats, setCompletionStats] = useState(null);
+  const [showHistory, setShowHistory] = useState(false); // ✅ NEW
+  const [challengeHistory, setChallengeHistory] = useState([]); // ✅ NEW
+  const [loadingHistory, setLoadingHistory] = useState(false); // ✅ NEW
 
   /* Load challenge */
   useEffect(() => {
     loadChallenge();
+    loadHistory(); // ✅ Load history on mount
   }, []);
 
   async function loadChallenge() {
@@ -57,12 +61,13 @@ export default function ChallengePage() {
         `/challenge/current?hour=${hour}&minute=${minute}&today=${today}`
       );
 
-      // ✅ Handle completed challenge
+      // ✅ Handle completed challenge - DON'T auto-reload
       if (res.data.completed) {
         setChallengeCompleted(true);
         setCompletionStats(res.data.stats);
         setExisting(null);
-        setMessage("🎉 Challenge completed! Ready to start a new one?");
+        setMessage("");
+        // ✅ REMOVED: Don't call loadChallenge again
         return;
       }
 
@@ -88,13 +93,25 @@ export default function ChallengePage() {
           })
         );
       } else {
-        // ✅ No active challenge
         setExisting(null);
         setChallengeCompleted(false);
         setCompletionStats(null);
       }
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  // ✅ NEW: Load challenge history
+  async function loadHistory() {
+    try {
+      setLoadingHistory(true);
+      const res = await api.get("/challenge/history");
+      setChallengeHistory(res.data.history || []);
+    } catch (err) {
+      console.error("Error loading history:", err);
+    } finally {
+      setLoadingHistory(false);
     }
   }
 
@@ -125,8 +142,10 @@ export default function ChallengePage() {
       setChallengeCompleted(false);
       setCompletionStats(null);
       loadChallenge();
+      loadHistory(); // ✅ Refresh history
       setMessage("Challenge started! 🚀");
-    } catch {
+    } catch (err) {
+      console.error(err);
       setMessage("Error starting challenge.");
     }
   }
@@ -148,7 +167,8 @@ export default function ChallengePage() {
       setEditMode(false);
       loadChallenge();
       setMessage("Challenge updated!");
-    } catch {
+    } catch (err) {
+      console.error(err);
       setMessage("Error updating challenge.");
     }
   }
@@ -170,13 +190,14 @@ export default function ChallengePage() {
     } catch (err) {
       console.error(err);
       if (err.response?.data?.challengeEnded) {
+        // ✅ Don't reload, just show message
         setMessage("🎉 Challenge completed! Start a new one.");
-        loadChallenge();
+        setChallengeCompleted(true);
       }
     }
   }
 
-  /* ✅ NEW: Reset form to start new challenge */
+  /* Reset form to start new challenge */
   function resetForm() {
     setHabits(
       Array.from({ length: 6 }, () => ({
@@ -190,6 +211,21 @@ export default function ChallengePage() {
     setMessage("");
     setChallengeCompleted(false);
     setCompletionStats(null);
+    setExisting(null);
+  }
+
+  // ✅ NEW: Delete old challenge
+  async function deleteOldChallenge(challengeId) {
+    if (!confirm("Are you sure you want to delete this challenge?")) return;
+
+    try {
+      await api.delete(`/challenge/${challengeId}`);
+      loadHistory();
+      alert("Challenge deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete challenge");
+    }
   }
 
   return (
@@ -200,7 +236,86 @@ export default function ChallengePage() {
         <p className={styles.subtitle}>
           Commit to 21 days of powerful habit building.
         </p>
+
+        {/* ✅ NEW: History Button */}
+        <button
+          className={styles.historyBtn}
+          onClick={() => setShowHistory(!showHistory)}
+        >
+          {showHistory ? "📊 Hide History" : "📜 View History"}
+        </button>
       </div>
+
+      {/* ✅ NEW: HISTORY SECTION */}
+      {showHistory && (
+        <div className={styles.historySection}>
+          <h3 className={styles.historyTitle}>Your Challenge History</h3>
+          {loadingHistory ? (
+            <p className={styles.historyLoading}>Loading history...</p>
+          ) : challengeHistory.length === 0 ? (
+            <p className={styles.historyEmpty}>
+              No past challenges yet. Complete your first one!
+            </p>
+          ) : (
+            <div className={styles.historyGrid}>
+              {challengeHistory.map((challenge, index) => (
+                <div key={challenge._id} className={styles.historyCard}>
+                  <div className={styles.historyCardHeader}>
+                    <span className={styles.historyBadge}>
+                      {challenge.isActive ? "🟢 Active" : "✅ Completed"}
+                    </span>
+                    <span className={styles.historyNumber}>
+                      Challenge #{challengeHistory.length - index}
+                    </span>
+                  </div>
+
+                  <div className={styles.historyDates}>
+                    <span>
+                      {new Date(challenge.startDate).toLocaleDateString()}
+                    </span>
+                    <span>→</span>
+                    <span>
+                      {new Date(challenge.endDate).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className={styles.historyStats}>
+                    <div className={styles.historyStat}>
+                      <span className={styles.historyStatValue}>
+                        {challenge.completionRate}%
+                      </span>
+                      <span className={styles.historyStatLabel}>
+                        Completion
+                      </span>
+                    </div>
+                    <div className={styles.historyStat}>
+                      <span className={styles.historyStatValue}>
+                        {challenge.totalCompleted}
+                      </span>
+                      <span className={styles.historyStatLabel}>Done</span>
+                    </div>
+                    <div className={styles.historyStat}>
+                      <span className={styles.historyStatValue}>
+                        {challenge.habitCount}
+                      </span>
+                      <span className={styles.historyStatLabel}>Habits</span>
+                    </div>
+                  </div>
+
+                  {!challenge.isActive && (
+                    <button
+                      className={styles.historyDeleteBtn}
+                      onClick={() => deleteOldChallenge(challenge._id)}
+                    >
+                      🗑️ Delete
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* DESCRIPTION BANNER */}
       <div className={styles.descriptionBanner}>
@@ -230,7 +345,7 @@ export default function ChallengePage() {
         </div>
       </div>
 
-      {/* ✅ NEW: COMPLETION CELEBRATION */}
+      {/* ✅ COMPLETION CELEBRATION - PERSISTENT */}
       {challengeCompleted && completionStats && (
         <div className={styles.completionCard}>
           <div className={styles.completionHeader}>
@@ -433,10 +548,10 @@ export default function ChallengePage() {
         </>
       )}
 
-      {/* HEATMAP SECTION - Show for active or just completed */}
+      {/* HEATMAP SECTION */}
       {(existing || challengeCompleted) && <ChallengeHeatmap />}
 
-      {/* TREND ANALYSIS SECTION - Show for active or just completed */}
+      {/* TREND ANALYSIS SECTION */}
       {(existing || challengeCompleted) && <ChallengeTrend />}
     </div>
   );
