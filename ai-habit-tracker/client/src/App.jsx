@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
+import Landing from "./pages/Landing/Landing"; // NEW
 import Login from "./pages/Auth/Login/Login";
 import Signup from "./pages/Auth/Signup/Signup";
 
@@ -25,10 +26,12 @@ import Calories from "./pages/Calories/Calories";
 function App() {
   return (
     <>
-      {/* 🔹 Vercel Speed Insights */}
       <SpeedInsights />
 
       <Routes>
+        {/* Public Landing Page */}
+        <Route path="/" element={<Landing />} />
+
         {/* Public Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -36,7 +39,7 @@ function App() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/add" element={<AddHabit />} />
             <Route path="/habit/:id" element={<HabitDetail />} />
             <Route path="/analytics" element={<Analytics />} />
