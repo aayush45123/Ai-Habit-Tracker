@@ -55,7 +55,7 @@ function Sidebar() {
         {/* Navigation */}
         <nav className={styles.nav}>
           <NavLink
-            to="/"
+            to="/dashboard"
             onClick={closeSidebar}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
