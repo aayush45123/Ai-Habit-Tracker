@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
-import Landing from "./pages/Landing/Landing"; // NEW
+import Landing from "./pages/Landing/Landing";
 import Login from "./pages/Auth/Login/Login";
 import Signup from "./pages/Auth/Signup/Signup";
 
@@ -14,6 +14,7 @@ import AIChat from "./pages/AIChat/AIChat";
 
 import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "./utils/protectedRoute";
+import PublicRoute from "./utils/PublicRoute"; // NEW
 import ProtectedAdminRoute from "./utils/ProtectedAdminRoute";
 
 import ChallengePage from "./pages/Challenge/ChallengePage";
@@ -29,14 +30,33 @@ function App() {
       <SpeedInsights />
 
       <Routes>
-        {/* Public Landing Page */}
-        <Route path="/" element={<Landing />} />
+        {/* Public Routes - Redirect to dashboard if logged in */}
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Landing />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          }
+        />
 
-        {/* Public Auth Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-
-        {/* Protected Routes */}
+        {/* Protected Routes - Require authentication */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
