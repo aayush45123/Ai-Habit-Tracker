@@ -14,6 +14,16 @@ import {
 import styles from "./Landing.module.css";
 
 export default function Landing() {
+  const navigate = useNavigate();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
+
   return (
     <div className={styles.landingPage}>
       {/* Navigation */}

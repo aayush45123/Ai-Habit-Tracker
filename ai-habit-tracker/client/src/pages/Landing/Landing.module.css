@@ -52,7 +52,7 @@
 .signupBtn {
   padding: 0.625rem 1.5rem;
   background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
   border: 2px solid var(--color-border);
   font-size: 0.9375rem;
   font-weight: 700;
@@ -160,7 +160,7 @@
   gap: 0.5rem;
   padding: 1rem 2rem;
   background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
   border: 2px solid var(--color-border);
   font-size: 1rem;
   font-weight: 700;
@@ -220,7 +220,7 @@
 
 .ctaSecondary:hover {
   background-color: var(--color-accent-secondary);
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
   transform: translate(-4px, -4px);
 }
 
@@ -312,6 +312,7 @@
   border: 2px solid var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
   position: relative;
+  cursor: pointer;
 }
 
 .featureCard::after {
@@ -328,10 +329,15 @@
 
 .featureCard:hover {
   transform: translate(-4px, -4px);
+  background-color: var(--color-bg-tertiary);
 }
 
 .featureCard:hover::after {
   transform: translate(2px, 2px);
+}
+
+.featureCard:hover .featureTitle {
+  color: var(--color-accent-primary);
 }
 
 .featureIcon {
@@ -341,7 +347,7 @@
   align-items: center;
   justify-content: center;
   background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
   border: 2px solid var(--color-border);
   margin-bottom: 1.5rem;
   position: relative;
@@ -364,6 +370,7 @@
   font-weight: 800;
   color: var(--color-text-primary);
   margin-bottom: 0.75rem;
+  transition: color var(--transition-speed) var(--transition-easing);
 }
 
 .featureDescription {
@@ -390,6 +397,8 @@
   background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
   position: relative;
+  transition: all var(--transition-speed) var(--transition-easing);
+  cursor: pointer;
 }
 
 .stepCard::after {
@@ -401,6 +410,16 @@
   height: 100%;
   background-color: var(--color-border);
   z-index: -1;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.stepCard:hover {
+  transform: translate(-4px, -4px);
+  background-color: var(--color-bg-tertiary);
+}
+
+.stepCard:hover::after {
+  transform: translate(2px, 2px);
 }
 
 .stepNumber {
@@ -441,7 +460,7 @@
 .proofTitle {
   font-size: 2rem;
   font-weight: 900;
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
   margin-bottom: 2rem;
 }
 
@@ -458,7 +477,7 @@
   gap: 0.5rem;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
 }
 
 /* Final CTA */
@@ -494,7 +513,7 @@
   gap: 0.75rem;
   padding: 1.25rem 2.5rem;
   background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
   border: 2px solid var(--color-border);
   font-size: 1.125rem;
   font-weight: 700;
@@ -658,5 +677,19 @@
 
   .ctaTitle {
     font-size: 1.75rem;
+  }
+
+  .navButtons {
+    gap: 0.5rem;
+  }
+
+  .loginBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .signupBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
   }
 }
