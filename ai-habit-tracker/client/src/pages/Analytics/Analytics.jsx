@@ -32,7 +32,7 @@ export default function Analytics() {
   const [dailyCompletion, setDailyCompletion] = useState({});
   const [consistencyScore, setConsistencyScore] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [completionRateTrend, setCompletionRateTrend] = useState({});
+  const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -46,7 +46,7 @@ export default function Analytics() {
       setDayCount(res.data.dayCount);
       setDailyCompletion(res.data.dailyCompletion || {});
       setConsistencyScore(res.data.consistencyScore || 0);
-      setCompletionRateTrend(res.data.completionRateTrend || {});
+      setLeaderboard(res.data.leaderboard || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -97,12 +97,6 @@ export default function Analytics() {
     responsive: true,
     maintainAspectRatio: false,
   };
-
-  // COMPLETION RATE TREND (LAST 30 DAYS)
-  const trendLabels = Object.keys(completionRateTrend).map((d) =>
-    new Date(d).toLocaleDateString("en-IN", { month: "short", day: "numeric" })
-  );
-  const trendValues = Object.values(completionRateTrend);
 
   // DAILY COMPLETION CALENDAR
   const now = new Date();
@@ -193,14 +187,6 @@ export default function Analytics() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      stepSize: 1,
-                    },
-                  },
-                },
               }}
             />
           </div>
@@ -218,57 +204,29 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* COMPLETION RATE TREND */}
+        {/* HABIT SUCCESS LEADERBOARD */}
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
-            <h3 className={styles.chartTitle}>Completion Rate Trend</h3>
-            <span className={styles.badge}>LAST 30 DAYS</span>
+            <h3 className={styles.chartTitle}>Habit Success Leaderboard</h3>
+            <span className={styles.badge}>Top Performers</span>
           </div>
 
-          <div className={styles.chartWrapper}>
-            <Line
-              data={{
-                labels: trendLabels,
-                datasets: [
-                  {
-                    label: "Completion Rate (%)",
-                    data: trendValues,
-                    borderColor: "#22d3ee",
-                    backgroundColor: "rgba(34, 211, 238, 0.1)",
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                    fill: true,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    callbacks: {
-                      label: function (context) {
-                        return `Completion: ${context.parsed.y}%`;
-                      },
-                    },
-                  },
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                      callback: function (value) {
-                        return value + "%";
-                      },
-                      stepSize: 20,
-                    },
-                  },
-                },
-              }}
-            />
+          <div className={styles.leaderboard}>
+            {leaderboard.length > 0 ? (
+              leaderboard.map((item, i) => (
+                <div key={i} className={styles.leadRow}>
+                  <span className={styles.leadRank}>{i + 1}</span>
+                  <span className={styles.leadName}>{item.habit}</span>
+                  <span className={styles.leadPercent}>
+                    {item.completionRate}%
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className={styles.emptyLeaderboard}>
+                No habits tracked yet
+              </div>
+            )}
           </div>
         </div>
 
@@ -330,7 +288,7 @@ export default function Analytics() {
 
       {/* BEST DAY */}
       <div className={styles.highlight}>
-        <span className={styles.highlightIcon}>🏆</span>
+        <span className={styles.highlightIcon}></span>
         <span className={styles.highlightText}>
           Best Day: <strong className={styles.highlightValue}>{bestDay}</strong>
         </span>
