@@ -320,7 +320,7 @@ export const getAnalytics = async (req, res) => {
         weekChange: 0,
         dailyCompletion: {},
         consistencyScore: 0,
-        leaderboard: [],
+        completionRateTrend: {},
       });
     }
 
@@ -332,13 +332,14 @@ export const getAnalytics = async (req, res) => {
       date: normalizeDateIST(l.date),
     }));
 
+    const now = new Date();
+
     // ----------------------------------------------------
     // WEEKLY TREND (LAST 7 DAYS)
     // ----------------------------------------------------
     const weekly = {};
 
     for (let i = 6; i >= 0; i--) {
-      const now = new Date();
       const targetDate = new Date(now.getTime() + 330 * 60000);
       targetDate.setDate(targetDate.getDate() - i);
       const key = targetDate.toISOString().split("T")[0];
@@ -387,7 +388,6 @@ export const getAnalytics = async (req, res) => {
     const getWeekDays = (offset) => {
       const arr = [];
       for (let i = 0; i < 7; i++) {
-        const now = new Date();
         const d = new Date(now.getTime() + 330 * 60000);
         d.setDate(d.getDate() - (offset + i));
         arr.push(d.toISOString().split("T")[0]);
@@ -437,7 +437,6 @@ export const getAnalytics = async (req, res) => {
     // ----------------------------------------------------
     // CONSISTENCY SCORE – Last 30 days
     // ----------------------------------------------------
-    const now = new Date();
     const last30 = new Date(now.getTime() + 330 * 60000);
     last30.setDate(last30.getDate() - 29);
 
@@ -465,65 +464,33 @@ export const getAnalytics = async (req, res) => {
         : Math.round((completedDays.size / totalDaysWithLogs) * 100);
 
     // ----------------------------------------------------
-    // HABIT SUCCESS RANKING (LEADERBOARD)
+    // COMPLETION RATE TREND (LAST 30 DAYS)
     // ----------------------------------------------------
-    const leaderboard = [];
-    const todayIST = new Date(now.getTime() + 330 * 60000);
-    const todayISO = todayIST.toISOString().split("T")[0];
+    const completionRateTrend = {};
 
-    for (let habit of habits) {
-      const hLogs = normalizedLogs.filter(
-        (l) => l.habitId.toString() === habit._id.toString()
-      );
+    for (let i = 29; i >= 0; i--) {
+      const targetDate = new Date(now.getTime() + 330 * 60000);
+      targetDate.setDate(targetDate.getDate() - i);
+      const dateKey = targetDate.toISOString().split("T")[0];
 
-      // Count how many days were actually completed
-      const doneCount = hLogs.filter((l) => l.status === "done").length;
+      // Count logs for this date
+      const logsForDate = normalizedLogs.filter((l) => l.date === dateKey);
+      const doneForDate = logsForDate.filter((l) => l.status === "done").length;
 
-      // If no logs exist, completion rate is 0
-      if (hLogs.length === 0) {
-        leaderboard.push({
-          habit: habit.title,
-          completionRate: 0,
-          totalLogs: 0,
-          doneCount: 0,
-          expectedDays: 0,
-        });
-        continue;
-      }
-
-      // Calculate completion rate based on logs
-      let completionRate = 0;
-      let expectedDays = hLogs.length;
-
-      if (habit.frequency === "daily") {
-        // For daily habits: done / total logs
-        completionRate = Math.round((doneCount / hLogs.length) * 100);
-      } else if (habit.frequency === "weekly") {
-        // For weekly habits: done / (weeks based on logs)
-        expectedDays = Math.ceil(hLogs.length / 7);
-        completionRate = Math.round((doneCount / expectedDays) * 100);
+      // Calculate completion rate for the day
+      if (logsForDate.length > 0) {
+        completionRateTrend[dateKey] = Math.round(
+          (doneForDate / logsForDate.length) * 100
+        );
       } else {
-        // Default: use actual logs if no frequency set
-        completionRate = Math.round((doneCount / hLogs.length) * 100);
-        expectedDays = hLogs.length;
+        completionRateTrend[dateKey] = 0;
       }
-
-      leaderboard.push({
-        habit: habit.title,
-        completionRate: Math.min(completionRate, 100), // Cap at 100%
-        totalLogs: hLogs.length,
-        doneCount: doneCount,
-        expectedDays: expectedDays,
-      });
     }
 
-    // Sort by completion rate (highest first)
-    leaderboard.sort((a, b) => {
-      if (b.completionRate === a.completionRate) {
-        return b.doneCount - a.doneCount; // If same rate, sort by done count
-      }
-      return b.completionRate - a.completionRate;
-    });
+    // Sort by date
+    const sortedCompletionTrend = Object.keys(completionRateTrend)
+      .sort((a, b) => new Date(a) - new Date(b))
+      .reduce((acc, key) => ((acc[key] = completionRateTrend[key]), acc), {});
 
     // ----------------------------------------------------
     // RETURN ANALYTICS
@@ -535,7 +502,7 @@ export const getAnalytics = async (req, res) => {
       weekChange,
       dailyCompletion,
       consistencyScore,
-      leaderboard,
+      completionRateTrend: sortedCompletionTrend,
     });
   } catch (error) {
     console.error("Analytics error:", error);
