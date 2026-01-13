@@ -78,6 +78,7 @@ export default function Dashboard() {
 
       await api.post(`/habits/${habitId}/log`, payload);
 
+      // Refresh all data
       await fetchHabits();
       await fetchAnalytics();
       await fetchAIInsights();
@@ -91,7 +92,7 @@ export default function Dashboard() {
     (h) => h.lastDate === formatDateISO() && h.lastStatus === "done"
   ).length;
 
-  // FIXED: Now using longestStreak instead of current streak
+  // Display longest streak across all habits
   const longestStreak = Math.max(...habits.map((h) => h.longestStreak || 0), 0);
 
   return (
