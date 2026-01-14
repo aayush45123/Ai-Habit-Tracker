@@ -1,4 +1,4 @@
-// server/src/controllers/challengeController.js (FIXED - MIDNIGHT SPANNING)
+// server/src/controllers/challengeController.js (COMPLETE FIX WITH DEBUGGING)
 import Challenge from "../models/Challenge.js";
 import ChallengeLog from "../models/ChallengeLog.js";
 import { getTodayIST, normalizeDateIST } from "../utils/getTodayIST.js";
@@ -16,33 +16,54 @@ function convertTo24FromString(fullTime) {
 }
 
 /* -----------------------------------------------------
-   ✅ NEW: Check if current time is within habit window
-   Handles midnight-spanning times (e.g., 20:00 - 08:00)
+   ✅ FIXED: Determine habit status for today
+   Properly handles midnight-spanning time windows
 ----------------------------------------------------- */
-function isTimeInWindow(currentMinutes, startMinutes, endMinutes) {
-  // Normal case: start < end (e.g., 06:00 - 10:00)
-  if (startMinutes < endMinutes) {
-    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+function getHabitStatusForToday(
+  currentTimeInMinutes,
+  startTimeInMinutes,
+  endTimeInMinutes,
+  hasLog
+) {
+  // If already marked done, return "done"
+  if (hasLog) return "done";
+
+  const isMidnightSpanning = startTimeInMinutes > endTimeInMinutes;
+
+  if (isMidnightSpanning) {
+    // Midnight-spanning window (e.g., 20:00 - 08:00)
+    // Valid from startTime until 23:59, then from 00:00 until endTime
+
+    // Currently in the valid window?
+    const inWindow =
+      currentTimeInMinutes >= startTimeInMinutes || // After start time (20:00+)
+      currentTimeInMinutes <= endTimeInMinutes; // Or before end time (before 08:00)
+
+    if (inWindow) {
+      return "ongoing"; // Can mark done now
+    }
+
+    // Between endTime and startTime = expired window
+    // e.g., if it's 10:00 AM and window is 20:00-08:00, it's expired
+    if (
+      currentTimeInMinutes > endTimeInMinutes &&
+      currentTimeInMinutes < startTimeInMinutes
+    ) {
+      return "expired";
+    }
+
+    // This shouldn't happen but just in case
+    return "pending";
+  } else {
+    // Normal window (e.g., 06:00 - 10:30)
+    if (currentTimeInMinutes < startTimeInMinutes) {
+      return "pending"; // Too early
+    }
+    if (currentTimeInMinutes > endTimeInMinutes) {
+      return "expired"; // Too late
+    }
+    return "ongoing"; // Can mark done now
   }
-
-  // Midnight-spanning case: start > end (e.g., 20:00 - 08:00)
-  // This means the window spans across midnight
-  return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
-}
-
-/* -----------------------------------------------------
-   ✅ NEW: Check if time window has expired
-   Handles midnight-spanning times
------------------------------------------------------ */
-function isTimeExpired(currentMinutes, endMinutes, startMinutes) {
-  // Normal case: start < end
-  if (startMinutes < endMinutes) {
-    return currentMinutes > endMinutes;
-  }
-
-  // Midnight-spanning case: start > end
-  // Time is expired only if it's between end and start
-  return currentMinutes > endMinutes && currentMinutes < startMinutes;
 }
 
 /* -----------------------------------------------------
@@ -181,7 +202,7 @@ export const updateChallenge = async (req, res) => {
 
 /* -----------------------------------------------------
    GET CURRENT ACTIVE CHALLENGE
-   ✅ FIXED: Proper handling of midnight-spanning times
+   ✅ COMPLETELY FIXED: Proper midnight-spanning logic
 ----------------------------------------------------- */
 export const getCurrentChallenge = async (req, res) => {
   try {
@@ -214,6 +235,15 @@ export const getCurrentChallenge = async (req, res) => {
     const currentMinute = istNow.getUTCMinutes();
     const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
+    console.log("🕐 Current IST Time:", {
+      hour: currentHour,
+      minute: currentMinute,
+      totalMinutes: currentTimeInMinutes,
+      formatted: `${String(currentHour).padStart(2, "0")}:${String(
+        currentMinute
+      ).padStart(2, "0")}`,
+    });
+
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
 
     const TOTAL_DAYS = 21;
@@ -238,38 +268,30 @@ export const getCurrentChallenge = async (req, res) => {
           return log ? "done" : "expired";
         }
 
-        // ✅ Today - check time windows with midnight support
+        // ✅ Today - use the fixed function
         if (iso === todayISO) {
-          if (log) return "done";
+          const status = getHabitStatusForToday(
+            currentTimeInMinutes,
+            startTimeInMinutes,
+            endTimeInMinutes,
+            !!log
+          );
 
-          // Check if we're before the start time
-          if (startTimeInMinutes < endTimeInMinutes) {
-            // Normal time window (doesn't cross midnight)
-            if (currentTimeInMinutes < startTimeInMinutes) return "pending";
-            if (currentTimeInMinutes > endTimeInMinutes) return "expired";
-            return "ongoing";
-          } else {
-            // Midnight-spanning time window (e.g., 20:00 - 08:00)
-            if (
-              isTimeInWindow(
-                currentTimeInMinutes,
-                startTimeInMinutes,
-                endTimeInMinutes
-              )
-            ) {
-              return "ongoing";
-            }
-            if (
-              isTimeExpired(
-                currentTimeInMinutes,
-                endTimeInMinutes,
-                startTimeInMinutes
-              )
-            ) {
-              return "expired";
-            }
-            return "pending";
+          // Debug log for the 7th habit (sleep)
+          if (index === 6) {
+            console.log(`🛏️ Habit #${index + 1} (${habit.title}):`, {
+              startTime: habit.startTime,
+              endTime: habit.endTime,
+              startMinutes: startTimeInMinutes,
+              endMinutes: endTimeInMinutes,
+              currentMinutes: currentTimeInMinutes,
+              isMidnightSpanning: startTimeInMinutes > endTimeInMinutes,
+              hasLog: !!log,
+              status,
+            });
           }
+
+          return status;
         }
 
         // ✅ Future days
@@ -440,7 +462,7 @@ export const getChallengeHeatmap = async (req, res) => {
 
 /* -----------------------------------------------------
    MARK HABIT DONE
-   ✅ FIXED: Proper handling of midnight-spanning times
+   ✅ FIXED: Uses same logic as getCurrentChallenge
 ----------------------------------------------------- */
 export const markHabitDone = async (req, res) => {
   try {
@@ -473,30 +495,28 @@ export const markHabitDone = async (req, res) => {
     const startTimeInMinutes = startHour * 60 + startMin;
     const endTimeInMinutes = endHour * 60 + endMin;
 
-    // ✅ Check if we're in the valid time window (with midnight support)
-    if (
-      !isTimeInWindow(
-        currentTimeInMinutes,
-        startTimeInMinutes,
-        endTimeInMinutes
-      )
-    ) {
-      if (
-        currentTimeInMinutes < startTimeInMinutes &&
-        startTimeInMinutes < endTimeInMinutes
-      ) {
+    // Check if we can mark it done using the same logic
+    const isMidnightSpanning = startTimeInMinutes > endTimeInMinutes;
+
+    if (isMidnightSpanning) {
+      // Midnight-spanning: valid if currentTime >= startTime OR currentTime <= endTime
+      const inWindow =
+        currentTimeInMinutes >= startTimeInMinutes ||
+        currentTimeInMinutes <= endTimeInMinutes;
+
+      if (!inWindow) {
+        return res.status(400).json({
+          message: `Time window expired. Valid from ${habit.startTime} to ${habit.endTime}.`,
+        });
+      }
+    } else {
+      // Normal window
+      if (currentTimeInMinutes < startTimeInMinutes) {
         return res.status(400).json({ message: "Too early to mark done." });
       }
-      if (
-        isTimeExpired(
-          currentTimeInMinutes,
-          endTimeInMinutes,
-          startTimeInMinutes
-        )
-      ) {
+      if (currentTimeInMinutes > endTimeInMinutes) {
         return res.status(400).json({ message: "Time window expired." });
       }
-      return res.status(400).json({ message: "Not in valid time window." });
     }
 
     await ChallengeLog.findOneAndUpdate(
