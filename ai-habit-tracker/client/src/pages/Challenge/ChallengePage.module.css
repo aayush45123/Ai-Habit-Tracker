@@ -1,4 +1,4 @@
-/* client/src/pages/ChallengePage/ChallengePage.module.css (FULLY FIXED ALIGNMENT & OVERFLOW) */
+/* client/src/pages/ChallengePage/ChallengePage.module.css (COMPLETE ENHANCED VERSION) */
 
 /* ========================================
    ROOT CONTAINER
@@ -97,6 +97,234 @@
   width: 18px;
   height: 18px;
   stroke-width: 2.5;
+}
+
+/* ========================================
+   RESTART MODAL
+======================================== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background-color: var(--color-bg-primary);
+  border: 4px solid var(--color-border);
+  border-radius: 0;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 12px 12px 0 0 var(--color-border);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 2rem;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 3px solid var(--color-border);
+}
+
+.modalHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.modalIcon {
+  width: 32px;
+  height: 32px;
+  color: var(--color-accent-primary);
+  stroke-width: 2.5;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.modalClose {
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed) var(--transition-easing);
+  flex-shrink: 0;
+}
+
+.modalClose:hover {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  transform: scale(1.1);
+}
+
+.modalClose svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
+}
+
+.modalBody {
+  padding: 2rem;
+}
+
+.modalText {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin: 0 0 1.5rem 0;
+}
+
+.modalHabits {
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  padding: 1.5rem;
+}
+
+.modalSubtitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+}
+
+.modalHabitRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+.modalHabitRow:last-child {
+  margin-bottom: 0;
+}
+
+.modalHabitNumber {
+  width: 30px;
+  height: 30px;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.modalHabitTitle {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background-color: var(--color-bg-secondary);
+  border-top: 3px solid var(--color-border);
+}
+
+.modalCancelBtn {
+  flex: 1;
+  padding: 1rem 2rem;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.modalCancelBtn:hover {
+  background-color: var(--color-bg-tertiary);
+  transform: translateY(-2px);
+  box-shadow: 2px 2px 0 0 var(--color-border);
+}
+
+.modalConfirmBtn {
+  flex: 1;
+  padding: 1rem 2rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border: 3px solid var(--color-accent-primary);
+  border-radius: 0;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  box-shadow: 4px 4px 0 0 var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+}
+
+.modalConfirmBtn:hover {
+  background-color: var(--color-accent-secondary);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--color-border);
 }
 
 /* ========================================
@@ -267,6 +495,33 @@
   width: 14px;
   height: 14px;
   stroke-width: 2.5;
+}
+
+/* Progress Bar in History */
+.historyProgress {
+  margin-bottom: 1rem;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-accent-primary);
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
 }
 
 .historyStats {
@@ -552,12 +807,18 @@
 }
 
 /* ========================================
-   EDIT BUTTON
+   ACTION BUTTONS (Edit & Restart)
 ======================================== */
-.editBtn {
-  width: 100%;
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.editBtn,
+.restartBtn {
+  flex: 1;
   padding: 1rem 2rem;
-  background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
   border: 3px solid var(--color-border);
   border-radius: 0;
@@ -566,7 +827,6 @@
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
-  margin-bottom: 1.5rem;
   box-shadow: 4px 4px 0 0 var(--color-border);
   display: flex;
   align-items: center;
@@ -574,9 +834,24 @@
   gap: 0.625rem;
 }
 
-.editBtn:hover {
+.editBtn {
+  background-color: var(--color-bg-secondary);
+}
+
+.restartBtn {
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
+}
+
+.editBtn:hover {
+  background-color: var(--color-accent-secondary);
+  color: var(--color-bg-primary);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--color-border);
+}
+
+.restartBtn:hover {
+  background-color: var(--color-accent-secondary);
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 var(--color-border);
 }
@@ -622,7 +897,7 @@
 }
 
 /* ========================================
-   HABIT INPUT ROW - FULLY FIXED ALIGNMENT
+   HABIT INPUT ROW - FIXED WITH REMOVE BUTTON
 ======================================== */
 .habitRow {
   display: flex;
@@ -634,6 +909,7 @@
   border: 2px solid var(--color-border);
   border-radius: 0;
   box-shadow: 4px 4px 0 0 var(--color-border);
+  position: relative;
 }
 
 .habitNumber {
@@ -683,35 +959,24 @@
   opacity: 0.7;
 }
 
-/* FIXED TIME CONTROLS - NO OVERFLOW */
 .timeControls {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
   width: 100%;
-  align-items: flex-end;
+  align-items: stretch;
 }
 
 .timeGroup {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.375rem;
-  padding: 1rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   background-color: var(--color-bg-primary);
   border: 2px solid var(--color-border);
   border-radius: 0;
   flex: 1;
-  min-width: 140px;
-  max-width: 200px;
-  box-sizing: border-box;
-}
-
-.timeLabelRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
+  min-width: 200px;
 }
 
 .timeIcon {
@@ -723,29 +988,19 @@
 }
 
 .timeLabel {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
   flex-shrink: 0;
-  line-height: 1.2;
-}
-
-.timeInputRow {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  width: 100%;
 }
 
 .timeInput {
-  flex: 1;
-  min-width: 50px;
-  max-width: 70px;
-  padding: 0.5rem 0.25rem;
-  font-size: 0.95rem;
+  width: 70px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
   font-family: var(--font-primary);
   color: var(--color-text-primary);
   background-color: transparent;
@@ -754,23 +1009,16 @@
   outline: none;
   text-align: center;
   transition: all var(--transition-speed) var(--transition-easing);
+  flex-shrink: 0;
 }
 
 .timeInput:focus {
   border-bottom-color: var(--color-accent-primary);
 }
 
-.timeColon {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  line-height: 1;
-  flex-shrink: 0;
-}
-
 .periodSelect {
-  padding: 0.5rem 0.25rem;
-  font-size: 0.95rem;
+  padding: 0.5rem;
+  font-size: 0.9rem;
   font-family: var(--font-primary);
   color: var(--color-text-primary);
   background-color: transparent;
@@ -780,12 +1028,75 @@
   outline: none;
   font-weight: 600;
   transition: all var(--transition-speed) var(--transition-easing);
-  min-width: 45px;
-  text-align: center;
+  flex-shrink: 0;
 }
 
 .periodSelect:focus {
   border-bottom-color: var(--color-accent-primary);
+}
+
+/* Remove Habit Button */
+.removeHabitBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.removeHabitBtn:hover {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  transform: scale(1.1);
+}
+
+.removeIcon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
+}
+
+/* Add Habit Button */
+.addHabitBtn {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 2px dashed var(--color-border);
+  border-radius: 0;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.addHabitBtn:hover {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border-style: solid;
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 0 var(--color-border);
+}
+
+.addIcon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
 }
 
 /* ========================================
@@ -1097,20 +1408,8 @@
 }
 
 /* ========================================
-   RESPONSIVE DESIGN - FULLY OPTIMIZED
+   RESPONSIVE DESIGN
 ======================================== */
-
-/* Extra Large Desktop (1400px+) */
-@media (min-width: 1400px) {
-  .timeControls {
-    max-width: 600px;
-  }
-
-  .timeGroup {
-    min-width: 160px;
-    max-width: 220px;
-  }
-}
 
 /* Large Desktop (1200px+) */
 @media (min-width: 1200px) {
@@ -1121,39 +1420,32 @@
 
   .habitNumber {
     margin-top: 0.5rem;
-    align-self: flex-start;
   }
 
   .habitInput {
     flex: 1;
-    margin-left: 1rem;
   }
 
   .timeControls {
-    flex-direction: row;
-    max-width: 500px;
+    flex: 0 0 auto;
+    max-width: 480px;
   }
 
   .timeGroup {
-    min-width: 150px;
-    max-width: 180px;
+    flex: 1;
+    min-width: 220px;
   }
 }
 
-/* Tablet Large (1024px - 1199px) */
-@media (min-width: 1024px) and (max-width: 1199px) {
-  .timeControls {
-    gap: 0.5rem;
-  }
-
+/* Tablet (768px - 1199px) */
+@media (max-width: 1199px) and (min-width: 768px) {
   .timeGroup {
-    min-width: 130px;
-    padding: 0.875rem;
+    min-width: 180px;
   }
 }
 
-/* Tablet (768px - 1023px) */
-@media (max-width: 1023px) {
+/* Mobile and Tablet (max 1024px) */
+@media (max-width: 1024px) {
   .header {
     flex-direction: column;
     align-items: stretch;
@@ -1182,9 +1474,13 @@
     grid-template-columns: 1fr;
     gap: 1rem;
   }
+
+  .actionButtons {
+    flex-direction: column;
+  }
 }
 
-/* Mobile Large (481px - 767px) */
+/* Mobile (max 768px) */
 @media (max-width: 767px) {
   .root {
     padding: 1.25rem;
@@ -1198,7 +1494,6 @@
   .timeGroup {
     width: 100%;
     min-width: 100%;
-    max-width: none;
   }
 
   .formActions {
@@ -1228,9 +1523,13 @@
     width: 100%;
     justify-content: flex-start;
   }
+
+  .modalActions {
+    flex-direction: column;
+  }
 }
 
-/* Mobile Small (max 480px) */
+/* Small Mobile (max 480px) */
 @media (max-width: 480px) {
   .root {
     padding: 1rem;
@@ -1268,16 +1567,7 @@
   }
 
   .timeGroup {
-    padding: 0.75rem;
-  }
-
-  .timeInput {
-    font-size: 0.9rem;
-  }
-
-  .periodSelect {
-    font-size: 0.9rem;
-    min-width: 40px;
+    padding: 0.625rem 0.875rem;
   }
 
   .formContent {
@@ -1312,7 +1602,19 @@
     font-size: 1.1rem;
   }
 
-  .timeLabel {
-    font-size: 0.75rem;
+  .modalHeader {
+    padding: 1.5rem;
+  }
+
+  .modalTitle {
+    font-size: 1.5rem;
+  }
+
+  .modalBody {
+    padding: 1.5rem;
+  }
+
+  .modalActions {
+    padding: 1.25rem 1.5rem;
   }
 }
