@@ -1,4 +1,4 @@
-// client/src/pages/ChallengePage/ChallengePage.jsx (ENHANCED)
+// client/src/pages/ChallengePage/ChallengePage.jsx (ENHANCED WITH RESTART & DYNAMIC HABITS)
 import React, { useEffect, useState } from "react";
 import {
   Calendar,
@@ -17,6 +17,8 @@ import {
   TrendingUp,
   Sparkles,
   X as CloseIcon,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
@@ -59,6 +61,7 @@ export default function ChallengePage() {
   const [showHistory, setShowHistory] = useState(false);
   const [challengeHistory, setChallengeHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showRestartModal, setShowRestartModal] = useState(false);
 
   /* Load challenge */
   useEffect(() => {
@@ -136,15 +139,41 @@ export default function ChallengePage() {
     setHabits(updated);
   }
 
+  function addHabit() {
+    setHabits([
+      ...habits,
+      {
+        title: "",
+        startTime: "",
+        startPeriod: "AM",
+        endTime: "",
+        endPeriod: "AM",
+      },
+    ]);
+  }
+
+  function removeHabit(index) {
+    if (habits.length <= 6) {
+      setMessage("Minimum 6 habits required!");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+    setHabits(habits.filter((_, i) => i !== index));
+  }
+
   async function startChallenge() {
     setMessage("");
 
-    if (habits.filter((h) => h.title && h.startTime && h.endTime).length < 6) {
-      setMessage("Please enter at least 6 habits.");
+    const filledHabits = habits.filter(
+      (h) => h.title && h.startTime && h.endTime
+    );
+
+    if (filledHabits.length < 6) {
+      setMessage("Please enter at least 6 complete habits.");
       return;
     }
 
-    const formatted = habits.map((h) => ({
+    const formatted = filledHabits.map((h) => ({
       title: h.title,
       startTime: `${h.startTime} ${h.startPeriod}`,
       endTime: `${h.endTime} ${h.endPeriod}`,
@@ -157,15 +186,59 @@ export default function ChallengePage() {
       setCompletionStats(null);
       loadChallenge();
       loadHistory();
-      setMessage("Challenge started!");
+      setMessage("Challenge started successfully!");
+      setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
-      setMessage("Error starting challenge.");
+      setMessage(err.response?.data?.message || "Error starting challenge.");
+    }
+  }
+
+  async function restartChallenge() {
+    setMessage("");
+
+    const filledHabits = habits.filter(
+      (h) => h.title && h.startTime && h.endTime
+    );
+
+    if (filledHabits.length < 6) {
+      setMessage("Please enter at least 6 complete habits.");
+      return;
+    }
+
+    const formatted = filledHabits.map((h) => ({
+      title: h.title,
+      startTime: `${h.startTime} ${h.startPeriod}`,
+      endTime: `${h.endTime} ${h.endPeriod}`,
+    }));
+
+    try {
+      const res = await api.post("/challenge/restart", { habits: formatted });
+      setExisting(res.data.challenge);
+      setChallengeCompleted(false);
+      setCompletionStats(null);
+      setShowRestartModal(false);
+      loadChallenge();
+      loadHistory();
+      setMessage("Challenge restarted successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setMessage(err.response?.data?.message || "Error restarting challenge.");
     }
   }
 
   async function updateChallenge() {
-    const formatted = habits.map((h) => ({
+    const filledHabits = habits.filter(
+      (h) => h.title && h.startTime && h.endTime
+    );
+
+    if (filledHabits.length < 6) {
+      setMessage("Please maintain at least 6 habits in your challenge.");
+      return;
+    }
+
+    const formatted = filledHabits.map((h) => ({
       title: h.title,
       startTime: `${h.startTime} ${h.startPeriod}`,
       endTime: `${h.endTime} ${h.endPeriod}`,
@@ -179,10 +252,11 @@ export default function ChallengePage() {
       setExisting(res.data.challenge);
       setEditMode(false);
       loadChallenge();
-      setMessage("Challenge updated!");
+      setMessage("Challenge updated successfully!");
+      setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
-      setMessage("Error updating challenge.");
+      setMessage(err.response?.data?.message || "Error updating challenge.");
     }
   }
 
@@ -204,6 +278,9 @@ export default function ChallengePage() {
       if (err.response?.data?.challengeEnded) {
         setMessage("Challenge completed! Start a new one.");
         setChallengeCompleted(true);
+      } else {
+        setMessage(err.response?.data?.message || "Error marking habit done.");
+        setTimeout(() => setMessage(""), 3000);
       }
     }
   }
@@ -233,8 +310,28 @@ export default function ChallengePage() {
       alert("Challenge deleted successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete challenge");
+      alert(err.response?.data?.message || "Failed to delete challenge");
     }
+  }
+
+  function openRestartModal() {
+    // Pre-fill with current habits
+    if (existing) {
+      setHabits(
+        existing.habits.map((h) => {
+          const s = convert24to12(h.startTime);
+          const e = convert24to12(h.endTime);
+          return {
+            title: h.title,
+            startTime: s.time,
+            startPeriod: s.period,
+            endTime: e.time,
+            endPeriod: e.period,
+          };
+        })
+      );
+    }
+    setShowRestartModal(true);
   }
 
   return (
@@ -270,6 +367,65 @@ export default function ChallengePage() {
           )}
         </button>
       </div>
+
+      {/* RESTART MODAL */}
+      {showRestartModal && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setShowRestartModal(false)}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalHeaderContent}>
+                <AlertCircle className={styles.modalIcon} />
+                <h3 className={styles.modalTitle}>Restart Challenge?</h3>
+              </div>
+              <button
+                className={styles.modalClose}
+                onClick={() => setShowRestartModal(false)}
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>
+                Your current challenge will be moved to history, and a fresh
+                21-day challenge will begin today. You can modify your habits or
+                keep them the same.
+              </p>
+
+              <div className={styles.modalHabits}>
+                <h4 className={styles.modalSubtitle}>Review Your Habits:</h4>
+                {habits.map((h, i) => (
+                  <div key={i} className={styles.modalHabitRow}>
+                    <span className={styles.modalHabitNumber}>{i + 1}</span>
+                    <span className={styles.modalHabitTitle}>
+                      {h.title || "(Empty)"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.modalCancelBtn}
+                onClick={() => setShowRestartModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.modalConfirmBtn}
+                onClick={restartChallenge}
+              >
+                <RefreshCw className={styles.btnIcon} />
+                <span>Restart Challenge</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HISTORY SECTION */}
       {showHistory && (
@@ -319,6 +475,18 @@ export default function ChallengePage() {
                     <TrendingUp className={styles.arrowIcon} />
                     <span>
                       {new Date(challenge.endDate).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className={styles.historyProgress}>
+                    <div className={styles.progressBar}>
+                      <div
+                        className={styles.progressFill}
+                        style={{ width: `${challenge.completionRate}%` }}
+                      />
+                    </div>
+                    <span className={styles.progressText}>
+                      Day {challenge.daysElapsed}/21
                     </span>
                   </div>
 
@@ -376,7 +544,7 @@ export default function ChallengePage() {
           <div className={styles.bannerStats}>
             <div className={styles.stat}>
               <Target className={styles.statIcon} />
-              <span className={styles.statNumber}>6</span>
+              <span className={styles.statNumber}>6+</span>
               <span className={styles.statLabel}>Daily Habits</span>
             </div>
             <div className={styles.stat}>
@@ -386,7 +554,7 @@ export default function ChallengePage() {
             </div>
             <div className={styles.stat}>
               <CheckCircle className={styles.statIcon} />
-              <span className={styles.statNumber}>126</span>
+              <span className={styles.statNumber}>126+</span>
               <span className={styles.statLabel}>Total Completions</span>
             </div>
           </div>
@@ -437,11 +605,18 @@ export default function ChallengePage() {
         </div>
       )}
 
+      {/* ACTION BUTTONS FOR ACTIVE CHALLENGE */}
       {existing && !editMode && !challengeCompleted && (
-        <button className={styles.editBtn} onClick={() => setEditMode(true)}>
-          <Edit className={styles.btnIcon} />
-          <span>Edit Challenge</span>
-        </button>
+        <div className={styles.actionButtons}>
+          <button className={styles.editBtn} onClick={() => setEditMode(true)}>
+            <Edit className={styles.btnIcon} />
+            <span>Edit Challenge</span>
+          </button>
+          <button className={styles.restartBtn} onClick={openRestartModal}>
+            <RefreshCw className={styles.btnIcon} />
+            <span>Restart Challenge</span>
+          </button>
+        </div>
       )}
 
       {/* FORM - Create/Edit Mode */}
@@ -519,8 +694,23 @@ export default function ChallengePage() {
                     </select>
                   </div>
                 </div>
+
+                {i >= 6 && (
+                  <button
+                    className={styles.removeHabitBtn}
+                    onClick={() => removeHabit(i)}
+                    title="Remove habit"
+                  >
+                    <Trash2 className={styles.removeIcon} />
+                  </button>
+                )}
               </div>
             ))}
+
+            <button className={styles.addHabitBtn} onClick={addHabit}>
+              <Plus className={styles.addIcon} />
+              <span>Add Another Habit</span>
+            </button>
           </div>
 
           <div className={styles.formActions}>
