@@ -1,8 +1,14 @@
 // server/src/scripts/recalculateStreaks.js
 import mongoose from "mongoose";
-import Habit from "../src/models/Habit.js";
-import HabitLog from "../src/models/HabitLog.js";
-import { normalizeDateIST } from "../src/utils/getTodayIST.js";
+import Habit from "../models/Habit.js";
+import HabitLog from "../models/HabitLog.js";
+import {
+  normalizeDateIST,
+  getTodayIST,
+  getYesterdayIST,
+  getDaysAgoIST,
+  areConsecutiveDays,
+} from "../utils/getTodayIST.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -18,33 +24,7 @@ const connectDB = async () => {
   }
 };
 
-// Helper: Check if two dates are consecutive
-const areConsecutiveDays = (date1String, date2String) => {
-  const date1 = new Date(date1String + "T00:00:00Z");
-  const date2 = new Date(date2String + "T00:00:00Z");
-
-  const diffMs = Math.abs(date2 - date1);
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-  return diffDays === 1;
-};
-
-// Helper: Get date N days ago in IST
-const getDaysAgo = (n) => {
-  const now = new Date();
-  const istDate = new Date(now.getTime() + 330 * 60000);
-  istDate.setDate(istDate.getDate() - n);
-  return istDate.toISOString().split("T")[0];
-};
-
-// Helper: Get today in IST
-const getTodayIST = () => {
-  const now = new Date();
-  const istDate = new Date(now.getTime() + 330 * 60000);
-  return istDate.toISOString().split("T")[0];
-};
-
-// Calculate streak for a single habit (FIXED VERSION)
+// Calculate streak for a single habit (FIXED VERSION with GRACE PERIOD)
 const calculateStreakForHabit = async (habitId) => {
   const allLogs = await HabitLog.find({ habitId }).sort({ date: 1 });
 
@@ -61,7 +41,7 @@ const calculateStreakForHabit = async (habitId) => {
   let longestStreak = 0;
   let tempStreak = 0;
 
-  // Calculate LONGEST streak
+  // Calculate LONGEST streak (all-time best)
   for (let i = 0; i < normalizedLogs.length; i++) {
     const log = normalizedLogs[i];
 
@@ -87,31 +67,49 @@ const calculateStreakForHabit = async (habitId) => {
     }
   }
 
-  // Calculate CURRENT streak - must include today
+  // Calculate CURRENT streak - must include TODAY or YESTERDAY (grace period)
   const todayISO = getTodayIST();
+  const yesterdayISO = getYesterdayIST();
+
   const todayLog = normalizedLogs.find((log) => log.date === todayISO);
+  const yesterdayLog = normalizedLogs.find((log) => log.date === yesterdayISO);
 
   let currentStreak = 0;
 
+  // Case 1: Today is marked as "done" - count from today backwards
   if (todayLog && todayLog.status === "done") {
     currentStreak = 1;
 
-    // Count backwards from today by calendar date
-    let checkDate = getDaysAgo(1); // Yesterday
-
+    // Count backwards from yesterday
     for (let daysBack = 1; daysBack <= normalizedLogs.length; daysBack++) {
+      const checkDate = getDaysAgoIST(daysBack);
       const logForDate = normalizedLogs.find((log) => log.date === checkDate);
 
       if (logForDate && logForDate.status === "done") {
         currentStreak++;
-        checkDate = getDaysAgo(daysBack + 1);
       } else {
-        // Streak broken
-        break;
+        break; // Streak broken
       }
     }
-  } else {
-    // Today is not done, so current streak is 0
+  }
+  // Case 2: Today NOT done, but YESTERDAY is done (grace period)
+  else if (yesterdayLog && yesterdayLog.status === "done") {
+    currentStreak = 1;
+
+    // Count backwards from 2 days ago
+    for (let daysBack = 2; daysBack <= normalizedLogs.length; daysBack++) {
+      const checkDate = getDaysAgoIST(daysBack);
+      const logForDate = normalizedLogs.find((log) => log.date === checkDate);
+
+      if (logForDate && logForDate.status === "done") {
+        currentStreak++;
+      } else {
+        break; // Streak broken
+      }
+    }
+  }
+  // Case 3: Neither today nor yesterday is done - streak BROKEN
+  else {
     currentStreak = 0;
   }
 
@@ -122,7 +120,7 @@ const calculateStreakForHabit = async (habitId) => {
 const fixHabitMetadata = async () => {
   try {
     console.log(
-      "\n🔧 Fixing missing habit metadata (startDate, frequency)...\n"
+      "\n🔧 Fixing missing habit metadata (startDate, frequency)...\n",
     );
 
     const habits = await Habit.find({});
@@ -149,7 +147,7 @@ const fixHabitMetadata = async () => {
         }
         needsUpdate = true;
         console.log(
-          `   📅 Setting startDate for "${habit.title}": ${updateData.startDate}`
+          `   📅 Setting startDate for "${habit.title}": ${updateData.startDate}`,
         );
       }
 
@@ -195,7 +193,7 @@ const recalculateAllStreaks = async () => {
         console.log(`⏳ Processing: ${habit.title} (ID: ${habit._id})`);
 
         const { currentStreak, longestStreak } = await calculateStreakForHabit(
-          habit._id
+          habit._id,
         );
 
         // Get the last log for this habit
@@ -237,7 +235,7 @@ const recalculateAllStreaks = async () => {
         console.log(`   📈 Current Streak: ${currentStreak}`);
         console.log(`   🏆 Longest Streak: ${longestStreak}`);
         console.log(
-          `   📊 Completion Rate: ${completionRate}% (${doneCount}/${daysSinceStart} days)`
+          `   📊 Completion Rate: ${completionRate}% (${doneCount}/${daysSinceStart} days)`,
         );
         console.log(`   📝 Total Logs: ${totalLogs}\n`);
 
@@ -259,7 +257,8 @@ const recalculateAllStreaks = async () => {
     console.log("✨ Migration completed!");
     console.log("\n📋 What was fixed:");
     console.log("   ✓ Streaks recalculated with FIXED logic");
-    console.log("   ✓ Current streaks now check if today is done");
+    console.log("   ✓ Current streaks now check if today OR yesterday is done");
+    console.log("   ✓ Grace period implemented (24-hour buffer)");
     console.log("   ✓ Longest streaks updated correctly");
     console.log("   ✓ Missing startDate fields filled");
     console.log("   ✓ Missing frequency fields set to 'daily'");
