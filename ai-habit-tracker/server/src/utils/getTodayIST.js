@@ -20,6 +20,18 @@ export const getYesterdayIST = () => {
 };
 
 /**
+ * Get date N days ago in IST
+ * @param {Number} daysAgo - Number of days to go back
+ * @returns {String} - Date in YYYY-MM-DD format (IST)
+ */
+export const getDaysAgoIST = (daysAgo) => {
+  const now = new Date();
+  const istDate = new Date(now.getTime() + 330 * 60000);
+  istDate.setDate(istDate.getDate() - daysAgo);
+  return istDate.toISOString().split("T")[0];
+};
+
+/**
  * Normalize a date to IST (handles various date formats)
  * @param {Date|String} date - Date object or ISO string
  * @returns {String} - Date in YYYY-MM-DD format (IST)
@@ -37,18 +49,6 @@ export const normalizeDateIST = (date) => {
 
   // Convert to IST
   const istDate = new Date(dateObj.getTime() + 330 * 60000);
-  return istDate.toISOString().split("T")[0];
-};
-
-/**
- * Get date N days ago in IST
- * @param {Number} daysAgo - Number of days to go back
- * @returns {String} - Date in YYYY-MM-DD format (IST)
- */
-export const getDaysAgoIST = (daysAgo) => {
-  const now = new Date();
-  const istDate = new Date(now.getTime() + 330 * 60000);
-  istDate.setDate(istDate.getDate() - daysAgo);
   return istDate.toISOString().split("T")[0];
 };
 
@@ -74,4 +74,33 @@ export const areConsecutiveDays = (date1, date2) => {
 export const getCurrentISTDate = () => {
   const now = new Date();
   return new Date(now.getTime() + 330 * 60000);
+};
+
+/**
+ * Get the start of today in IST as a Date object
+ * Useful for date comparisons
+ */
+export const getStartOfTodayIST = () => {
+  const todayStr = getTodayIST();
+  return new Date(todayStr + "T00:00:00Z");
+};
+
+/**
+ * Check if a date is today (in IST)
+ * @param {String|Date} date - Date to check
+ * @returns {Boolean}
+ */
+export const isToday = (date) => {
+  const dateStr = typeof date === "string" ? date : normalizeDateIST(date);
+  return dateStr === getTodayIST();
+};
+
+/**
+ * Check if a date is yesterday (in IST)
+ * @param {String|Date} date - Date to check
+ * @returns {Boolean}
+ */
+export const isYesterday = (date) => {
+  const dateStr = typeof date === "string" ? date : normalizeDateIST(date);
+  return dateStr === getYesterdayIST();
 };
