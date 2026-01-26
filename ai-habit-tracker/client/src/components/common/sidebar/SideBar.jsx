@@ -142,6 +142,17 @@ function Sidebar() {
             <span>Calorie Tracker</span>
           </NavLink>
 
+          <NavLink
+            to="/timetable"
+            onClick={closeSidebar}
+            className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+            }
+          >
+            <FiClock className={styles.navIcon} />
+            <span>Timetable Section</span>
+          </NavLink>
+
           {/* ABOUT US – LAST */}
           <NavLink
             to="/about"
