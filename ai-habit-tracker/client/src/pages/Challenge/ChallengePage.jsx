@@ -1,4 +1,4 @@
-// client/src/pages/ChallengePage/ChallengePage.jsx (ENHANCED WITH RESTART & DYNAMIC HABITS)
+// client/src/pages/ChallengePage/ChallengePage.jsx (FIXED - Proper state reset on restart)
 import React, { useEffect, useState } from "react";
 import {
   Calendar,
@@ -49,7 +49,7 @@ export default function ChallengePage() {
       startPeriod: "AM",
       endTime: "",
       endPeriod: "AM",
-    }))
+    })),
   );
 
   const [existing, setExisting] = useState(null);
@@ -62,12 +62,13 @@ export default function ChallengePage() {
   const [challengeHistory, setChallengeHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // ✅ NEW: Force re-render key
 
   /* Load challenge */
   useEffect(() => {
     loadChallenge();
     loadHistory();
-  }, []);
+  }, [refreshKey]); // ✅ FIXED: Re-run when refreshKey changes
 
   async function loadChallenge() {
     try {
@@ -79,13 +80,14 @@ export default function ChallengePage() {
         .split("T")[0];
 
       const res = await api.get(
-        `/challenge/current?hour=${hour}&minute=${minute}&today=${today}`
+        `/challenge/current?hour=${hour}&minute=${minute}&today=${today}`,
       );
 
       if (res.data.completed) {
         setChallengeCompleted(true);
         setCompletionStats(res.data.stats);
         setExisting(null);
+        setDays([]); // ✅ FIXED: Clear days array
         setMessage("");
         return;
       }
@@ -93,7 +95,7 @@ export default function ChallengePage() {
       if (res.data.active) {
         const challenge = res.data.challenge;
         setExisting(challenge);
-        setDays(res.data.days);
+        setDays(res.data.days); // ✅ This will now have fresh data
         setChallengeCompleted(false);
         setCompletionStats(null);
 
@@ -109,10 +111,11 @@ export default function ChallengePage() {
               endTime: e.time,
               endPeriod: e.period,
             };
-          })
+          }),
         );
       } else {
         setExisting(null);
+        setDays([]); // ✅ FIXED: Clear days array
         setChallengeCompleted(false);
         setCompletionStats(null);
       }
@@ -165,7 +168,7 @@ export default function ChallengePage() {
     setMessage("");
 
     const filledHabits = habits.filter(
-      (h) => h.title && h.startTime && h.endTime
+      (h) => h.title && h.startTime && h.endTime,
     );
 
     if (filledHabits.length < 6) {
@@ -184,7 +187,8 @@ export default function ChallengePage() {
       setExisting(res.data.challenge);
       setChallengeCompleted(false);
       setCompletionStats(null);
-      loadChallenge();
+      setDays([]); // ✅ FIXED: Clear old days
+      setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh
       loadHistory();
       setMessage("Challenge started successfully!");
       setTimeout(() => setMessage(""), 3000);
@@ -198,7 +202,7 @@ export default function ChallengePage() {
     setMessage("");
 
     const filledHabits = habits.filter(
-      (h) => h.title && h.startTime && h.endTime
+      (h) => h.title && h.startTime && h.endTime,
     );
 
     if (filledHabits.length < 6) {
@@ -214,12 +218,22 @@ export default function ChallengePage() {
 
     try {
       const res = await api.post("/challenge/restart", { habits: formatted });
-      setExisting(res.data.challenge);
+
+      // ✅ FIXED: Clear all old state BEFORE setting new challenge
+      setDays([]);
+      setExisting(null);
       setChallengeCompleted(false);
       setCompletionStats(null);
+
+      // ✅ FIXED: Set new challenge data
+      setExisting(res.data.challenge);
       setShowRestartModal(false);
-      loadChallenge();
-      loadHistory();
+
+      // ✅ FIXED: Force complete refresh of challenge data
+      setRefreshKey((prev) => prev + 1);
+
+      await loadHistory();
+
       setMessage("Challenge restarted successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -230,7 +244,7 @@ export default function ChallengePage() {
 
   async function updateChallenge() {
     const filledHabits = habits.filter(
-      (h) => h.title && h.startTime && h.endTime
+      (h) => h.title && h.startTime && h.endTime,
     );
 
     if (filledHabits.length < 6) {
@@ -251,7 +265,7 @@ export default function ChallengePage() {
 
       setExisting(res.data.challenge);
       setEditMode(false);
-      loadChallenge();
+      setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh after update
       setMessage("Challenge updated successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -270,9 +284,9 @@ export default function ChallengePage() {
         .split("T")[0];
 
       await api.post(
-        `/challenge/done/${existing._id}/${habitIndex}?hour=${hour}&minute=${minute}&today=${today}`
+        `/challenge/done/${existing._id}/${habitIndex}?hour=${hour}&minute=${minute}&today=${today}`,
       );
-      loadChallenge();
+      setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh after marking done
     } catch (err) {
       console.error(err);
       if (err.response?.data?.challengeEnded) {
@@ -293,12 +307,14 @@ export default function ChallengePage() {
         startPeriod: "AM",
         endTime: "",
         endPeriod: "AM",
-      }))
+      })),
     );
     setMessage("");
     setChallengeCompleted(false);
     setCompletionStats(null);
     setExisting(null);
+    setDays([]); // ✅ FIXED: Clear days
+    setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh
   }
 
   async function deleteOldChallenge(challengeId) {
@@ -328,7 +344,7 @@ export default function ChallengePage() {
             endTime: e.time,
             endPeriod: e.period,
           };
-        })
+        }),
       );
     }
     setShowRestartModal(true);
@@ -837,9 +853,13 @@ export default function ChallengePage() {
         </>
       )}
 
-      {/* HEATMAP & TREND */}
-      {(existing || challengeCompleted) && <ChallengeHeatmap />}
-      {(existing || challengeCompleted) && <ChallengeTrend />}
+      {/* HEATMAP & TREND - ✅ FIXED: Pass refreshKey to force re-render */}
+      {(existing || challengeCompleted) && (
+        <ChallengeHeatmap key={`heatmap-${refreshKey}`} />
+      )}
+      {(existing || challengeCompleted) && (
+        <ChallengeTrend key={`trend-${refreshKey}`} />
+      )}
     </div>
   );
 }
