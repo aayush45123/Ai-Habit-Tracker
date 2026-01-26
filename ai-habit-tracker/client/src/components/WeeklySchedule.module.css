@@ -1,0 +1,464 @@
+/* client/src/components/WeeklySchedule/WeeklySchedule.module.css */
+
+.root {
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  padding: 2rem;
+  position: relative;
+}
+
+.root::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  opacity: 0.2;
+  z-index: -1;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 3px solid var(--color-border);
+  position: relative;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--color-border);
+  opacity: 0.3;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerIcon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-accent-primary);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-weight: 600;
+}
+
+.headerStats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-bg-secondary);
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-border);
+}
+
+.statIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.statLabel {
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+}
+
+/* ===== DAYS LIST ===== */
+.daysList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dayCard {
+  background-color: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  position: relative;
+  transition: all 0.2s;
+}
+
+.dayCard::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  opacity: 0.15;
+  z-index: -1;
+  transition: all 0.2s;
+}
+
+.dayCard:hover::after {
+  transform: translate(1px, 1px);
+}
+
+.dayCard.today {
+  border-color: var(--color-accent-primary);
+  border-width: 4px;
+}
+
+.dayCard.today::after {
+  background-color: var(--color-accent-primary);
+  opacity: 0.2;
+}
+
+.dayCard.restDay {
+  opacity: 0.8;
+}
+
+/* ===== DAY HEADER ===== */
+.dayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dayHeader:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.dayHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dayNumber {
+  width: 45px;
+  height: 45px;
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 3px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+  position: relative;
+}
+
+.dayNumber::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-accent-primary);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+.dayCard.restDay .dayNumber {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.dayInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dayName {
+  font-size: 1.3rem;
+  font-weight: 900;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+}
+
+.dayFocus {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.dayHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.todayBadge,
+.restBadge {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  padding: 0.4rem 0.75rem;
+  border: 2px solid var(--color-border);
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.restBadge {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.expandIcon {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expandIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== DAY CONTENT ===== */
+.dayContent {
+  padding: 1.5rem;
+  border-top: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+}
+
+/* TIME BLOCKS */
+.timeBlocksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.timeBlockItem {
+  background-color: var(--color-bg-secondary);
+  padding: 1rem;
+  border: 2px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timeBlockLabel {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+}
+
+.timeBlockValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* EXERCISES */
+.exercisesSection {
+  margin-top: 1.5rem;
+}
+
+.exercisesHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.exercisesIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.exercisesTitle {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+}
+
+.exercisesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.exerciseItem {
+  background-color: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  padding: 1rem;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.exerciseItem::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  opacity: 0.12;
+  z-index: -1;
+  transition: all 0.2s;
+}
+
+.exerciseItem:hover {
+  transform: translate(-2px, -2px);
+}
+
+.exerciseItem:hover::after {
+  transform: translate(1px, 1px);
+}
+
+.exerciseTop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.exerciseNum {
+  width: 28px;
+  height: 28px;
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.exerciseName {
+  font-weight: 800;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+.exerciseSpecs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.spec {
+  background-color: var(--color-bg-primary);
+  padding: 0.3rem 0.6rem;
+  border: 2px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.exerciseNotes {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+/* REST DAY */
+.restDayInfo {
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.restDayInfo p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 968px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .headerStats {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .root {
+    padding: 1.5rem;
+  }
+
+  .dayHeader {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .dayHeaderRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .timeBlocksGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .exercisesGrid {
+    grid-template-columns: 1fr;
+  }
+}
