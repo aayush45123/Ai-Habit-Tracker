@@ -14,6 +14,7 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
+  FiClock,
 } from "react-icons/fi";
 import styles from "./SideBar.module.css";
 
