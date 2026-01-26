@@ -22,13 +22,22 @@ export default function ChallengeHeatmap() {
   const [hoveredDay, setHoveredDay] = useState(null);
   const [selectedView, setSelectedView] = useState("grid");
 
+  // ✅ FIXED: Always fetch fresh data on mount
   useEffect(() => {
+    // Reset state first
+    setHeatmap([]);
+    setStats(null);
+    setLoading(true);
+
+    // Then fetch fresh data
     fetchHeatmap();
-  }, []);
+  }, []); // Empty dependency array - runs on every mount
 
   async function fetchHeatmap() {
     try {
-      const res = await api.get("/challenge/heatmap");
+      // ✅ FIXED: Add cache-busting timestamp to prevent stale data
+      const timestamp = new Date().getTime();
+      const res = await api.get(`/challenge/heatmap?t=${timestamp}`);
       setHeatmap(res.data.heatmap || []);
       setStats(res.data.stats || null);
     } catch (err) {
@@ -198,8 +207,8 @@ export default function ChallengeHeatmap() {
               {stats.currentStreak >= 7
                 ? "🔥 On Fire!"
                 : stats.currentStreak >= 3
-                ? "💪 Strong"
-                : "🌱 Growing"}
+                  ? "💪 Strong"
+                  : "🌱 Growing"}
             </div>
           </div>
         </div>
@@ -261,7 +270,7 @@ export default function ChallengeHeatmap() {
                     <div
                       key={dayIndex}
                       className={`${styles.dayCell} ${getLevelClass(
-                        day.level
+                        day.level,
                       )}`}
                       onMouseEnter={() => setHoveredDay(day)}
                       onMouseLeave={() => setHoveredDay(null)}
@@ -352,7 +361,7 @@ export default function ChallengeHeatmap() {
                 <div className={styles.listProgressBar}>
                   <div
                     className={`${styles.listProgressFill} ${getLevelClass(
-                      day.level
+                      day.level,
                     )}`}
                     style={{
                       width: `${day.level === -1 ? 0 : day.percentage}%`,
