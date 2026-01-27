@@ -1,21 +1,28 @@
 // server/src/controllers/timetableController.js
 import Timetable from "../models/Timetable.js";
 import {
-  generateWorkoutTimetable,
+  generateImprovementSuggestions,
   getTodaysWorkout,
 } from "../services/groqService.js";
 
 /**
- * Generate AI-powered timetable
+ * Create timetable manually (user input)
  */
-export const generateTimetable = async (req, res) => {
+export const createTimetable = async (req, res) => {
   try {
-    const { goal, level, timeAvailable, sportsMode } = req.body;
+    const { name, category, goal, level, sportsMode, weeklySchedule } =
+      req.body;
 
     // Validation
-    if (!goal || !level || !timeAvailable) {
+    if (!category || !goal || !level) {
       return res.status(400).json({
-        message: "Please provide goal, level, and time available",
+        message: "Please provide category, goal, and level",
+      });
+    }
+
+    if (!weeklySchedule || weeklySchedule.length !== 7) {
+      return res.status(400).json({
+        message: "Please provide schedule for all 7 days",
       });
     }
 
@@ -25,49 +32,79 @@ export const generateTimetable = async (req, res) => {
       { isActive: false },
     );
 
-    // Generate timetable using Groq AI
-    const aiResult = await generateWorkoutTimetable({
-      goal,
-      level,
-      timeAvailable,
-      sportsMode: sportsMode || { enabled: false, sport: "none" },
-    });
-
-    let weeklySchedule;
-    let aiGenerated = true;
-
-    if (aiResult.success) {
-      weeklySchedule = aiResult.data.weeklySchedule;
-    } else {
-      weeklySchedule = aiResult.fallback.weeklySchedule;
-      aiGenerated = false;
-    }
-
     // Create new timetable
     const timetable = await Timetable.create({
       userId: req.user,
+      name: name || "My Workout Schedule",
+      category,
       goal,
       level,
-      timeAvailable,
       sportsMode: sportsMode || { enabled: false, sport: "none" },
       weeklySchedule,
       isActive: true,
-      aiGenerated,
-      generatedAt: new Date(),
+      hasRequestedAI: false,
     });
 
     res.json({
-      message: aiGenerated
-        ? "AI-powered timetable generated successfully!"
-        : "Timetable generated successfully (using fallback)",
+      message: "Timetable created successfully!",
       timetable,
-      tips: aiResult.success ? aiResult.data.tips : aiResult.fallback.tips,
-      warnings: aiResult.success
-        ? aiResult.data.warnings
-        : aiResult.fallback.warnings,
     });
   } catch (err) {
-    console.error("Generate Timetable Error:", err);
+    console.error("Create Timetable Error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Get AI improvement suggestions
+ */
+export const getAIImprovements = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const timetable = await Timetable.findOne({
+      _id: id,
+      userId: req.user,
+    });
+
+    if (!timetable) {
+      return res.status(404).json({ message: "Timetable not found" });
+    }
+
+    // Generate AI suggestions
+    const aiResult = await generateImprovementSuggestions({
+      category: timetable.category,
+      goal: timetable.goal,
+      level: timetable.level,
+      sportsMode: timetable.sportsMode,
+      weeklySchedule: timetable.weeklySchedule,
+    });
+
+    let suggestions = [];
+    let overallAssessment = {};
+
+    if (aiResult.success) {
+      suggestions = aiResult.data.suggestions || [];
+      overallAssessment = aiResult.data.overallAssessment || {};
+    } else {
+      suggestions = aiResult.fallback.suggestions || [];
+      overallAssessment = aiResult.fallback.overallAssessment || {};
+    }
+
+    // Save suggestions to timetable
+    timetable.aiImprovements = suggestions;
+    timetable.hasRequestedAI = true;
+    timetable.lastImprovedAt = new Date();
+    await timetable.save();
+
+    res.json({
+      message: "AI improvements generated successfully!",
+      suggestions,
+      overallAssessment,
+      aiSuccess: aiResult.success,
+    });
+  } catch (err) {
+    console.error("Get AI Improvements Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -115,7 +152,7 @@ export const getTodaysWorkoutPlan = async (req, res) => {
 
     if (!timetable) {
       return res.status(404).json({
-        message: "No active timetable found. Please generate one first.",
+        message: "No active timetable found. Please create one first.",
       });
     }
 
@@ -124,6 +161,7 @@ export const getTodaysWorkoutPlan = async (req, res) => {
     res.json({
       todaysWorkout,
       timetableId: timetable._id,
+      category: timetable.category,
       goal: timetable.goal,
       level: timetable.level,
     });
@@ -134,12 +172,12 @@ export const getTodaysWorkoutPlan = async (req, res) => {
 };
 
 /**
- * Update timetable (manual edits)
+ * Update timetable
  */
 export const updateTimetable = async (req, res) => {
   try {
     const { id } = req.params;
-    const { weeklySchedule, name, goal, level, timeAvailable, sportsMode } =
+    const { name, weeklySchedule, category, goal, level, sportsMode } =
       req.body;
 
     const timetable = await Timetable.findOne({
@@ -153,11 +191,16 @@ export const updateTimetable = async (req, res) => {
 
     // Update fields
     if (name) timetable.name = name;
+    if (category) timetable.category = category;
     if (goal) timetable.goal = goal;
     if (level) timetable.level = level;
-    if (timeAvailable) timetable.timeAvailable = timeAvailable;
     if (sportsMode) timetable.sportsMode = sportsMode;
-    if (weeklySchedule) timetable.weeklySchedule = weeklySchedule;
+    if (weeklySchedule) {
+      timetable.weeklySchedule = weeklySchedule;
+      // Reset AI improvements when schedule changes
+      timetable.hasRequestedAI = false;
+      timetable.aiImprovements = [];
+    }
 
     await timetable.save();
 
@@ -211,60 +254,6 @@ export const getTimetableHistory = async (req, res) => {
     });
   } catch (err) {
     console.error("Get History Error:", err);
-    res.status(500).json({ message: err.message });
-  }
-};
-
-/**
- * Regenerate timetable with new AI suggestions
- */
-export const regenerateTimetable = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const timetable = await Timetable.findOne({
-      _id: id,
-      userId: req.user,
-    });
-
-    if (!timetable) {
-      return res.status(404).json({ message: "Timetable not found" });
-    }
-
-    // Generate new schedule with AI
-    const aiResult = await generateWorkoutTimetable({
-      goal: timetable.goal,
-      level: timetable.level,
-      timeAvailable: timetable.timeAvailable,
-      sportsMode: timetable.sportsMode,
-    });
-
-    let weeklySchedule;
-    let aiGenerated = true;
-
-    if (aiResult.success) {
-      weeklySchedule = aiResult.data.weeklySchedule;
-    } else {
-      weeklySchedule = aiResult.fallback.weeklySchedule;
-      aiGenerated = false;
-    }
-
-    timetable.weeklySchedule = weeklySchedule;
-    timetable.aiGenerated = aiGenerated;
-    timetable.generatedAt = new Date();
-
-    await timetable.save();
-
-    res.json({
-      message: "Timetable regenerated successfully!",
-      timetable,
-      tips: aiResult.success ? aiResult.data.tips : aiResult.fallback.tips,
-      warnings: aiResult.success
-        ? aiResult.data.warnings
-        : aiResult.fallback.warnings,
-    });
-  } catch (err) {
-    console.error("Regenerate Timetable Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
