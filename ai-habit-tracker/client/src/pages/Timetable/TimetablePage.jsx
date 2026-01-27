@@ -58,7 +58,7 @@ export default function TimetablePage() {
   async function handleSaveTimetable(timetableData) {
     try {
       setLoading(true);
-      const res = await api.post("/timetable/create", timetableData);
+      const res = await api.post("/timetables/create", timetableData);
 
       setActiveTimetable(res.data.timetable);
       setShowCreator(false);
@@ -82,7 +82,7 @@ export default function TimetablePage() {
 
     try {
       const res = await api.post(
-        `/timetable/${activeTimetable._id}/ai-improve`,
+        `/timetables/${activeTimetable._id}/ai-improve`,
       );
 
       setAiSuggestions(res.data.suggestions || []);
@@ -115,7 +115,7 @@ export default function TimetablePage() {
       return;
 
     try {
-      await api.delete(`/timetable/${activeTimetable._id}`);
+      await api.delete(`/timetables/${activeTimetable._id}`);
       setActiveTimetable(null);
       setTodaysWorkout(null);
       setAiSuggestions(null);
