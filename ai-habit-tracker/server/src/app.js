@@ -12,6 +12,7 @@ import publicTemplateRoutes from "./routes/habitTemplateRoutes.js";
 import focusRoutes from "./routes/focusRoutes.js";
 import aiChatRoutes from "./routes/aiChatRoutes.js";
 import calorieRoutes from "./routes/calorieRoutes.js";
+import timetableRoutes from "./routes/timetableRoutes.js";
 
 /* =======================
    ENV & DB

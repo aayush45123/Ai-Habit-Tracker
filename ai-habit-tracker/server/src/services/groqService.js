@@ -1,9 +1,11 @@
 // server/src/services/groqService.js
 import Groq from "groq-sdk";
+import dotenv from "dotenv";
+dotenv.config();
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Create client only when an API key is present to avoid startup crashes
+const groqApiKey = process.env.GROQ_API_KEY;
+const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
 /**
  * Generate AI improvement suggestions for existing timetable
@@ -15,6 +17,14 @@ export async function generateImprovementSuggestions({
   sportsMode,
   weeklySchedule,
 }) {
+  if (!groq) {
+    return {
+      success: false,
+      error: "GROQ_API_KEY not set. Add it to enable AI improvements.",
+      fallback: generateFallbackSuggestions(category, goal, level),
+    };
+  }
+
   const sportInfo = sportsMode.enabled
     ? `The user also plays ${sportsMode.sport.replace("_", " ")} competitively.`
     : "";

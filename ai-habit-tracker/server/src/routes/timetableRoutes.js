@@ -9,7 +9,7 @@ import {
   getTimetableHistory,
   getAIImprovements,
 } from "../controllers/timetableController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import protect from "../middleware/authMiddleware.js"; // ✅ FIXED: Removed curly braces
 
 const router = express.Router();
 
