@@ -26,15 +26,15 @@ export const createTimetable = async (req, res) => {
       });
     }
 
-    // Deactivate previous timetables
+    // Deactivate previous timetables - ✅ FIXED: req.user._id
     await Timetable.updateMany(
-      { userId: req.user, isActive: true },
+      { userId: req.user._id, isActive: true },
       { isActive: false },
     );
 
-    // Create new timetable
+    // Create new timetable - ✅ FIXED: req.user._id
     const timetable = await Timetable.create({
-      userId: req.user,
+      userId: req.user._id,
       name: name || "My Workout Schedule",
       category,
       goal,
@@ -62,9 +62,10 @@ export const getAIImprovements = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // ✅ FIXED: req.user._id
     const timetable = await Timetable.findOne({
       _id: id,
-      userId: req.user,
+      userId: req.user._id,
     });
 
     if (!timetable) {
@@ -114,8 +115,9 @@ export const getAIImprovements = async (req, res) => {
  */
 export const getActiveTimetable = async (req, res) => {
   try {
+    // ✅ FIXED: req.user._id
     const timetable = await Timetable.findOne({
-      userId: req.user,
+      userId: req.user._id,
       isActive: true,
     });
 
@@ -145,8 +147,9 @@ export const getActiveTimetable = async (req, res) => {
  */
 export const getTodaysWorkoutPlan = async (req, res) => {
   try {
+    // ✅ FIXED: req.user._id
     const timetable = await Timetable.findOne({
-      userId: req.user,
+      userId: req.user._id,
       isActive: true,
     });
 
@@ -180,9 +183,10 @@ export const updateTimetable = async (req, res) => {
     const { name, weeklySchedule, category, goal, level, sportsMode } =
       req.body;
 
+    // ✅ FIXED: req.user._id
     const timetable = await Timetable.findOne({
       _id: id,
-      userId: req.user,
+      userId: req.user._id,
     });
 
     if (!timetable) {
@@ -221,9 +225,10 @@ export const deleteTimetable = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // ✅ FIXED: req.user._id
     const timetable = await Timetable.findOne({
       _id: id,
-      userId: req.user,
+      userId: req.user._id,
     });
 
     if (!timetable) {
@@ -244,7 +249,8 @@ export const deleteTimetable = async (req, res) => {
  */
 export const getTimetableHistory = async (req, res) => {
   try {
-    const timetables = await Timetable.find({ userId: req.user })
+    // ✅ FIXED: req.user._id
+    const timetables = await Timetable.find({ userId: req.user._id })
       .sort({ createdAt: -1 })
       .limit(20);
 
