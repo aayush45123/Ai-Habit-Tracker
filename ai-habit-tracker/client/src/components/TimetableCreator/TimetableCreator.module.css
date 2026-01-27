@@ -1,0 +1,291 @@
+/* TimetableCreator.module.css - Tabular input styling */
+.root {
+  background: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  padding: 2rem;
+  position: relative;
+}
+.root::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.2;
+  z-index: -1;
+}
+.headerCard {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 3px solid var(--color-border);
+}
+.headerTitle {
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0 0 1.5rem 0;
+}
+.basicInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.infoGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.infoRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.labelIcon {
+  width: 16px;
+  height: 16px;
+}
+.input,
+.select {
+  background: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-primary);
+}
+.input:focus,
+.select:focus {
+  outline: none;
+  background: var(--color-bg-primary);
+  box-shadow: 0 0 0 3px var(--color-accent-primary);
+}
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 3px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  cursor: pointer;
+}
+.checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-accent-primary);
+}
+.sportsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.dayTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.dayTab {
+  background: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
+}
+.dayTab:hover {
+  background: var(--color-bg-tertiary);
+}
+.activeTab {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+.dayNumber {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.dayName {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.dayEditor {
+  background: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+.dayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+}
+.dayTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;
+}
+.restDayToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dayBasicInfo {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.timeInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.exercisesSection {
+  margin: 2rem 0;
+}
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+}
+.addExerciseBtn {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 3px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btnIcon {
+  width: 16px;
+  height: 16px;
+}
+.tableWrapper {
+  overflow-x: auto;
+  border: 3px solid var(--color-border);
+}
+.exerciseTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.exerciseTable th {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  border: 2px solid var(--color-border);
+}
+.exerciseTable td {
+  padding: 0.5rem;
+  border: 2px solid var(--color-border);
+}
+.numberCell {
+  text-align: center;
+  font-weight: 900;
+  font-size: 1rem;
+}
+.tableInput {
+  width: 100%;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  padding: 0.5rem;
+  font-family: var(--font-primary);
+  font-weight: 600;
+}
+.tableInput:focus {
+  outline: none;
+  background: var(--color-bg-primary);
+}
+.removeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+.removeBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.removeIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-error);
+}
+.timeBlocksSection {
+  margin-top: 2rem;
+}
+.timeBlocksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.timeBlockInput {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.cancelBtn,
+.saveBtn {
+  padding: 1rem 2rem;
+  border: 3px solid var(--color-border);
+  font-weight: 800;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.cancelBtn {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+.saveBtn {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+@media (max-width: 768px) {
+  .dayBasicInfo {
+    grid-template-columns: 1fr;
+  }
+  .tableWrapper {
+    font-size: 0.85rem;
+  }
+}
