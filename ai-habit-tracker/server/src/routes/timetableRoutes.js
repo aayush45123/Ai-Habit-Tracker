@@ -1,13 +1,13 @@
 // server/src/routes/timetableRoutes.js
 import express from "express";
 import {
-  generateTimetable,
+  createTimetable,
   getActiveTimetable,
   getTodaysWorkoutPlan,
   updateTimetable,
   deleteTimetable,
   getTimetableHistory,
-  regenerateTimetable,
+  getAIImprovements,
 } from "../controllers/timetableController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -16,8 +16,11 @@ const router = express.Router();
 // All routes are protected
 router.use(protect);
 
-// Generate new AI-powered timetable
-router.post("/generate", generateTimetable);
+// Create new timetable manually
+router.post("/create", createTimetable);
+
+// Get AI improvement suggestions
+router.post("/:id/ai-improve", getAIImprovements);
 
 // Get active timetable
 router.get("/active", getActiveTimetable);
@@ -30,9 +33,6 @@ router.get("/history", getTimetableHistory);
 
 // Update timetable
 router.put("/:id", updateTimetable);
-
-// Regenerate timetable with new AI suggestions
-router.post("/:id/regenerate", regenerateTimetable);
 
 // Delete timetable
 router.delete("/:id", deleteTimetable);
