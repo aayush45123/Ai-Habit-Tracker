@@ -54,7 +54,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 /* =======================
@@ -74,7 +74,9 @@ app.use("/api/admin/templates", adminTemplateRoutes);
 app.use("/api/templates", publicTemplateRoutes);
 app.use("/api/ai-chat", aiChatRoutes);
 app.use("/api/calories", calorieRoutes); // ✅ Changed from /calorie to /calories
-app.use("/api/timetable", timetableRoutes); // Added timetable routes
+// Timetable routes (support both plural and singular paths for backward compatibility)
+app.use("/api/timetables", timetableRoutes);
+app.use("/api/timetable", timetableRoutes);
 
 /* =======================
    HEALTH CHECK
