@@ -6,6 +6,7 @@ const exerciseSchema = new mongoose.Schema({
   sets: { type: String },
   reps: { type: String },
   duration: { type: String },
+  restBetweenSets: { type: String },
   notes: { type: String },
 });
 
@@ -27,10 +28,38 @@ const dayScheduleSchema = new mongoose.Schema({
   exercises: [exerciseSchema],
   timeBlock: {
     morning: { type: String },
+    afternoon: { type: String },
     evening: { type: String },
     night: { type: String },
   },
   isRestDay: { type: Boolean, default: false },
+  startTime: { type: String }, // e.g., "06:00 AM"
+  endTime: { type: String }, // e.g., "08:00 AM"
+});
+
+const improvementSuggestionSchema = new mongoose.Schema({
+  day: { type: String },
+  category: {
+    type: String,
+    enum: [
+      "exercise_order",
+      "rest_periods",
+      "volume",
+      "intensity",
+      "exercise_selection",
+      "recovery",
+      "timing",
+      "general",
+    ],
+  },
+  suggestion: { type: String, required: true },
+  reason: { type: String },
+  priority: {
+    type: String,
+    enum: ["high", "medium", "low"],
+    default: "medium",
+  },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const timetableSchema = new mongoose.Schema(
@@ -42,7 +71,22 @@ const timetableSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      default: "My Fitness Schedule",
+      required: true,
+      default: "My Workout Schedule",
+    },
+    category: {
+      type: String,
+      enum: [
+        "bodybuilding",
+        "powerlifting",
+        "crossfit",
+        "calisthenics",
+        "sports_specific",
+        "general_fitness",
+        "weight_loss",
+        "endurance",
+      ],
+      required: true,
     },
     goal: {
       type: String,
@@ -52,6 +96,8 @@ const timetableSchema = new mongoose.Schema(
         "strength",
         "sports_stamina",
         "general_fitness",
+        "endurance",
+        "flexibility",
       ],
       required: true,
     },
@@ -68,27 +114,25 @@ const timetableSchema = new mongoose.Schema(
           "cricket_bowler",
           "cricket_batter",
           "football",
+          "basketball",
           "runner",
+          "swimmer",
           "none",
         ],
         default: "none",
       },
     },
-    timeAvailable: {
-      type: Number, // in minutes
-      required: true,
-      default: 60,
-    },
     weeklySchedule: [dayScheduleSchema],
+    aiImprovements: [improvementSuggestionSchema],
+    hasRequestedAI: {
+      type: Boolean,
+      default: false,
+    },
     isActive: {
       type: Boolean,
       default: true,
     },
-    aiGenerated: {
-      type: Boolean,
-      default: false,
-    },
-    generatedAt: {
+    lastImprovedAt: {
       type: Date,
     },
   },
