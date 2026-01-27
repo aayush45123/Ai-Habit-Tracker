@@ -1,38 +1,30 @@
 // client/src/pages/TimetablePage/TimetablePage.jsx
 import React, { useEffect, useState } from "react";
 import {
-  Calendar,
   Dumbbell,
-  Target,
-  Clock,
   Sparkles,
-  RefreshCw,
-  Plus,
   Trash2,
-  Award,
-  TrendingUp,
-  Zap,
-  Activity,
+  Plus,
+  Target,
+  Edit,
+  Lightbulb,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./TimetablePage.module.css";
 import TodaysWorkout from "../../components/TodaysWorkout/TodaysWorkout";
 import WeeklySchedule from "../../components/WeeklySchedule/WeeklySchedule";
+import TimetableCreator from "../../components/TimetableCreator/TimetableCreator";
+import AIImprovements from "../../components/AIImprovements/AIImprovements";
 
 export default function TimetablePage() {
   const [activeTimetable, setActiveTimetable] = useState(null);
   const [todaysWorkout, setTodaysWorkout] = useState(null);
-  const [showGenerator, setShowGenerator] = useState(false);
+  const [showCreator, setShowCreator] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
-
-  // Form state
-  const [goal, setGoal] = useState("muscle_gain");
-  const [level, setLevel] = useState("intermediate");
-  const [timeAvailable, setTimeAvailable] = useState(60);
-  const [sportsEnabled, setSportsEnabled] = useState(false);
-  const [sport, setSport] = useState("none");
+  const [aiSuggestions, setAiSuggestions] = useState(null);
+  const [aiAssessment, setAiAssessment] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
 
   useEffect(() => {
     loadActiveTimetable();
@@ -46,68 +38,72 @@ export default function TimetablePage() {
       if (res.data.active) {
         setActiveTimetable(res.data.timetable);
         setTodaysWorkout(res.data.todaysWorkout);
-        setShowGenerator(false);
+        setShowCreator(false);
+
+        // Load AI improvements if already requested
+        if (res.data.timetable.hasRequestedAI) {
+          setAiSuggestions(res.data.timetable.aiImprovements || []);
+        }
       } else {
-        setShowGenerator(true);
+        setShowCreator(true);
       }
     } catch (err) {
       console.error(err);
-      setShowGenerator(true);
+      setShowCreator(true);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleGenerate() {
-    setGenerating(true);
-    setMessage("");
-
+  async function handleSaveTimetable(timetableData) {
     try {
-      const res = await api.post("/timetable/generate", {
-        goal,
-        level,
-        timeAvailable,
-        sportsMode: {
-          enabled: sportsEnabled,
-          sport: sportsEnabled ? sport : "none",
-        },
-      });
+      setLoading(true);
+      const res = await api.post("/timetable/create", timetableData);
 
       setActiveTimetable(res.data.timetable);
-      setMessage(res.data.message);
-      setShowGenerator(false);
+      setShowCreator(false);
+      setMessage("Timetable created successfully!");
       loadActiveTimetable();
 
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data?.message || "Error generating timetable");
+      setMessage(err.response?.data?.message || "Error creating timetable");
     } finally {
-      setGenerating(false);
+      setLoading(false);
     }
   }
 
-  async function handleRegenerate() {
+  async function handleGetAIImprovements() {
     if (!activeTimetable) return;
 
-    setGenerating(true);
+    setLoadingAI(true);
     setMessage("");
 
     try {
       const res = await api.post(
-        `/timetable/${activeTimetable._id}/regenerate`,
+        `/timetable/${activeTimetable._id}/ai-improve`,
       );
 
-      setActiveTimetable(res.data.timetable);
-      setMessage("Timetable regenerated with fresh AI suggestions!");
+      setAiSuggestions(res.data.suggestions || []);
+      setAiAssessment(res.data.overallAssessment || {});
+      setMessage(
+        res.data.aiSuccess
+          ? "AI analysis complete!"
+          : "Analysis complete (using fallback suggestions)",
+      );
+
+      // Refresh to get updated timetable with hasRequestedAI flag
       loadActiveTimetable();
 
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data?.message || "Error regenerating timetable");
+      setMessage(
+        err.response?.data?.message || "Error getting AI improvements",
+      );
     } finally {
-      setGenerating(false);
+      setLoadingAI(false);
     }
   }
 
@@ -122,7 +118,9 @@ export default function TimetablePage() {
       await api.delete(`/timetable/${activeTimetable._id}`);
       setActiveTimetable(null);
       setTodaysWorkout(null);
-      setShowGenerator(true);
+      setAiSuggestions(null);
+      setAiAssessment(null);
+      setShowCreator(true);
       setMessage("Timetable deleted successfully");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -131,7 +129,11 @@ export default function TimetablePage() {
     }
   }
 
-  if (loading) {
+  function handleEditTimetable() {
+    setShowCreator(true);
+  }
+
+  if (loading && !activeTimetable) {
     return (
       <div className={styles.loading}>
         <div className={styles.spinner}></div>
@@ -151,21 +153,52 @@ export default function TimetablePage() {
           <div className={styles.headerText}>
             <h2 className={styles.title}>Workout Timetable</h2>
             <p className={styles.subtitle}>
-              AI-powered weekly schedule for your fitness goals
+              {showCreator
+                ? "Create your personalized workout schedule"
+                : "Your weekly workout plan"}
             </p>
           </div>
         </div>
 
-        {activeTimetable && (
+        {activeTimetable && !showCreator && (
           <div className={styles.headerActions}>
-            <button className={styles.regenBtn} onClick={handleRegenerate}>
-              <RefreshCw className={styles.btnIcon} />
-              <span>Regenerate</span>
+            {!activeTimetable.hasRequestedAI && (
+              <button
+                className={styles.aiBtn}
+                onClick={handleGetAIImprovements}
+                disabled={loadingAI}
+              >
+                {loadingAI ? (
+                  <>
+                    <div className={styles.btnSpinner}></div>
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lightbulb className={styles.btnIcon} />
+                    <span>AI Improve</span>
+                  </>
+                )}
+              </button>
+            )}
+            <button className={styles.editBtn} onClick={handleEditTimetable}>
+              <Edit className={styles.btnIcon} />
+              <span>Edit</span>
             </button>
             <button className={styles.deleteBtn} onClick={handleDelete}>
               <Trash2 className={styles.btnIcon} />
             </button>
           </div>
+        )}
+
+        {!activeTimetable && (
+          <button
+            className={styles.createBtn}
+            onClick={() => setShowCreator(true)}
+          >
+            <Plus className={styles.btnIcon} />
+            <span>Create Timetable</span>
+          </button>
         )}
       </div>
 
@@ -177,146 +210,137 @@ export default function TimetablePage() {
         </div>
       )}
 
-      {/* GENERATOR FORM */}
-      {showGenerator && (
-        <div className={styles.generatorCard}>
-          <div className={styles.cardHeader}>
-            <Target className={styles.cardIcon} />
-            <h3 className={styles.cardTitle}>Generate Your Timetable</h3>
-          </div>
+      {/* CREATOR MODE */}
+      {showCreator && (
+        <TimetableCreator
+          onSave={handleSaveTimetable}
+          onCancel={() => {
+            setShowCreator(false);
+            if (!activeTimetable) {
+              loadActiveTimetable();
+            }
+          }}
+          initialData={activeTimetable}
+        />
+      )}
 
-          <div className={styles.formGrid}>
-            {/* GOAL */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                <Award className={styles.labelIcon} />
-                Fitness Goal
-              </label>
-              <select
-                className={styles.select}
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-              >
-                <option value="fat_loss">Fat Loss</option>
-                <option value="muscle_gain">Muscle Gain</option>
-                <option value="strength">Strength Building</option>
-                <option value="sports_stamina">Sports Stamina</option>
-                <option value="general_fitness">General Fitness</option>
-              </select>
+      {/* VIEW MODE */}
+      {!showCreator && activeTimetable && (
+        <>
+          {/* TIMETABLE INFO */}
+          <div className={styles.infoCard}>
+            <div className={styles.infoHeader}>
+              <Target className={styles.infoIcon} />
+              <h3 className={styles.infoTitle}>{activeTimetable.name}</h3>
             </div>
-
-            {/* LEVEL */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                <TrendingUp className={styles.labelIcon} />
-                Experience Level
-              </label>
-              <select
-                className={styles.select}
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-              >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
-
-            {/* TIME AVAILABLE */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                <Clock className={styles.labelIcon} />
-                Time Available (minutes)
-              </label>
-              <input
-                type="number"
-                className={styles.input}
-                value={timeAvailable}
-                onChange={(e) => setTimeAvailable(Number(e.target.value))}
-                min="30"
-                max="180"
-                step="15"
-              />
-            </div>
-
-            {/* SPORTS MODE */}
-            <div className={styles.formGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  className={styles.checkbox}
-                  checked={sportsEnabled}
-                  onChange={(e) => setSportsEnabled(e.target.checked)}
-                />
-                <Activity className={styles.labelIcon} />
-                <span>Enable Sports Mode</span>
-              </label>
-
-              {sportsEnabled && (
-                <select
-                  className={styles.select}
-                  value={sport}
-                  onChange={(e) => setSport(e.target.value)}
-                >
-                  <option value="cricket_bowler">Cricket - Bowler</option>
-                  <option value="cricket_batter">Cricket - Batter</option>
-                  <option value="football">Football</option>
-                  <option value="runner">Runner</option>
-                </select>
+            <div className={styles.infoDetails}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Category:</span>
+                <span className={styles.infoValue}>
+                  {activeTimetable.category.replace("_", " ").toUpperCase()}
+                </span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Goal:</span>
+                <span className={styles.infoValue}>
+                  {activeTimetable.goal.replace("_", " ").toUpperCase()}
+                </span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Level:</span>
+                <span className={styles.infoValue}>
+                  {activeTimetable.level.toUpperCase()}
+                </span>
+              </div>
+              {activeTimetable.sportsMode?.enabled && (
+                <div className={styles.infoItem}>
+                  <span className={styles.infoLabel}>Sport:</span>
+                  <span className={styles.infoValue}>
+                    {activeTimetable.sportsMode.sport
+                      .replace("_", " ")
+                      .toUpperCase()}
+                  </span>
+                </div>
               )}
             </div>
           </div>
 
-          <button
-            className={styles.generateBtn}
-            onClick={handleGenerate}
-            disabled={generating}
-          >
-            {generating ? (
-              <>
-                <div className={styles.spinner}></div>
-                <span>Generating with AI...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className={styles.btnIcon} />
-                <span>Generate AI Timetable</span>
-              </>
+          {/* AI IMPROVEMENTS */}
+          {activeTimetable.hasRequestedAI &&
+            aiSuggestions &&
+            aiSuggestions.length > 0 && (
+              <AIImprovements
+                suggestions={aiSuggestions}
+                assessment={aiAssessment}
+              />
             )}
+
+          {/* TODAY'S WORKOUT */}
+          {todaysWorkout && <TodaysWorkout workout={todaysWorkout} />}
+
+          {/* WEEKLY SCHEDULE */}
+          <WeeklySchedule
+            schedule={activeTimetable.weeklySchedule}
+            goal={activeTimetable.goal}
+            level={activeTimetable.level}
+            timeAvailable={activeTimetable.timeAvailable || 60}
+          />
+
+          {/* CTA FOR AI IMPROVEMENT */}
+          {!activeTimetable.hasRequestedAI && (
+            <div className={styles.aiCTA}>
+              <div className={styles.ctaIcon}>
+                <Lightbulb />
+              </div>
+              <div className={styles.ctaContent}>
+                <h4 className={styles.ctaTitle}>
+                  Get AI-Powered Improvement Suggestions
+                </h4>
+                <p className={styles.ctaText}>
+                  Let our AI analyze your workout plan and provide personalized
+                  recommendations to optimize your training for better results.
+                </p>
+                <button
+                  className={styles.ctaButton}
+                  onClick={handleGetAIImprovements}
+                  disabled={loadingAI}
+                >
+                  {loadingAI ? (
+                    <>
+                      <div className={styles.btnSpinner}></div>
+                      <span>Analyzing Your Program...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className={styles.btnIcon} />
+                      <span>Analyze & Improve</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* EMPTY STATE */}
+      {!showCreator && !activeTimetable && (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>
+            <Dumbbell />
+          </div>
+          <h3 className={styles.emptyTitle}>No Active Timetable</h3>
+          <p className={styles.emptyText}>
+            Create your first workout timetable to start tracking your fitness
+            journey.
+          </p>
+          <button
+            className={styles.emptyButton}
+            onClick={() => setShowCreator(true)}
+          >
+            <Plus className={styles.btnIcon} />
+            <span>Create Your First Timetable</span>
           </button>
-        </div>
-      )}
-
-      {/* TODAY'S WORKOUT */}
-      {activeTimetable && todaysWorkout && (
-        <TodaysWorkout workout={todaysWorkout} />
-      )}
-
-      {/* WEEKLY SCHEDULE */}
-      {activeTimetable && (
-        <WeeklySchedule
-          schedule={activeTimetable.weeklySchedule}
-          goal={activeTimetable.goal}
-          level={activeTimetable.level}
-          timeAvailable={activeTimetable.timeAvailable}
-        />
-      )}
-
-      {/* INFO BANNER */}
-      {!showGenerator && activeTimetable && (
-        <div className={styles.infoBanner}>
-          <div className={styles.bannerIcon}>
-            <Zap />
-          </div>
-          <div className={styles.bannerContent}>
-            <h4 className={styles.bannerTitle}>Pro Tips</h4>
-            <ul className={styles.tipsList}>
-              <li>Follow the timetable consistently for best results</li>
-              <li>Rest days are crucial for muscle recovery</li>
-              <li>Stay hydrated and maintain proper nutrition</li>
-              <li>Click "Regenerate" anytime for fresh AI suggestions</li>
-            </ul>
-          </div>
         </div>
       )}
     </div>
