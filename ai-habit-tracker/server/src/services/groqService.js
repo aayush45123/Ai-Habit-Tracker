@@ -6,59 +6,87 @@ const groq = new Groq({
 });
 
 /**
- * Generate weekly workout timetable using Groq AI
+ * Generate AI improvement suggestions for existing timetable
  */
-export async function generateWorkoutTimetable({
+export async function generateImprovementSuggestions({
+  category,
   goal,
   level,
-  timeAvailable,
   sportsMode,
+  weeklySchedule,
 }) {
   const sportInfo = sportsMode.enabled
-    ? `The user also plays ${sportsMode.sport.replace("_", " ")} and needs sport-specific training.`
+    ? `The user also plays ${sportsMode.sport.replace("_", " ")} competitively.`
     : "";
 
-  const prompt = `You are a professional fitness coach and sports trainer. Create a detailed 7-day workout timetable.
+  // Format current schedule for AI
+  const scheduleText = weeklySchedule
+    .map((day) => {
+      const exercisesList = day.exercises
+        .map(
+          (ex, idx) =>
+            `${idx + 1}. ${ex.name} - ${ex.sets || "?"} sets × ${ex.reps || ex.duration || "?"} ${ex.restBetweenSets ? `(rest: ${ex.restBetweenSets})` : ""}`,
+        )
+        .join("\n   ");
+
+      return `${day.day} (${day.focusArea})${day.isRestDay ? " - REST DAY" : ""}:
+   Time: ${day.startTime || "Not set"} - ${day.endTime || "Not set"}
+   ${exercisesList || "No exercises"}
+   Time Blocks:
+   - Morning: ${day.timeBlock?.morning || "None"}
+   - Afternoon: ${day.timeBlock?.afternoon || "None"}
+   - Evening: ${day.timeBlock?.evening || "None"}
+   - Night: ${day.timeBlock?.night || "None"}`;
+    })
+    .join("\n\n");
+
+  const prompt = `You are an expert fitness coach analyzing a workout timetable. Review this user's training plan and provide SPECIFIC, ACTIONABLE improvement suggestions.
 
 USER PROFILE:
+- Training Category: ${category.replace("_", " ").toUpperCase()}
 - Fitness Goal: ${goal.replace("_", " ").toUpperCase()}
 - Experience Level: ${level.toUpperCase()}
-- Time Available per Session: ${timeAvailable} minutes
 ${sportInfo}
 
-REQUIREMENTS:
-1. Create a balanced weekly schedule with proper rest days
-2. Include specific exercises with sets/reps/duration
-3. Add time blocks (Morning/Evening/Night activities)
-4. For sports mode, include sport-specific drills and conditioning
-5. Ensure progressive overload and recovery
+CURRENT WEEKLY SCHEDULE:
+${scheduleText}
+
+ANALYSIS REQUIREMENTS:
+1. Evaluate exercise selection, order, and programming
+2. Check rest periods, volume, and intensity
+3. Assess recovery and rest day placement
+4. Review timing and time block allocations
+5. Identify muscle group imbalances
+6. Check for overtraining or undertraining risks
+7. Ensure alignment with stated goals
+8. For sports mode: evaluate sport-specific conditioning
 
 RESPONSE FORMAT (JSON ONLY, NO MARKDOWN):
 {
-  "weeklySchedule": [
+  "suggestions": [
     {
       "day": "Monday",
-      "focusArea": "Legs + Core",
-      "isRestDay": false,
-      "exercises": [
-        {
-          "name": "Squats",
-          "sets": "4",
-          "reps": "8-10",
-          "duration": "",
-          "notes": "Focus on form, go deep"
-        }
-      ],
-      "timeBlock": {
-        "morning": "Light stretch + 10 min walk",
-        "evening": "Main workout session",
-        "night": "Protein shake + 8hr sleep"
-      }
+      "category": "exercise_order",
+      "suggestion": "Move compound exercises (Squats) before isolation exercises (Leg Extensions) for better energy utilization",
+      "reason": "Compound movements require more energy and neural demand, performing them first maximizes performance",
+      "priority": "high"
+    },
+    {
+      "day": "General",
+      "category": "recovery",
+      "suggestion": "Add a dedicated rest day after Friday's leg workout",
+      "reason": "Lower body needs 48-72 hours recovery before upper body work",
+      "priority": "medium"
     }
   ],
-  "tips": ["Tip 1", "Tip 2"],
-  "warnings": ["Safety warning 1"]
+  "overallAssessment": {
+    "strengths": ["Good exercise variety", "Consistent training frequency"],
+    "weaknesses": ["Insufficient rest", "Volume too high for beginners"],
+    "riskFactors": ["Potential overtraining", "Imbalanced muscle development"]
+  }
 }
+
+IMPORTANT: Provide 5-10 specific, actionable suggestions. Be direct and practical.
 
 Generate now:`;
 
@@ -68,7 +96,7 @@ Generate now:`;
         {
           role: "system",
           content:
-            "You are a professional fitness coach. Always respond with valid JSON only, no markdown formatting.",
+            "You are an expert strength and conditioning coach. Provide detailed, scientific, and practical training advice. Always respond with valid JSON only.",
         },
         {
           role: "user",
@@ -77,7 +105,7 @@ Generate now:`;
       ],
       model: "llama-3.3-70b-versatile",
       temperature: 0.7,
-      max_tokens: 4000,
+      max_tokens: 3000,
     });
 
     const responseText = completion.choices[0]?.message?.content || "{}";
@@ -99,189 +127,88 @@ Generate now:`;
     return {
       success: false,
       error: error.message,
-      fallback: generateFallbackTimetable(goal, level, timeAvailable),
+      fallback: generateFallbackSuggestions(category, goal, level),
     };
   }
 }
 
 /**
- * Fallback timetable if AI fails
+ * Fallback suggestions if AI fails
  */
-function generateFallbackTimetable(goal, level, timeAvailable) {
+function generateFallbackSuggestions(category, goal, level) {
+  const suggestions = [];
+
+  // General suggestions based on goal
+  if (goal === "muscle_gain") {
+    suggestions.push({
+      day: "General",
+      category: "volume",
+      suggestion:
+        "Ensure you're progressively increasing weight or reps each week",
+      reason:
+        "Progressive overload is essential for muscle hypertrophy and continued gains",
+      priority: "high",
+    });
+  }
+
+  if (goal === "fat_loss") {
+    suggestions.push({
+      day: "General",
+      category: "intensity",
+      suggestion:
+        "Add 15-20 minutes of moderate cardio after strength training 3x per week",
+      reason:
+        "Post-workout cardio enhances fat burning without compromising muscle",
+      priority: "high",
+    });
+  }
+
+  if (level === "beginner") {
+    suggestions.push({
+      day: "General",
+      category: "recovery",
+      suggestion: "Ensure at least 2 full rest days per week",
+      reason:
+        "Beginners need more recovery time to adapt to training stimulus and prevent injury",
+      priority: "high",
+    });
+  }
+
+  // Exercise order
+  suggestions.push({
+    day: "General",
+    category: "exercise_order",
+    suggestion: "Perform compound exercises before isolation exercises",
+    reason:
+      "Compound movements require more energy and should be done when fresh",
+    priority: "medium",
+  });
+
+  // Rest periods
+  suggestions.push({
+    day: "General",
+    category: "rest_periods",
+    suggestion: "Rest 2-3 minutes between heavy compound sets",
+    reason: "Adequate rest ensures full recovery for maximum strength output",
+    priority: "medium",
+  });
+
+  // Warm-up
+  suggestions.push({
+    day: "General",
+    category: "timing",
+    suggestion: "Include 10-15 minute dynamic warm-up before each session",
+    reason: "Proper warm-up reduces injury risk and improves performance",
+    priority: "high",
+  });
+
   return {
-    weeklySchedule: [
-      {
-        day: "Monday",
-        focusArea: "Upper Body",
-        isRestDay: false,
-        exercises: [
-          {
-            name: "Push-ups",
-            sets: "3",
-            reps: "10-15",
-            duration: "",
-            notes: "Keep core tight",
-          },
-          {
-            name: "Dumbbell Rows",
-            sets: "3",
-            reps: "12",
-            duration: "",
-            notes: "Squeeze shoulder blades",
-          },
-        ],
-        timeBlock: {
-          morning: "Light stretch",
-          evening: "Main workout",
-          night: "Rest + protein",
-        },
-      },
-      {
-        day: "Tuesday",
-        focusArea: "Lower Body",
-        isRestDay: false,
-        exercises: [
-          {
-            name: "Squats",
-            sets: "4",
-            reps: "10",
-            duration: "",
-            notes: "Go to parallel",
-          },
-          {
-            name: "Lunges",
-            sets: "3",
-            reps: "12 each leg",
-            duration: "",
-            notes: "Control the movement",
-          },
-        ],
-        timeBlock: {
-          morning: "Light cardio",
-          evening: "Main workout",
-          night: "Stretch + sleep",
-        },
-      },
-      {
-        day: "Wednesday",
-        focusArea: "Cardio + Core",
-        isRestDay: false,
-        exercises: [
-          {
-            name: "Running",
-            sets: "",
-            reps: "",
-            duration: "20 min",
-            notes: "Moderate pace",
-          },
-          {
-            name: "Planks",
-            sets: "3",
-            reps: "",
-            duration: "45 sec",
-            notes: "Keep body straight",
-          },
-        ],
-        timeBlock: {
-          morning: "Hydrate well",
-          evening: "Cardio session",
-          night: "Recovery meal",
-        },
-      },
-      {
-        day: "Thursday",
-        focusArea: "Active Recovery",
-        isRestDay: true,
-        exercises: [
-          {
-            name: "Yoga/Stretching",
-            sets: "",
-            reps: "",
-            duration: "30 min",
-            notes: "Focus on flexibility",
-          },
-        ],
-        timeBlock: {
-          morning: "Light walk",
-          evening: "Yoga/stretch",
-          night: "Early sleep",
-        },
-      },
-      {
-        day: "Friday",
-        focusArea: "Full Body",
-        isRestDay: false,
-        exercises: [
-          {
-            name: "Burpees",
-            sets: "3",
-            reps: "10",
-            duration: "",
-            notes: "High intensity",
-          },
-          {
-            name: "Mountain Climbers",
-            sets: "3",
-            reps: "20",
-            duration: "",
-            notes: "Keep pace steady",
-          },
-        ],
-        timeBlock: {
-          morning: "Light jog",
-          evening: "HIIT session",
-          night: "Protein + rest",
-        },
-      },
-      {
-        day: "Saturday",
-        focusArea: "Sports/Skills",
-        isRestDay: false,
-        exercises: [
-          {
-            name: "Sport Practice",
-            sets: "",
-            reps: "",
-            duration: "60 min",
-            notes: "Focus on technique",
-          },
-        ],
-        timeBlock: {
-          morning: "Warm-up drills",
-          evening: "Practice session",
-          night: "Recovery",
-        },
-      },
-      {
-        day: "Sunday",
-        focusArea: "Rest Day",
-        isRestDay: true,
-        exercises: [
-          {
-            name: "Light Walk",
-            sets: "",
-            reps: "",
-            duration: "20 min",
-            notes: "Active recovery",
-          },
-        ],
-        timeBlock: {
-          morning: "Sleep in",
-          evening: "Light activity",
-          night: "Meal prep for week",
-        },
-      },
-    ],
-    tips: [
-      "Stay hydrated throughout the day",
-      "Get 7-8 hours of sleep",
-      "Listen to your body",
-    ],
-    warnings: [
-      "Stop if you feel pain",
-      "Warm up before every session",
-      "Consult doctor if unsure",
-    ],
+    suggestions,
+    overallAssessment: {
+      strengths: ["Consistent training schedule"],
+      weaknesses: ["Could benefit from AI analysis for personalized insights"],
+      riskFactors: ["General recommendations - get personalized analysis"],
+    },
   };
 }
 
@@ -308,6 +235,7 @@ export function getTodaysWorkout(weeklySchedule) {
       exercises: [],
       timeBlock: {
         morning: "Rest",
+        afternoon: "Rest",
         evening: "Light activity",
         night: "Recovery",
       },
