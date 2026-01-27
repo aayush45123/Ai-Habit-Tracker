@@ -1,0 +1,238 @@
+/* client/src/components/AIImprovements/AIImprovements.module.css */
+
+.root {
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  padding: 2rem;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.root::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  opacity: 0.2;
+  z-index: -1;
+}
+
+/* ===== TITLE ===== */
+.title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0 0 2rem 0;
+  letter-spacing: -0.5px;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid var(--color-border);
+}
+
+/* ===== ASSESSMENT ===== */
+.assessment {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  position: relative;
+}
+
+.assessment::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  opacity: 0.15;
+  z-index: -1;
+}
+
+.assessmentSection h4 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.5px;
+}
+
+.assessmentSection ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.assessmentSection li {
+  padding: 0.75rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  font-size: 0.95rem;
+  font-weight: 600;
+  position: relative;
+  padding-left: 2rem;
+}
+
+.assessmentSection li::before {
+  content: "▸";
+  position: absolute;
+  left: 0.75rem;
+  font-weight: 900;
+  color: var(--color-accent-primary);
+}
+
+/* ===== SUGGESTIONS ===== */
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.suggestion {
+  background-color: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.suggestion::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  opacity: 0.15;
+  z-index: -1;
+  transition: all 0.2s;
+}
+
+.suggestion:hover {
+  transform: translate(-2px, -2px);
+}
+
+.suggestion:hover::after {
+  transform: translate(1px, 1px);
+}
+
+/* Priority Variants */
+.suggestion.high {
+  border-left-width: 8px;
+  border-left-color: var(--color-accent-primary);
+}
+
+.suggestion.medium {
+  border-left-width: 8px;
+  border-left-color: var(--color-text-secondary);
+}
+
+.suggestion.low {
+  border-left-width: 8px;
+  border-left-color: var(--color-bg-tertiary);
+}
+
+/* ===== SUGGESTION HEADER ===== */
+.sugHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.sugHeader svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.high .sugHeader svg {
+  color: var(--color-accent-primary);
+}
+
+.medium .sugHeader svg {
+  color: var(--color-text-secondary);
+}
+
+.low .sugHeader svg {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.sugDay {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 2px solid var(--color-border);
+}
+
+.sugCategory {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* ===== SUGGESTION CONTENT ===== */
+.sugText {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.6;
+  margin: 0 0 0.75rem 0;
+  color: var(--color-text-primary);
+}
+
+.sugReason {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .root {
+    padding: 1.5rem;
+  }
+
+  .assessment {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .sugHeader {
+    flex-wrap: wrap;
+  }
+
+  .suggestion {
+    padding: 1rem;
+  }
+}
