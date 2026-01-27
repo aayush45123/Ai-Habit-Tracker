@@ -74,7 +74,7 @@ app.use("/api/admin/templates", adminTemplateRoutes);
 app.use("/api/templates", publicTemplateRoutes);
 app.use("/api/ai-chat", aiChatRoutes);
 app.use("/api/calories", calorieRoutes); // ✅ Changed from /calorie to /calories
-app.use("/api/timetables", timetableRoutes); // Added timetable routes
+app.use("/api/timetable", timetableRoutes); // Added timetable routes
 
 /* =======================
    HEALTH CHECK
