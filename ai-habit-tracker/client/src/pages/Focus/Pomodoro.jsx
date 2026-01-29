@@ -205,10 +205,10 @@ export default function Pomodoro() {
     sessionType === "focus"
       ? DEFAULTS.focus
       : sessionType === "short"
-      ? DEFAULTS.shortBreak
-      : DEFAULTS.longBreak;
+        ? DEFAULTS.shortBreak
+        : DEFAULTS.longBreak;
   const percent = Math.round(
-    ((sessionLength - secondsLeft) / sessionLength) * 100
+    ((sessionLength - secondsLeft) / sessionLength) * 100,
   );
 
   return (
@@ -279,8 +279,8 @@ export default function Pomodoro() {
             {sessionType === "focus"
               ? "Focus"
               : sessionType === "short"
-              ? "Break"
-              : "Long Break"}
+                ? "Break"
+                : "Long Break"}
           </div>
           <div className={styles.time}>
             {formatTime(Math.max(0, secondsLeft))}
