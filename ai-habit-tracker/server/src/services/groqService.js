@@ -1,9 +1,8 @@
-// server/src/services/groqService.js
+// server/src/services/groqService.js - FIXED VERSION
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Create client only when an API key is present to avoid startup crashes
 const groqApiKey = process.env.GROQ_API_KEY;
 const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
@@ -61,6 +60,18 @@ ${sportInfo}
 CURRENT WEEKLY SCHEDULE:
 ${scheduleText}
 
+CRITICAL: You MUST use ONLY these category values (exact spelling):
+- "exercise_order" (for exercise sequencing)
+- "rest_periods" (for rest between sets)
+- "volume" (for total sets/reps)
+- "intensity" (for load/effort)
+- "exercise_selection" (for choosing exercises)
+- "recovery" (for rest days)
+- "timing" (for workout timing)
+- "general" (for overall advice)
+
+DO NOT use categories like: "cardio", "power_training", "sports_conditioning", "conditioning", "rest_and_recovery", "nutrition_and_hydration" - these are INVALID.
+
 ANALYSIS REQUIREMENTS:
 1. Evaluate exercise selection, order, and programming
 2. Check rest periods, volume, and intensity
@@ -69,7 +80,6 @@ ANALYSIS REQUIREMENTS:
 5. Identify muscle group imbalances
 6. Check for overtraining or undertraining risks
 7. Ensure alignment with stated goals
-8. For sports mode: evaluate sport-specific conditioning
 
 RESPONSE FORMAT (JSON ONLY, NO MARKDOWN):
 {
@@ -84,8 +94,8 @@ RESPONSE FORMAT (JSON ONLY, NO MARKDOWN):
     {
       "day": "General",
       "category": "recovery",
-      "suggestion": "Add a dedicated rest day after Friday's leg workout",
-      "reason": "Lower body needs 48-72 hours recovery before upper body work",
+      "suggestion": "Add a dedicated rest day after intense leg workouts",
+      "reason": "Lower body needs 48-72 hours recovery",
       "priority": "medium"
     }
   ],
@@ -96,7 +106,11 @@ RESPONSE FORMAT (JSON ONLY, NO MARKDOWN):
   }
 }
 
-IMPORTANT: Provide 5-10 specific, actionable suggestions. Be direct and practical.
+IMPORTANT: 
+- Provide 5-10 specific, actionable suggestions
+- Use ONLY the allowed category values
+- Be direct and practical
+- Focus on day-specific suggestions when possible
 
 Generate now:`;
 
@@ -106,7 +120,7 @@ Generate now:`;
         {
           role: "system",
           content:
-            "You are an expert strength and conditioning coach. Provide detailed, scientific, and practical training advice. Always respond with valid JSON only.",
+            "You are an expert strength and conditioning coach. You MUST use only these category values: exercise_order, rest_periods, volume, intensity, exercise_selection, recovery, timing, general. Always respond with valid JSON only.",
         },
         {
           role: "user",
@@ -114,7 +128,7 @@ Generate now:`;
         },
       ],
       model: "llama-3.3-70b-versatile",
-      temperature: 0.7,
+      temperature: 0.6, // Lowered for more consistent outputs
       max_tokens: 3000,
     });
 
@@ -126,7 +140,35 @@ Generate now:`;
       .replace(/```\n?/g, "")
       .trim();
 
-    const aiResponse = JSON.parse(cleanedResponse);
+    let aiResponse = JSON.parse(cleanedResponse);
+
+    // VALIDATION: Filter out any suggestions with invalid categories
+    const validCategories = [
+      "exercise_order",
+      "rest_periods",
+      "volume",
+      "intensity",
+      "exercise_selection",
+      "recovery",
+      "timing",
+      "general",
+    ];
+
+    if (aiResponse.suggestions) {
+      aiResponse.suggestions = aiResponse.suggestions.filter((sug) =>
+        validCategories.includes(sug.category),
+      );
+    }
+
+    // If no valid suggestions after filtering, use fallback
+    if (!aiResponse.suggestions || aiResponse.suggestions.length === 0) {
+      console.warn("AI returned no valid suggestions, using fallback");
+      return {
+        success: false,
+        error: "AI returned invalid categories",
+        fallback: generateFallbackSuggestions(category, goal, level),
+      };
+    }
 
     return {
       success: true,
@@ -161,12 +203,12 @@ function generateFallbackSuggestions(category, goal, level) {
     });
   }
 
-  if (goal === "fat_loss") {
+  if (goal === "fat_loss" || goal === "weight_loss") {
     suggestions.push({
       day: "General",
       category: "intensity",
       suggestion:
-        "Add 15-20 minutes of moderate cardio after strength training 3x per week",
+        "Consider adding 15-20 minutes of moderate cardio after strength training 3x per week",
       reason:
         "Post-workout cardio enhances fat burning without compromising muscle",
       priority: "high",
@@ -217,7 +259,7 @@ function generateFallbackSuggestions(category, goal, level) {
     overallAssessment: {
       strengths: ["Consistent training schedule"],
       weaknesses: ["Could benefit from AI analysis for personalized insights"],
-      riskFactors: ["General recommendations - get personalized analysis"],
+      riskFactors: ["General recommendations - detailed analysis recommended"],
     },
   };
 }
