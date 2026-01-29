@@ -1,4 +1,4 @@
-// client/src/pages/TimetablePage/TimetableCreator.jsx
+// client/src/components/TimetableCreator/TimetableCreator.jsx
 import React, { useState } from "react";
 import {
   Plus,
@@ -22,29 +22,31 @@ const DAYS = [
   "Sunday",
 ];
 
-const EMPTY_EXERCISE = {
+// ✅ FIXED: Function to create fresh empty exercise
+const createEmptyExercise = () => ({
   name: "",
   sets: "",
   reps: "",
   duration: "",
   restBetweenSets: "",
   notes: "",
-};
+});
 
-const EMPTY_DAY = {
-  day: "",
+// ✅ FIXED: Function to create fresh empty day
+const createEmptyDay = (dayName) => ({
+  day: dayName,
   focusArea: "",
   startTime: "",
   endTime: "",
   isRestDay: false,
-  exercises: [{ ...EMPTY_EXERCISE }],
+  exercises: [createEmptyExercise()],
   timeBlock: {
     morning: "",
     afternoon: "",
     evening: "",
     night: "",
   },
-};
+});
 
 export default function TimetableCreator({ onSave, onCancel, initialData }) {
   const [name, setName] = useState(initialData?.name || "My Workout Schedule");
@@ -58,53 +60,95 @@ export default function TimetableCreator({ onSave, onCancel, initialData }) {
   );
   const [sport, setSport] = useState(initialData?.sportsMode?.sport || "none");
 
-  // Initialize schedule for all 7 days
+  // ✅ FIXED: Initialize schedule with unique objects for each day
   const [schedule, setSchedule] = useState(() => {
-    if (initialData?.weeklySchedule) {
-      return initialData.weeklySchedule;
+    if (
+      initialData?.weeklySchedule &&
+      initialData.weeklySchedule.length === 7
+    ) {
+      // Deep clone to avoid reference issues
+      return initialData.weeklySchedule.map((day) => ({
+        ...day,
+        exercises: day.exercises.map((ex) => ({ ...ex })),
+        timeBlock: { ...day.timeBlock },
+      }));
     }
-    return DAYS.map((day) => ({
-      ...EMPTY_DAY,
-      day,
-      focusArea: "",
-    }));
+    // Create fresh empty day for each day of the week
+    return DAYS.map((dayName) => createEmptyDay(dayName));
   });
 
   const [activeDay, setActiveDay] = useState(0);
 
+  // ✅ FIXED: Update day immutably
   const updateDay = (dayIndex, field, value) => {
-    const updated = [...schedule];
-    updated[dayIndex] = { ...updated[dayIndex], [field]: value };
-    setSchedule(updated);
+    setSchedule((prevSchedule) => {
+      const updated = [...prevSchedule];
+      updated[dayIndex] = {
+        ...updated[dayIndex],
+        [field]: value,
+      };
+      return updated;
+    });
   };
 
+  // ✅ FIXED: Update exercise immutably
   const updateExercise = (dayIndex, exIndex, field, value) => {
-    const updated = [...schedule];
-    updated[dayIndex].exercises[exIndex] = {
-      ...updated[dayIndex].exercises[exIndex],
-      [field]: value,
-    };
-    setSchedule(updated);
+    setSchedule((prevSchedule) => {
+      const updated = [...prevSchedule];
+      const updatedExercises = [...updated[dayIndex].exercises];
+      updatedExercises[exIndex] = {
+        ...updatedExercises[exIndex],
+        [field]: value,
+      };
+      updated[dayIndex] = {
+        ...updated[dayIndex],
+        exercises: updatedExercises,
+      };
+      return updated;
+    });
   };
 
+  // ✅ FIXED: Add exercise with fresh object
   const addExercise = (dayIndex) => {
-    const updated = [...schedule];
-    updated[dayIndex].exercises.push({ ...EMPTY_EXERCISE });
-    setSchedule(updated);
+    setSchedule((prevSchedule) => {
+      const updated = [...prevSchedule];
+      updated[dayIndex] = {
+        ...updated[dayIndex],
+        exercises: [...updated[dayIndex].exercises, createEmptyExercise()],
+      };
+      return updated;
+    });
   };
 
+  // ✅ FIXED: Remove exercise immutably
   const removeExercise = (dayIndex, exIndex) => {
-    const updated = [...schedule];
-    if (updated[dayIndex].exercises.length > 1) {
-      updated[dayIndex].exercises.splice(exIndex, 1);
-      setSchedule(updated);
-    }
+    setSchedule((prevSchedule) => {
+      const updated = [...prevSchedule];
+      if (updated[dayIndex].exercises.length > 1) {
+        const updatedExercises = [...updated[dayIndex].exercises];
+        updatedExercises.splice(exIndex, 1);
+        updated[dayIndex] = {
+          ...updated[dayIndex],
+          exercises: updatedExercises,
+        };
+      }
+      return updated;
+    });
   };
 
+  // ✅ FIXED: Update time block immutably
   const updateTimeBlock = (dayIndex, block, value) => {
-    const updated = [...schedule];
-    updated[dayIndex].timeBlock[block] = value;
-    setSchedule(updated);
+    setSchedule((prevSchedule) => {
+      const updated = [...prevSchedule];
+      updated[dayIndex] = {
+        ...updated[dayIndex],
+        timeBlock: {
+          ...updated[dayIndex].timeBlock,
+          [block]: value,
+        },
+      };
+      return updated;
+    });
   };
 
   const handleSave = () => {
