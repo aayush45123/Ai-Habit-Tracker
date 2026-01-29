@@ -1,26 +1,27 @@
 // client/src/components/AIImprovements/AIImprovements.jsx
 import React, { useState } from "react";
-import { 
-  AlertCircle, 
-  CheckCircle, 
-  Info, 
-  Check, 
+import {
+  AlertCircle,
+  CheckCircle,
+  Info,
+  Check,
   X,
-  ChevronDown,
-  ChevronUp,
-  TrendingUp,
-  Zap
+  ThumbsUp,
+  ThumbsDown,
+  ArrowRight,
+  Lightbulb,
 } from "lucide-react";
 import styles from "./AIImprovements.module.css";
 
-export default function AIImprovements({ 
-  suggestions, 
-  assessment, 
+export default function AIImprovements({
+  suggestions,
+  assessment,
   currentSchedule,
-  onApplySuggestion 
+  onApplySuggestion,
+  onRejectSuggestion,
 }) {
-  const [expandedSuggestions, setExpandedSuggestions] = useState([]);
   const [appliedSuggestions, setAppliedSuggestions] = useState([]);
+  const [rejectedSuggestions, setRejectedSuggestions] = useState([]);
 
   const getPriorityIcon = (priority) => {
     if (priority === "high") return <AlertCircle />;
@@ -28,45 +29,78 @@ export default function AIImprovements({
     return <CheckCircle />;
   };
 
-  const toggleExpand = (index) => {
-    if (expandedSuggestions.includes(index)) {
-      setExpandedSuggestions(expandedSuggestions.filter(i => i !== index));
-    } else {
-      setExpandedSuggestions([...expandedSuggestions, index]);
+  const handleApply = (suggestionIndex) => {
+    if (!appliedSuggestions.includes(suggestionIndex)) {
+      setAppliedSuggestions([...appliedSuggestions, suggestionIndex]);
+      setRejectedSuggestions(
+        rejectedSuggestions.filter((i) => i !== suggestionIndex),
+      );
+      if (onApplySuggestion) {
+        onApplySuggestion(suggestions[suggestionIndex]);
+      }
     }
   };
 
-  const handleKeepMine = (index) => {
-    // Remove from applied if it was applied
-    setAppliedSuggestions(appliedSuggestions.filter(i => i !== index));
-  };
-
-  const handleKeepAI = (index, suggestion) => {
-    // Mark as applied
-    if (!appliedSuggestions.includes(index)) {
-      setAppliedSuggestions([...appliedSuggestions, index]);
-    }
-    // Callback to parent to apply the change
-    if (onApplySuggestion) {
-      onApplySuggestion(suggestion);
+  const handleReject = (suggestionIndex) => {
+    if (!rejectedSuggestions.includes(suggestionIndex)) {
+      setRejectedSuggestions([...rejectedSuggestions, suggestionIndex]);
+      setAppliedSuggestions(
+        appliedSuggestions.filter((i) => i !== suggestionIndex),
+      );
+      if (onRejectSuggestion) {
+        onRejectSuggestion(suggestions[suggestionIndex]);
+      }
     }
   };
 
-  // Get current plan for a specific day
-  const getCurrentDayPlan = (dayName) => {
+  const isApplied = (index) => appliedSuggestions.includes(index);
+  const isRejected = (index) => rejectedSuggestions.includes(index);
+
+  // Get current implementation for a day
+  const getCurrentImplementation = (day, category) => {
     if (!currentSchedule) return null;
-    return currentSchedule.find(d => d.day === dayName);
+
+    const daySchedule = currentSchedule.find((d) => d.day === day);
+    if (!daySchedule) return null;
+
+    switch (category) {
+      case "exercise_order":
+        return daySchedule.exercises
+          .map((ex, i) => `${i + 1}. ${ex.name}`)
+          .join(", ");
+      case "rest_periods":
+        return (
+          daySchedule.exercises
+            .map((ex) =>
+              ex.restBetweenSets ? `${ex.name}: ${ex.restBetweenSets}` : null,
+            )
+            .filter(Boolean)
+            .join(", ") || "Not specified"
+        );
+      case "volume":
+        return daySchedule.exercises
+          .map((ex) => `${ex.name}: ${ex.sets} sets`)
+          .join(", ");
+      case "recovery":
+        return daySchedule.isRestDay ? "Rest Day" : "Training Day";
+      case "timing":
+        return `${daySchedule.startTime || "Not set"} - ${daySchedule.endTime || "Not set"}`;
+      default:
+        return daySchedule.focusArea || "General";
+    }
   };
 
   return (
     <div className={styles.root}>
       {/* HEADER */}
-      <div className={styles.titleSection}>
-        <Zap className={styles.titleIcon} />
-        <div>
-          <h3 className={styles.title}>AI Analysis & Recommendations</h3>
-          <p className={styles.titleSubtext}>
-            Compare your plan with AI suggestions and choose what works best
+      <div className={styles.header}>
+        <div className={styles.headerIcon}>
+          <Lightbulb />
+        </div>
+        <div className={styles.headerText}>
+          <h3 className={styles.title}>AI Improvement Analysis</h3>
+          <p className={styles.subtitle}>
+            Review recommendations and choose what works best for you
           </p>
         </div>
       </div>
@@ -74,30 +108,27 @@ export default function AIImprovements({
       {/* OVERALL ASSESSMENT */}
       {assessment && (
         <div className={styles.assessment}>
-          <div className={styles.assessmentGrid}>
-            <div className={styles.assessmentCard}>
-              <div className={styles.assessmentHeader}>
-                <TrendingUp className={styles.assessmentIcon} />
-                <h4 className={styles.assessmentTitle}>Strengths</h4>
-              </div>
-              <ul className={styles.assessmentList}>
-                {assessment.strengths?.map((s, i) => (
-                  <li key={i}>{s}</li>
-                ))}
-              </ul>
+          <div className={styles.assessmentSection}>
+            <div className={styles.assessmentHeader}>
+              <ThumbsUp className={styles.assessmentIcon} />
+              <h4 className={styles.assessmentTitle}>Strengths</h4>
             </div>
-            
-            <div className={styles.assessmentCard}>
-              <div className={styles.assessmentHeader}>
-                <AlertCircle className={styles.assessmentIcon} />
-                <h4 className={styles.assessmentTitle}>Areas to Improve</h4>
-              </div>
-              <ul className={styles.assessmentList}>
-                {assessment.weaknesses?.map((w, i) => (
-                  <li key={i}>{w}</li>
-                ))}
-              </ul>
+            <ul className={styles.assessmentList}>
+              {assessment.strengths?.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+          <div className={styles.assessmentSection}>
+            <div className={styles.assessmentHeader}>
+              <AlertCircle className={styles.assessmentIcon} />
+              <h4 className={styles.assessmentTitle}>Areas to Improve</h4>
             </div>
+            <ul className={styles.assessmentList}>
+              {assessment.weaknesses?.map((w, i) => (
+                <li key={i}>{w}</li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
@@ -105,169 +136,184 @@ export default function AIImprovements({
       {/* SUGGESTIONS WITH COMPARISON */}
       <div className={styles.suggestionsSection}>
         <h4 className={styles.sectionTitle}>
-          Specific Recommendations ({suggestions.length})
+          Detailed Recommendations ({suggestions.length})
         </h4>
 
-        <div className={styles.suggestionsList}>
-          {suggestions.map((sug, index) => {
-            const isExpanded = expandedSuggestions.includes(index);
-            const isApplied = appliedSuggestions.includes(index);
-            const currentDayPlan = getCurrentDayPlan(sug.day);
+        <div className={styles.suggestions}>
+          {suggestions.map((sug, i) => (
+            <div
+              key={i}
+              className={`${styles.suggestion} ${styles[sug.priority]} ${
+                isApplied(i) ? styles.applied : ""
+              } ${isRejected(i) ? styles.rejected : ""}`}
+            >
+              {/* SUGGESTION HEADER */}
+              <div className={styles.sugHeader}>
+                <div className={styles.sugMeta}>
+                  {getPriorityIcon(sug.priority)}
+                  <span className={styles.sugDay}>{sug.day}</span>
+                  <span className={styles.sugCategory}>
+                    {sug.category.replace(/_/g, " ").toUpperCase()}
+                  </span>
+                </div>
+                <div className={styles.sugStatus}>
+                  {isApplied(i) && (
+                    <span className={styles.statusApplied}>
+                      <Check size={16} /> Applied
+                    </span>
+                  )}
+                  {isRejected(i) && (
+                    <span className={styles.statusRejected}>
+                      <X size={16} /> Kept Original
+                    </span>
+                  )}
+                </div>
+              </div>
 
-            return (
-              <div
-                key={index}
-                className={`${styles.suggestionCard} ${styles[sug.priority]} ${
-                  isApplied ? styles.applied : ""
-                }`}
-              >
-                {/* SUGGESTION HEADER */}
-                <div className={styles.suggestionHeader}>
-                  <div className={styles.suggestionHeaderLeft}>
-                    <div className={styles.priorityBadge}>
-                      {getPriorityIcon(sug.priority)}
-                      <span>{sug.priority.toUpperCase()}</span>
-                    </div>
-                    <div className={styles.suggestionMeta}>
-                      <span className={styles.dayBadge}>{sug.day}</span>
-                      <span className={styles.categoryBadge}>
-                        {sug.category?.replace("_", " ")}
-                      </span>
-                    </div>
+              {/* AI RECOMMENDATION */}
+              <div className={styles.sugContent}>
+                <div className={styles.sugRecommendation}>
+                  <div className={styles.recommendationLabel}>
+                    <AlertCircle size={16} />
+                    <span>AI Recommendation</span>
                   </div>
-                  
-                  <button 
-                    className={styles.expandBtn}
-                    onClick={() => toggleExpand(index)}
-                  >
-                    {isExpanded ? <ChevronUp /> : <ChevronDown />}
-                  </button>
+                  <p className={styles.sugText}>{sug.suggestion}</p>
                 </div>
 
-                {/* SUGGESTION TEXT */}
-                <p className={styles.suggestionText}>{sug.suggestion}</p>
-
-                {isApplied && (
-                  <div className={styles.appliedBadge}>
-                    <Check className={styles.appliedIcon} />
-                    <span>AI Recommendation Applied</span>
-                  </div>
-                )}
-
-                {/* EXPANDED COMPARISON VIEW */}
-                {isExpanded && (
-                  <div className={styles.comparisonSection}>
-                    {/* REASON */}
-                    {sug.reason && (
-                      <div className={styles.reasonBox}>
-                        <strong>Why this matters:</strong>
-                        <p>{sug.reason}</p>
-                      </div>
-                    )}
-
-                    {/* COMPARISON */}
-                    {currentDayPlan && sug.day !== "General" && (
-                      <div className={styles.comparison}>
-                        <h5 className={styles.comparisonTitle}>
-                          Compare Your Plan vs AI Recommendation
-                        </h5>
-
-                        <div className={styles.comparisonGrid}>
-                          {/* YOUR PLAN */}
-                          <div className={styles.comparisonCard}>
-                            <div className={styles.comparisonCardHeader}>
-                              <span className={styles.comparisonLabel}>
-                                Your Current Plan
-                              </span>
-                            </div>
-                            <div className={styles.comparisonContent}>
-                              <p><strong>Focus:</strong> {currentDayPlan.focusArea || "Not set"}</p>
-                              <p><strong>Exercises:</strong> {currentDayPlan.exercises?.length || 0}</p>
-                              {currentDayPlan.exercises?.slice(0, 3).map((ex, i) => (
-                                <p key={i} className={styles.exerciseItem}>
-                                  • {ex.name} {ex.sets && `(${ex.sets} sets)`}
-                                </p>
-                              ))}
-                              {currentDayPlan.exercises?.length > 3 && (
-                                <p className={styles.moreText}>
-                                  +{currentDayPlan.exercises.length - 3} more...
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* AI RECOMMENDATION */}
-                          <div className={styles.comparisonCard + " " + styles.aiCard}>
-                            <div className={styles.comparisonCardHeader}>
-                              <span className={styles.comparisonLabel}>
-                                AI Recommendation
-                              </span>
-                            </div>
-                            <div className={styles.comparisonContent}>
-                              <p className={styles.aiSuggestionDetail}>
-                                {sug.suggestion}
-                              </p>
-                              <div className={styles.benefitsBox}>
-                                <strong>Expected Benefits:</strong>
-                                <ul>
-                                  <li>Better energy distribution</li>
-                                  <li>Reduced injury risk</li>
-                                  <li>Improved results</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ACTION BUTTONS */}
-                    <div className={styles.actionButtons}>
-                      {isApplied ? (
-                        <button
-                          className={styles.btnKeepMine}
-                          onClick={() => handleKeepMine(index)}
-                        >
-                          <X className={styles.btnIcon} />
-                          <span>Undo & Keep My Plan</span>
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            className={styles.btnKeepMine}
-                            onClick={() => handleKeepMine(index)}
-                          >
-                            <X className={styles.btnIcon} />
-                            <span>Keep My Plan</span>
-                          </button>
-                          <button
-                            className={styles.btnKeepAI}
-                            onClick={() => handleKeepAI(index, sug)}
-                          >
-                            <Check className={styles.btnIcon} />
-                            <span>Apply AI Recommendation</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
+                {sug.reason && (
+                  <div className={styles.sugReason}>
+                    <Lightbulb size={16} />
+                    <span>{sug.reason}</span>
                   </div>
                 )}
               </div>
-            );
-          })}
+
+              {/* COMPARISON: YOUR CURRENT vs AI SUGGESTION */}
+              {sug.day !== "General" && (
+                <div className={styles.comparison}>
+                  <div className={styles.comparisonItem}>
+                    <div className={styles.comparisonLabel}>
+                      <span className={styles.labelDot}></span>
+                      Your Current Plan
+                    </div>
+                    <div className={styles.comparisonContent}>
+                      {getCurrentImplementation(sug.day, sug.category) ||
+                        "Not set"}
+                    </div>
+                  </div>
+
+                  <div className={styles.comparisonArrow}>
+                    <ArrowRight />
+                  </div>
+
+                  <div className={styles.comparisonItem}>
+                    <div className={styles.comparisonLabel}>
+                      <span
+                        className={styles.labelDot + " " + styles.aiDot}
+                      ></span>
+                      AI Suggests
+                    </div>
+                    <div
+                      className={
+                        styles.comparisonContent + " " + styles.aiContent
+                      }
+                    >
+                      {sug.suggestion}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ACTION BUTTONS */}
+              {!isApplied(i) && !isRejected(i) && (
+                <div className={styles.sugActions}>
+                  <button
+                    className={styles.btnReject}
+                    onClick={() => handleReject(i)}
+                  >
+                    <ThumbsDown className={styles.btnIcon} />
+                    <span>Keep Mine</span>
+                  </button>
+                  <button
+                    className={styles.btnApply}
+                    onClick={() => handleApply(i)}
+                  >
+                    <ThumbsUp className={styles.btnIcon} />
+                    <span>Apply AI Suggestion</span>
+                  </button>
+                </div>
+              )}
+
+              {/* APPLIED/REJECTED MESSAGE */}
+              {isApplied(i) && (
+                <div className={styles.appliedMessage}>
+                  <Check />
+                  <span>
+                    This suggestion has been noted. Remember to manually update
+                    your schedule accordingly.
+                  </span>
+                </div>
+              )}
+              {isRejected(i) && (
+                <div className={styles.rejectedMessage}>
+                  <Info />
+                  <span>Your original plan will be kept for this aspect.</span>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
       {/* SUMMARY */}
-      {appliedSuggestions.length > 0 && (
-        <div className={styles.summary}>
-          <CheckCircle className={styles.summaryIcon} />
-          <p>
-            You've applied <strong>{appliedSuggestions.length}</strong> out of{" "}
-            <strong>{suggestions.length}</strong> AI recommendations
-          </p>
+      <div className={styles.summary}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon + " " + styles.summaryApplied}>
+            <ThumbsUp />
+          </div>
+          <div className={styles.summaryText}>
+            <span className={styles.summaryNumber}>
+              {appliedSuggestions.length}
+            </span>
+            <span className={styles.summaryLabel}>AI Suggestions Applied</span>
+          </div>
         </div>
-      )}
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon + " " + styles.summaryRejected}>
+            <ThumbsDown />
+          </div>
+          <div className={styles.summaryText}>
+            <span className={styles.summaryNumber}>
+              {rejectedSuggestions.length}
+            </span>
+            <span className={styles.summaryLabel}>Kept Original</span>
+          </div>
+        </div>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon + " " + styles.summaryPending}>
+            <AlertCircle />
+          </div>
+          <div className={styles.summaryText}>
+            <span className={styles.summaryNumber}>
+              {suggestions.length -
+                appliedSuggestions.length -
+                rejectedSuggestions.length}
+            </span>
+            <span className={styles.summaryLabel}>Pending Review</span>
+          </div>
+        </div>
+      </div>
+
+      {/* NOTE */}
+      <div className={styles.note}>
+        <Info className={styles.noteIcon} />
+        <p className={styles.noteText}>
+          <strong>Note:</strong> Clicking "Apply AI Suggestion" marks your
+          preference. To actually implement changes, click the{" "}
+          <strong>EDIT</strong> button above and modify your schedule manually
+          based on the recommendations you've accepted.
+        </p>
+      </div>
     </div>
   );
 }
