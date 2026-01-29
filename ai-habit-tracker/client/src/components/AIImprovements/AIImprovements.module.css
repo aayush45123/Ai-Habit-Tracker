@@ -21,49 +21,90 @@
 }
 
 /* ===== TITLE ===== */
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 3px solid var(--color-border);
+}
+
+.titleIcon {
+  width: 40px;
+  height: 40px;
+  padding: 0.5rem;
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 2px solid var(--color-border);
+}
+
 .title {
   font-size: 1.75rem;
   font-weight: 900;
   text-transform: uppercase;
-  margin: 0 0 2rem 0;
+  margin: 0;
   letter-spacing: -0.5px;
-  padding-bottom: 1rem;
-  border-bottom: 3px solid var(--color-border);
+}
+
+.titleSubtext {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0 0 0;
 }
 
 /* ===== ASSESSMENT ===== */
 .assessment {
+  margin-bottom: 2rem;
+}
+
+.assessmentGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background-color: var(--color-bg-secondary);
+}
+
+.assessmentCard {
+  background: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
+  padding: 1.5rem;
   position: relative;
 }
 
-.assessment::after {
+.assessmentCard::after {
   content: "";
   position: absolute;
   bottom: -4px;
   right: -4px;
   width: 100%;
   height: 100%;
-  background-color: var(--color-border);
+  background: var(--color-border);
   opacity: 0.15;
   z-index: -1;
 }
 
-.assessmentSection h4 {
-  font-size: 1.1rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  margin: 0 0 1rem 0;
-  letter-spacing: 0.5px;
+.assessmentHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border);
 }
 
-.assessmentSection ul {
+.assessmentIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.assessmentTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.assessmentList {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -72,145 +113,424 @@
   gap: 0.75rem;
 }
 
-.assessmentSection li {
-  padding: 0.75rem;
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  font-size: 0.95rem;
-  font-weight: 600;
+.assessmentList li {
+  padding-left: 1.5rem;
   position: relative;
-  padding-left: 2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-.assessmentSection li::before {
+.assessmentList li::before {
   content: "▸";
   position: absolute;
-  left: 0.75rem;
+  left: 0;
   font-weight: 900;
   color: var(--color-accent-primary);
 }
 
 /* ===== SUGGESTIONS ===== */
-.suggestions {
+.suggestionsSection {
+  margin-top: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.3px;
+}
+
+.suggestionsList {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.suggestion {
-  background-color: var(--color-bg-secondary);
+.suggestionCard {
+  background: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
+  border-left-width: 6px;
   padding: 1.5rem;
   position: relative;
   transition: all 0.2s;
 }
 
-.suggestion::after {
+.suggestionCard::after {
   content: "";
   position: absolute;
   bottom: -4px;
   right: -4px;
   width: 100%;
   height: 100%;
-  background-color: var(--color-border);
+  background: var(--color-border);
   opacity: 0.15;
   z-index: -1;
   transition: all 0.2s;
 }
 
-.suggestion:hover {
-  transform: translate(-2px, -2px);
-}
-
-.suggestion:hover::after {
-  transform: translate(1px, 1px);
-}
-
-/* Priority Variants */
-.suggestion.high {
-  border-left-width: 8px;
+.suggestionCard.high {
   border-left-color: var(--color-accent-primary);
 }
 
-.suggestion.medium {
-  border-left-width: 8px;
+.suggestionCard.medium {
   border-left-color: var(--color-text-secondary);
 }
 
-.suggestion.low {
-  border-left-width: 8px;
+.suggestionCard.low {
   border-left-color: var(--color-bg-tertiary);
 }
 
-/* ===== SUGGESTION HEADER ===== */
-.sugHeader {
+.suggestionCard.applied {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.suggestionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.suggestionHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.priorityBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 2px solid var(--color-border);
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.priorityBadge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.suggestionMeta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dayBadge,
+.categoryBadge {
+  padding: 0.3rem 0.75rem;
+  border: 2px solid var(--color-border);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  background: var(--color-bg-primary);
+}
+
+.categoryBadge {
+  color: var(--color-text-secondary);
+}
+
+.expandBtn {
+  background: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 0.5rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.expandBtn:hover {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.expandBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.suggestionText {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+}
+
+.suggestionCard.applied .suggestionText {
+  color: var(--color-text-on-dark);
+}
+
+.appliedBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--color-text-on-dark);
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.appliedIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== COMPARISON ===== */
+.comparisonSection {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--color-border);
+}
+
+.reasonBox {
+  background: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.reasonBox strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reasonBox p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.comparison {
+  margin-bottom: 1.5rem;
+}
+
+.comparisonTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.3px;
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
+}
+
+.comparisonCard {
+  background: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  position: relative;
+}
+
+.comparisonCard::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.1;
+  z-index: -1;
+}
+
+.aiCard {
+  border-color: var(--color-accent-primary);
+  border-width: 3px;
+}
+
+.comparisonCardHeader {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  padding: 0.75rem 1rem;
   border-bottom: 2px solid var(--color-border);
 }
 
-.sugHeader svg {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.high .sugHeader svg {
-  color: var(--color-accent-primary);
-}
-
-.medium .sugHeader svg {
-  color: var(--color-text-secondary);
-}
-
-.low .sugHeader svg {
-  color: var(--color-text-secondary);
-  opacity: 0.6;
-}
-
-.sugDay {
+.comparisonLabel {
   font-weight: 800;
   text-transform: uppercase;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   letter-spacing: 0.5px;
-  padding: 0.25rem 0.75rem;
-  background-color: var(--color-accent-primary);
-  color: var(--color-text-on-dark);
-  border: 2px solid var(--color-border);
 }
 
-.sugCategory {
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-  padding: 0.25rem 0.75rem;
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
+.comparisonContent {
+  padding: 1rem;
+}
+
+.comparisonContent p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.exerciseItem {
+  padding-left: 0.5rem;
   color: var(--color-text-secondary);
+  font-size: 0.85rem !important;
 }
 
-/* ===== SUGGESTION CONTENT ===== */
-.sugText {
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.6;
-  margin: 0 0 0.75rem 0;
+.moreText {
+  font-style: italic;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem !important;
+}
+
+.aiSuggestionDetail {
+  font-weight: 700 !important;
+  margin-bottom: 1rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.benefitsBox {
+  background: var(--color-bg-secondary);
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  margin-top: 0.75rem;
+}
+
+.benefitsBox strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.benefitsBox ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.benefitsBox li {
+  padding-left: 1.25rem;
+  position: relative;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.benefitsBox li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  font-weight: 900;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btnKeepMine,
+.btnKeepAI {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border: 3px solid var(--color-border);
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--color-text-secondary);
+  position: relative;
+}
+
+.btnKeepMine {
+  background: var(--color-bg-secondary);
   color: var(--color-text-primary);
 }
 
-.sugReason {
-  font-size: 0.95rem;
-  line-height: 1.6;
+.btnKeepAI {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.btnKeepMine::after,
+.btnKeepAI::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.3;
+  z-index: -1;
+  transition: all 0.2s;
+}
+
+.btnKeepMine:hover,
+.btnKeepAI:hover {
+  transform: translate(-3px, -3px);
+}
+
+.btnKeepMine:hover::after,
+.btnKeepAI:hover::after {
+  transform: translate(2px, 2px);
+}
+
+.btnIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== SUMMARY ===== */
+.summary {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 3px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.summary::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+.summaryIcon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.summary p {
   margin: 0;
-  padding: 0.75rem 1rem;
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  color: var(--color-text-secondary);
-  font-style: italic;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -219,20 +539,16 @@
     padding: 1.5rem;
   }
 
-  .assessment {
+  .assessmentGrid,
+  .comparisonGrid {
     grid-template-columns: 1fr;
-    padding: 1rem;
+  }
+
+  .actionButtons {
+    flex-direction: column;
   }
 
   .title {
     font-size: 1.5rem;
-  }
-
-  .sugHeader {
-    flex-wrap: wrap;
-  }
-
-  .suggestion {
-    padding: 1rem;
   }
 }
