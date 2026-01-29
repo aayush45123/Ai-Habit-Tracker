@@ -272,6 +272,14 @@ export default function TimetablePage() {
               <AIImprovements
                 suggestions={aiSuggestions}
                 assessment={aiAssessment}
+                currentSchedule={activeTimetable.weeklySchedule}
+                onApplySuggestion={(suggestion) => {
+                  console.log("Applied suggestion:", suggestion);
+                  // Optional: You can implement actual schedule modification here
+                }}
+                onRejectSuggestion={(suggestion) => {
+                  console.log("Rejected suggestion:", suggestion);
+                }}
               />
             )}
 
