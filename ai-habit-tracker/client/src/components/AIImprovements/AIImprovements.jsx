@@ -1,5 +1,5 @@
 // client/src/components/AIImprovements/AIImprovements.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -17,11 +17,47 @@ export default function AIImprovements({
   suggestions,
   assessment,
   currentSchedule,
+  timetableId, // ✅ NEW: Need timetable ID to save decisions
   onApplySuggestion,
   onRejectSuggestion,
 }) {
   const [appliedSuggestions, setAppliedSuggestions] = useState([]);
-  const [removedSuggestions, setRemovedSuggestions] = useState([]); // ✅ NEW: Track removed suggestions
+  const [removedSuggestions, setRemovedSuggestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ NEW: Load saved decisions from localStorage on mount
+  useEffect(() => {
+    if (timetableId) {
+      const savedData = localStorage.getItem(
+        `timetable_decisions_${timetableId}`,
+      );
+      if (savedData) {
+        try {
+          const { applied, removed } = JSON.parse(savedData);
+          setAppliedSuggestions(applied || []);
+          setRemovedSuggestions(removed || []);
+        } catch (err) {
+          console.error("Error loading saved decisions:", err);
+        }
+      }
+    }
+    setLoading(false);
+  }, [timetableId]);
+
+  // ✅ NEW: Save decisions to localStorage whenever they change
+  useEffect(() => {
+    if (timetableId && !loading) {
+      const dataToSave = {
+        applied: appliedSuggestions,
+        removed: removedSuggestions,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem(
+        `timetable_decisions_${timetableId}`,
+        JSON.stringify(dataToSave),
+      );
+    }
+  }, [appliedSuggestions, removedSuggestions, timetableId, loading]);
 
   const getPriorityIcon = (priority) => {
     if (priority === "high") return <AlertCircle />;
@@ -32,24 +68,47 @@ export default function AIImprovements({
   const handleApply = (suggestionIndex) => {
     if (!appliedSuggestions.includes(suggestionIndex)) {
       setAppliedSuggestions([...appliedSuggestions, suggestionIndex]);
+      // Remove from removed if it was there
+      setRemovedSuggestions(
+        removedSuggestions.filter((i) => i !== suggestionIndex),
+      );
       if (onApplySuggestion) {
         onApplySuggestion(suggestions[suggestionIndex]);
       }
     }
   };
 
-  // ✅ UPDATED: Remove suggestion when "Keep Mine" is clicked
   const handleKeepMine = (suggestionIndex) => {
-    setRemovedSuggestions([...removedSuggestions, suggestionIndex]);
-    if (onRejectSuggestion) {
-      onRejectSuggestion(suggestions[suggestionIndex]);
+    if (!removedSuggestions.includes(suggestionIndex)) {
+      setRemovedSuggestions([...removedSuggestions, suggestionIndex]);
+      // Remove from applied if it was there
+      setAppliedSuggestions(
+        appliedSuggestions.filter((i) => i !== suggestionIndex),
+      );
+      if (onRejectSuggestion) {
+        onRejectSuggestion(suggestions[suggestionIndex]);
+      }
+    }
+  };
+
+  // ✅ NEW: Reset all decisions
+  const handleResetAll = () => {
+    if (
+      confirm(
+        "Are you sure you want to reset all your decisions? This will show all suggestions again.",
+      )
+    ) {
+      setAppliedSuggestions([]);
+      setRemovedSuggestions([]);
+      if (timetableId) {
+        localStorage.removeItem(`timetable_decisions_${timetableId}`);
+      }
     }
   };
 
   const isApplied = (index) => appliedSuggestions.includes(index);
-  const isRemoved = (index) => removedSuggestions.includes(index); // ✅ NEW
+  const isRemoved = (index) => removedSuggestions.includes(index);
 
-  // ✅ UPDATED: Filter out removed suggestions
   const visibleSuggestions = suggestions.filter(
     (_, index) => !isRemoved(index),
   );
@@ -89,6 +148,17 @@ export default function AIImprovements({
     }
   };
 
+  if (loading) {
+    return (
+      <div className={styles.root}>
+        <div className={styles.loading}>
+          <div className={styles.spinner}></div>
+          <p>Loading your AI recommendations...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.root}>
       {/* HEADER */}
@@ -103,6 +173,13 @@ export default function AIImprovements({
             {totalRemaining !== 1 ? "s" : ""} and choose what works best for you
           </p>
         </div>
+        {/* ✅ NEW: Reset button */}
+        {(appliedSuggestions.length > 0 || removedSuggestions.length > 0) && (
+          <button className={styles.resetBtn} onClick={handleResetAll}>
+            <X className={styles.resetIcon} />
+            <span>Reset All</span>
+          </button>
+        )}
       </div>
 
       {/* OVERALL ASSESSMENT */}
@@ -139,7 +216,6 @@ export default function AIImprovements({
           Detailed Recommendations ({totalRemaining})
         </h4>
 
-        {/* ✅ UPDATED: Show message if all removed */}
         {totalRemaining === 0 ? (
           <div className={styles.emptyState}>
             <CheckCircle className={styles.emptyIcon} />
@@ -149,11 +225,14 @@ export default function AIImprovements({
               {appliedSuggestions.length} and kept your original plan for{" "}
               {removedSuggestions.length}.
             </p>
+            <button className={styles.emptyResetBtn} onClick={handleResetAll}>
+              <X className={styles.btnIcon} />
+              <span>Reset & Review Again</span>
+            </button>
           </div>
         ) : (
           <div className={styles.suggestions}>
             {suggestions.map((sug, originalIndex) => {
-              // ✅ Skip removed suggestions
               if (isRemoved(originalIndex)) return null;
 
               return (
@@ -316,10 +395,11 @@ export default function AIImprovements({
         <div className={styles.note}>
           <Info className={styles.noteIcon} />
           <p className={styles.noteText}>
-            <strong>How it works:</strong> Click "Keep Mine & Remove" to dismiss
-            suggestions you don't want to apply. Click "Apply AI Suggestion" to
-            mark recommendations you plan to implement. Then use the{" "}
-            <strong>EDIT</strong> button to manually update your schedule.
+            <strong>How it works:</strong> Your decisions are automatically
+            saved. Click "Keep Mine & Remove" to dismiss suggestions you don't
+            want. Click "Apply AI Suggestion" to mark recommendations you plan
+            to implement. Then use the <strong>EDIT</strong> button to manually
+            update your schedule.
           </p>
         </div>
       )}
