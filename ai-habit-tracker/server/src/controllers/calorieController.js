@@ -207,7 +207,7 @@ export const saveCalorieProfile = async (req, res) => {
           ...(activityLevel && { activityLevel }),
           ...(goal && { goal }),
         },
-        { new: true }
+        { new: true },
       );
 
       return res.json(updatedProfile);
@@ -260,7 +260,7 @@ export const saveCalorieProfile = async (req, res) => {
         dailyGoal: finalDailyGoal,
         proteinGoal: finalProteinGoal,
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     res.json(profile);
@@ -475,6 +475,9 @@ export const checkWeeklyCheckIn = async (req, res) => {
    SAVE WEEKLY CHECK-IN
    ✅ FIXED: Better error handling and validation
 ============================ */
+/* ============================
+   SAVE WEEKLY CHECK-IN - FIXED VERSION
+============================ */
 export const saveWeeklyCheckIn = async (req, res) => {
   try {
     const userId = req.user?._id;
@@ -494,18 +497,22 @@ export const saveWeeklyCheckIn = async (req, res) => {
       newWeight,
     });
 
-    // Validate required fields
+    // ✅ FIXED: Validate required fields
     if (!weightChange || !feelingBetter || !energyLevel) {
+      console.error("Validation failed: Missing required fields");
       return res.status(400).json({
         message: "Please answer all questions",
       });
     }
 
-    // Validate if updateProfile is true, newWeight must be provided
-    if (updateProfile && (!newWeight || isNaN(newWeight))) {
-      return res.status(400).json({
-        message: "Please provide a valid weight",
-      });
+    // ✅ FIXED: Only validate newWeight if updateProfile is true
+    if (updateProfile === true) {
+      if (!newWeight || isNaN(Number(newWeight)) || Number(newWeight) <= 0) {
+        console.error("Validation failed: Invalid weight", newWeight);
+        return res.status(400).json({
+          message: "Please provide a valid weight",
+        });
+      }
     }
 
     // Create check-in record
@@ -514,31 +521,38 @@ export const saveWeeklyCheckIn = async (req, res) => {
       weightChange,
       feelingBetter,
       energyLevel,
-      updatedProfile: updateProfile || false,
+      updatedProfile: updateProfile === true,
     });
 
-    console.log("Check-in saved:", checkIn);
+    console.log("Check-in saved:", checkIn._id);
 
     // Update profile if requested
-    if (updateProfile && newWeight) {
+    if (updateProfile === true && newWeight) {
       const profile = await CalorieProfile.findOne({ userId });
 
       if (!profile) {
         console.warn("Profile not found for weight update");
-        return res.status(404).json({
-          message: "Profile not found. Please create a profile first.",
+        // Still return success for check-in, but note profile wasn't updated
+        return res.json({
+          message:
+            "Check-in saved successfully, but profile not found for weight update",
+          checkIn,
+          profileUpdated: false,
         });
       }
 
+      const oldWeight = profile.weight;
+      const newWeightNum = Number(newWeight);
+
       console.log(
         "Updating profile weight from",
-        profile.weight,
+        oldWeight,
         "to",
-        newWeight
+        newWeightNum,
       );
 
       // Update weight
-      profile.weight = Number(newWeight);
+      profile.weight = newWeightNum;
 
       // Recalculate recommendations with new weight
       const recommendations = calculateRecommendations(profile);
@@ -552,11 +566,23 @@ export const saveWeeklyCheckIn = async (req, res) => {
         dailyGoal: profile.dailyGoal,
         proteinGoal: profile.proteinGoal,
       });
+
+      return res.json({
+        message: "Check-in saved and profile updated successfully",
+        checkIn,
+        profileUpdated: true,
+        newRecommendations: {
+          calories: profile.dailyGoal,
+          protein: profile.proteinGoal,
+        },
+      });
     }
 
+    // Success without profile update
     res.json({
       message: "Check-in saved successfully",
       checkIn,
+      profileUpdated: false,
     });
   } catch (err) {
     console.error("Error saving check-in:", err);
@@ -566,3 +592,47 @@ export const saveWeeklyCheckIn = async (req, res) => {
     });
   }
 };
+
+// ✅ ADD THIS HELPER FUNCTION IF IT DOESN'T EXIST
+function calculateRecommendations(profile) {
+  const { age, height, weight, gender, activityLevel, goal } = profile;
+
+  // Calculate BMR using Mifflin-St Jeor Equation
+  let bmr;
+  if (gender === "male") {
+    bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+  } else {
+    bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+  }
+
+  // Activity multipliers
+  const activityMultipliers = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    active: 1.725,
+    very_active: 1.9,
+  };
+
+  // Calculate TDEE
+  const tdee = bmr * (activityMultipliers[activityLevel] || 1.55);
+
+  // Adjust for goal
+  let calories = tdee;
+  if (goal === "lose") {
+    calories = tdee - 500;
+  } else if (goal === "gain") {
+    calories = tdee + 500;
+  }
+
+  // Calculate protein (2g per kg for active, 1.6g for moderate)
+  const proteinPerKg =
+    activityLevel === "very_active" || activityLevel === "active" ? 2 : 1.6;
+  const protein = Math.round(weight * proteinPerKg);
+
+  return {
+    bmr: Math.round(bmr),
+    calories: Math.round(calories),
+    protein,
+  };
+}
