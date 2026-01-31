@@ -1,4 +1,4 @@
-// server/src/services/groqService.js - FIXED VERSION
+// server/src/services/groqService.js - FINAL FIXED VERSION
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
 dotenv.config();
@@ -20,7 +20,7 @@ export async function generateImprovementSuggestions({
     return {
       success: false,
       error: "GROQ_API_KEY not set. Add it to enable AI improvements.",
-      fallback: generateFallbackSuggestions(category, goal, level),
+      fallback: generateFallbackSuggestions(weeklySchedule),
     };
   }
 
@@ -40,12 +40,7 @@ export async function generateImprovementSuggestions({
 
       return `${day.day} (${day.focusArea})${day.isRestDay ? " - REST DAY" : ""}:
    Time: ${day.startTime || "Not set"} - ${day.endTime || "Not set"}
-   ${exercisesList || "No exercises"}
-   Time Blocks:
-   - Morning: ${day.timeBlock?.morning || "None"}
-   - Afternoon: ${day.timeBlock?.afternoon || "None"}
-   - Evening: ${day.timeBlock?.evening || "None"}
-   - Night: ${day.timeBlock?.night || "None"}`;
+   ${exercisesList || "No exercises"}`;
     })
     .join("\n\n");
 
@@ -60,26 +55,11 @@ ${sportInfo}
 CURRENT WEEKLY SCHEDULE:
 ${scheduleText}
 
-CRITICAL: You MUST use ONLY these category values (exact spelling):
-- "exercise_order" (for exercise sequencing)
-- "rest_periods" (for rest between sets)
-- "volume" (for total sets/reps)
-- "intensity" (for load/effort)
-- "exercise_selection" (for choosing exercises)
-- "recovery" (for rest days)
-- "timing" (for workout timing)
-- "general" (for overall advice)
-
-DO NOT use categories like: "cardio", "power_training", "sports_conditioning", "conditioning", "rest_and_recovery", "nutrition_and_hydration" - these are INVALID.
-
-ANALYSIS REQUIREMENTS:
-1. Evaluate exercise selection, order, and programming
-2. Check rest periods, volume, and intensity
-3. Assess recovery and rest day placement
-4. Review timing and time block allocations
-5. Identify muscle group imbalances
-6. Check for overtraining or undertraining risks
-7. Ensure alignment with stated goals
+CRITICAL RULES:
+1. You MUST provide EXACTLY ONE suggestion per day (7 suggestions total for Monday-Sunday)
+2. NEVER use "General" as the day - only use specific day names: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+3. Each suggestion must be specific to exercises/training for that particular day
+4. Use ONLY these category values: exercise_order, rest_periods, volume, intensity, exercise_selection, recovery, timing
 
 RESPONSE FORMAT (JSON ONLY, NO MARKDOWN):
 {
@@ -87,30 +67,31 @@ RESPONSE FORMAT (JSON ONLY, NO MARKDOWN):
     {
       "day": "Monday",
       "category": "exercise_order",
-      "suggestion": "Move compound exercises (Squats) before isolation exercises (Leg Extensions) for better energy utilization",
-      "reason": "Compound movements require more energy and neural demand, performing them first maximizes performance",
+      "suggestion": "Move Barbell Squats before Leg Extensions for better energy utilization",
+      "reason": "Compound movements require more energy and should be done first",
       "priority": "high"
     },
     {
-      "day": "General",
-      "category": "recovery",
-      "suggestion": "Add a dedicated rest day after intense leg workouts",
-      "reason": "Lower body needs 48-72 hours recovery",
+      "day": "Tuesday",
+      "category": "rest_periods",
+      "suggestion": "Increase rest between sets to 90 seconds for heavy compounds",
+      "reason": "Adequate rest allows for full strength recovery",
       "priority": "medium"
     }
+    // ... continue for all 7 days
   ],
   "overallAssessment": {
     "strengths": ["Good exercise variety", "Consistent training frequency"],
-    "weaknesses": ["Insufficient rest", "Volume too high for beginners"],
-    "riskFactors": ["Potential overtraining", "Imbalanced muscle development"]
+    "weaknesses": ["Some exercises could be reordered", "Rest periods could be optimized"],
+    "riskFactors": ["Watch for overtraining signs"]
   }
 }
 
 IMPORTANT: 
-- Provide 5-10 specific, actionable suggestions
-- Use ONLY the allowed category values
-- Be direct and practical
-- Focus on day-specific suggestions when possible
+- Provide EXACTLY 7 suggestions (one per day)
+- Use specific day names ONLY (Monday-Sunday)
+- NO "General" suggestions
+- Be specific to each day's workout
 
 Generate now:`;
 
@@ -120,7 +101,7 @@ Generate now:`;
         {
           role: "system",
           content:
-            "You are an expert strength and conditioning coach. You MUST use only these category values: exercise_order, rest_periods, volume, intensity, exercise_selection, recovery, timing, general. Always respond with valid JSON only.",
+            "You are an expert strength and conditioning coach. You MUST provide exactly 7 suggestions, one for each day (Monday-Sunday). NEVER use 'General' as a day name. Use only these categories: exercise_order, rest_periods, volume, intensity, exercise_selection, recovery, timing. Always respond with valid JSON only.",
         },
         {
           role: "user",
@@ -128,7 +109,7 @@ Generate now:`;
         },
       ],
       model: "llama-3.3-70b-versatile",
-      temperature: 0.6, // Lowered for more consistent outputs
+      temperature: 0.6,
       max_tokens: 3000,
     });
 
@@ -142,7 +123,7 @@ Generate now:`;
 
     let aiResponse = JSON.parse(cleanedResponse);
 
-    // VALIDATION: Filter out any suggestions with invalid categories
+    // ✅ VALIDATION: Filter out invalid suggestions
     const validCategories = [
       "exercise_order",
       "rest_periods",
@@ -151,22 +132,40 @@ Generate now:`;
       "exercise_selection",
       "recovery",
       "timing",
-      "general",
+    ];
+
+    const validDays = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
     ];
 
     if (aiResponse.suggestions) {
-      aiResponse.suggestions = aiResponse.suggestions.filter((sug) =>
-        validCategories.includes(sug.category),
+      // ✅ Remove "General" suggestions and invalid categories
+      aiResponse.suggestions = aiResponse.suggestions.filter(
+        (sug) =>
+          validCategories.includes(sug.category) &&
+          validDays.includes(sug.day) &&
+          sug.day !== "General", // ✅ CRITICAL: No General suggestions
       );
+
+      // ✅ Limit to 7 suggestions (one per day)
+      if (aiResponse.suggestions.length > 7) {
+        aiResponse.suggestions = aiResponse.suggestions.slice(0, 7);
+      }
     }
 
-    // If no valid suggestions after filtering, use fallback
+    // If no valid suggestions or less than 7, use fallback
     if (!aiResponse.suggestions || aiResponse.suggestions.length === 0) {
       console.warn("AI returned no valid suggestions, using fallback");
       return {
         success: false,
-        error: "AI returned invalid categories",
-        fallback: generateFallbackSuggestions(category, goal, level),
+        error: "AI returned invalid suggestions",
+        fallback: generateFallbackSuggestions(weeklySchedule),
       };
     }
 
@@ -179,87 +178,96 @@ Generate now:`;
     return {
       success: false,
       error: error.message,
-      fallback: generateFallbackSuggestions(category, goal, level),
+      fallback: generateFallbackSuggestions(weeklySchedule),
     };
   }
 }
 
 /**
- * Fallback suggestions if AI fails
+ * Fallback suggestions if AI fails - ONE PER DAY
  */
-function generateFallbackSuggestions(category, goal, level) {
-  const suggestions = [];
+function generateFallbackSuggestions(weeklySchedule) {
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
 
-  // General suggestions based on goal
-  if (goal === "muscle_gain") {
-    suggestions.push({
-      day: "General",
-      category: "volume",
-      suggestion:
-        "Ensure you're progressively increasing weight or reps each week",
-      reason:
-        "Progressive overload is essential for muscle hypertrophy and continued gains",
-      priority: "high",
-    });
-  }
+  const suggestions = days.map((day, index) => {
+    const daySchedule = weeklySchedule[index];
 
-  if (goal === "fat_loss" || goal === "weight_loss") {
-    suggestions.push({
-      day: "General",
-      category: "intensity",
-      suggestion:
-        "Consider adding 15-20 minutes of moderate cardio after strength training 3x per week",
-      reason:
-        "Post-workout cardio enhances fat burning without compromising muscle",
-      priority: "high",
-    });
-  }
+    // Provide day-specific suggestions based on the schedule
+    if (daySchedule.isRestDay) {
+      return {
+        day,
+        category: "recovery",
+        suggestion:
+          "Consider light stretching or mobility work for active recovery",
+        reason:
+          "Active recovery helps maintain flexibility and reduces soreness",
+        priority: "low",
+      };
+    }
 
-  if (level === "beginner") {
-    suggestions.push({
-      day: "General",
-      category: "recovery",
-      suggestion: "Ensure at least 2 full rest days per week",
-      reason:
-        "Beginners need more recovery time to adapt to training stimulus and prevent injury",
-      priority: "high",
-    });
-  }
+    // Rotate through different categories for variety
+    const categories = [
+      {
+        category: "exercise_order",
+        suggestion: "Perform compound exercises before isolation movements",
+        reason: "Compound exercises require more energy and neural drive",
+      },
+      {
+        category: "rest_periods",
+        suggestion: "Rest 2-3 minutes between heavy compound sets",
+        reason: "Adequate rest allows for full strength recovery",
+      },
+      {
+        category: "volume",
+        suggestion: "Aim for 10-20 sets per muscle group per week",
+        reason: "This volume range optimizes muscle growth for most people",
+      },
+      {
+        category: "intensity",
+        suggestion: "Train to 1-2 reps shy of failure on compound lifts",
+        reason: "This intensity maximizes gains while minimizing injury risk",
+      },
+      {
+        category: "exercise_selection",
+        suggestion: "Include both compound and isolation exercises",
+        reason: "Compounds build strength, isolations target specific muscles",
+      },
+      {
+        category: "timing",
+        suggestion: "Schedule workouts when energy levels are highest",
+        reason: "Better energy leads to better performance and results",
+      },
+      {
+        category: "recovery",
+        suggestion: "Ensure 48 hours between training the same muscle group",
+        reason: "Muscles need adequate time to recover and grow",
+      },
+    ];
 
-  // Exercise order
-  suggestions.push({
-    day: "General",
-    category: "exercise_order",
-    suggestion: "Perform compound exercises before isolation exercises",
-    reason:
-      "Compound movements require more energy and should be done when fresh",
-    priority: "medium",
-  });
-
-  // Rest periods
-  suggestions.push({
-    day: "General",
-    category: "rest_periods",
-    suggestion: "Rest 2-3 minutes between heavy compound sets",
-    reason: "Adequate rest ensures full recovery for maximum strength output",
-    priority: "medium",
-  });
-
-  // Warm-up
-  suggestions.push({
-    day: "General",
-    category: "timing",
-    suggestion: "Include 10-15 minute dynamic warm-up before each session",
-    reason: "Proper warm-up reduces injury risk and improves performance",
-    priority: "high",
+    const categoryIndex = index % categories.length;
+    return {
+      day,
+      category: categories[categoryIndex].category,
+      suggestion: categories[categoryIndex].suggestion,
+      reason: categories[categoryIndex].reason,
+      priority: "medium",
+    };
   });
 
   return {
     suggestions,
     overallAssessment: {
       strengths: ["Consistent training schedule"],
-      weaknesses: ["Could benefit from AI analysis for personalized insights"],
-      riskFactors: ["General recommendations - detailed analysis recommended"],
+      weaknesses: ["Could benefit from personalized AI analysis"],
+      riskFactors: ["General recommendations - get personalized insights"],
     },
   };
 }
