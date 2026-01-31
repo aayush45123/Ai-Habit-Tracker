@@ -1,4 +1,4 @@
-// client/src/pages/TimetablePage/TimetablePage.jsx
+// client/src/pages/TimetablePage/TimetablePage.jsx - COMPLETE FIXED VERSION
 import React, { useEffect, useState } from "react";
 import {
   Dumbbell,
@@ -116,6 +116,12 @@ export default function TimetablePage() {
 
     try {
       await api.delete(`/timetables/${activeTimetable._id}`);
+
+      // ✅ ADDED: Clear localStorage when timetable is deleted
+      if (activeTimetable._id) {
+        localStorage.removeItem(`timetable_decisions_${activeTimetable._id}`);
+      }
+
       setActiveTimetable(null);
       setTodaysWorkout(null);
       setAiSuggestions(null);
@@ -273,9 +279,9 @@ export default function TimetablePage() {
                 suggestions={aiSuggestions}
                 assessment={aiAssessment}
                 currentSchedule={activeTimetable.weeklySchedule}
+                timetableId={activeTimetable._id}
                 onApplySuggestion={(suggestion) => {
                   console.log("Applied suggestion:", suggestion);
-                  // Optional: You can implement actual schedule modification here
                 }}
                 onRejectSuggestion={(suggestion) => {
                   console.log("Rejected suggestion:", suggestion);
