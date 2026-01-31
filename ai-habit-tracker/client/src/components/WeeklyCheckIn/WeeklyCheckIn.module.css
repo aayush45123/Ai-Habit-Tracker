@@ -1,268 +1,45 @@
+/* client/src/components/WeeklyCheckIn/WeeklyCheckIn.module.css - COMPLETE RESPONSIVE VERSION */
+
+/* ===== OVERLAY ===== */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.85);
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 1rem;
-  animation: fadeIn 0.3s ease-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
+/* ===== MODAL ===== */
 .modal {
   background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 6px 6px 0 var(--color-border);
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.header {
+  border: 3px solid var(--color-border);
   padding: 2rem;
-  background-color: var(--color-bg-secondary);
-  border-bottom: 2px solid var(--color-border);
-  text-align: center;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 0.5rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.subtitle {
-  font-size: 0.95rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.step {
-  padding: 2rem;
-}
-
-.question {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0 0 1.5rem 0;
-  text-align: center;
-}
-
-.hint {
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-  margin: 0.5rem 0 1.5rem 0;
-  text-align: center;
-}
-
-.options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-}
-
-.option {
-  padding: 1rem 1.5rem;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  font-family: var(--font-primary);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-speed) var(--transition-easing);
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.option:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 3px 3px 0 var(--color-border);
-}
-
-.option.selected {
-  background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
-  transform: translate(-2px, -2px);
-  box-shadow: 3px 3px 0 var(--color-border);
-}
-
-.toggleGroup {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.toggle {
-  padding: 1rem 2rem;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  font-family: var(--font-primary);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-speed) var(--transition-easing);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.toggle:hover {
-  transform: translateY(-2px);
-}
-
-.toggleActive {
-  background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
-}
-
-.inputGroup {
-  margin-bottom: 1.5rem;
-}
-
-.label {
-  display: block;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-}
-
-.input {
+  max-width: 600px;
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: var(--font-primary);
-  font-size: 1rem;
-  transition: all var(--transition-speed) var(--transition-easing);
-  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
 }
 
-.input:focus {
-  outline: none;
-  box-shadow: 3px 3px 0 var(--color-border);
-  transform: translate(-2px, -2px);
-}
-
-.buttonGroup {
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-}
-
-.btnPrimary,
-.btnSecondary {
-  flex: 1;
-  padding: 0.75rem 1.5rem;
-  font-family: var(--font-primary);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: 2px solid var(--color-border);
-  transition: all var(--transition-speed) var(--transition-easing);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.btnPrimary {
-  background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
-}
-
-.btnPrimary:hover:not(:disabled) {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 var(--color-border);
-}
-
-.btnPrimary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btnSecondary {
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-}
-
-.btnSecondary:hover {
-  background-color: var(--color-bg-tertiary);
-  transform: translateY(-2px);
-}
-
-.skipButton {
-  display: block;
+.modal::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
   width: 100%;
-  padding: 1rem;
-  border: none;
-  border-top: 2px solid var(--color-border);
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
-  font-family: var(--font-primary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-speed) var(--transition-easing);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  height: 100%;
+  background-color: var(--color-border);
+  opacity: 0.3;
+  z-index: -1;
 }
 
-.skipButton:hover {
-  background-color: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-
-@media (max-width: 768px) {
-  .modal {
-    max-width: 100%;
-  }
-
-  .header,
-  .step {
-    padding: 1.5rem;
-  }
-
-  .buttonGroup {
-    flex-direction: column;
-  }
-}
-/* ADD THESE STYLES TO WeeklyCheckIn.module.css */
-
-/* Close Button */
+/* ===== CLOSE BUTTON ===== */
 .closeBtn {
   position: absolute;
   top: 1rem;
@@ -275,6 +52,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
 .closeBtn:hover {
@@ -283,7 +61,28 @@
   transform: rotate(90deg);
 }
 
-/* Progress Bar */
+/* ===== HEADER ===== */
+.header {
+  margin-bottom: 2rem;
+  padding-right: 2.5rem; /* Space for close button */
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ===== PROGRESS BAR ===== */
 .progress {
   margin-top: 1rem;
   display: flex;
@@ -310,9 +109,10 @@
   font-weight: 700;
   text-align: center;
   color: var(--color-text-secondary);
+  text-transform: uppercase;
 }
 
-/* Error Message */
+/* ===== ERROR MESSAGE ===== */
 .error {
   background: #ff0000;
   color: #ffffff;
@@ -337,13 +137,43 @@
   }
 }
 
-/* Option Buttons - Better spacing */
+/* ===== STEP CONTAINER ===== */
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.question {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin: -0.5rem 0 0 0;
+  font-style: italic;
+}
+
+/* ===== OPTIONS GRID ===== */
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
 .option {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  padding: 1.25rem 1.5rem;
+  gap: 0.5rem;
+  padding: 1.25rem 1rem;
   background: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
   font-weight: 700;
@@ -351,16 +181,31 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  min-height: 100px;
+  text-align: center;
 }
 
-.option span {
-  display: block;
+.option::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.2;
+  z-index: -1;
+  transition: all 0.2s;
 }
 
 .option:hover {
   transform: translate(-3px, -3px);
   background: var(--color-bg-primary);
+}
+
+.option:hover::after {
+  transform: translate(2px, 2px);
 }
 
 .option.selected {
@@ -369,12 +214,27 @@
   border-color: var(--color-accent-primary);
 }
 
-/* Toggle Group - Better styling */
+.option.selected::after {
+  background: var(--color-accent-primary);
+}
+
+.option svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.option span {
+  display: block;
+  line-height: 1.3;
+}
+
+/* ===== TOGGLE GROUP ===== */
 .toggleGroup {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin: 1.5rem 0;
+  margin: 1rem 0;
 }
 
 .toggle {
@@ -385,11 +245,29 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.2;
+  z-index: -1;
+  transition: all 0.2s;
 }
 
 .toggle:hover {
   transform: translate(-2px, -2px);
+}
+
+.toggle:hover::after {
+  transform: translate(2px, 2px);
 }
 
 .toggleActive {
@@ -398,7 +276,11 @@
   border-color: var(--color-accent-primary);
 }
 
-/* Input Group */
+.toggleActive::after {
+  background: var(--color-accent-primary);
+}
+
+/* ===== INPUT GROUP ===== */
 .inputGroup {
   margin: 1.5rem 0;
   animation: slideDown 0.3s ease;
@@ -433,6 +315,7 @@
   font-weight: 700;
   text-align: center;
   transition: all 0.2s;
+  font-family: var(--font-primary);
 }
 
 .input:focus {
@@ -441,20 +324,67 @@
   transform: translate(-2px, -2px);
 }
 
-/* Button States */
+/* ===== BUTTON GROUP ===== */
+.buttonGroup {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+}
+
+.btnPrimary,
+.btnSecondary {
+  padding: 1rem 1.5rem;
+  border: 3px solid var(--color-border);
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.btnPrimary::after,
+.btnSecondary::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.3;
+  z-index: -1;
+  transition: all 0.2s;
+}
+
+.btnPrimary {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.btnSecondary {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.btnPrimary:hover:not(:disabled),
+.btnSecondary:hover:not(:disabled) {
+  transform: translate(-3px, -3px);
+}
+
+.btnPrimary:hover:not(:disabled)::after,
+.btnSecondary:hover:not(:disabled)::after {
+  transform: translate(2px, 2px);
+}
+
 .btnPrimary:disabled,
 .btnSecondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none !important;
 }
 
-.btnPrimary:disabled:hover,
-.btnSecondary:disabled:hover {
-  transform: none !important;
-}
-
-/* Skip Button */
+/* ===== SKIP BUTTON ===== */
 .skipButton {
   width: 100%;
   padding: 0.75rem;
@@ -466,6 +396,8 @@
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 1rem;
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
 }
 
 .skipButton:hover:not(:disabled) {
@@ -478,17 +410,210 @@
   cursor: not-allowed;
 }
 
-/* Responsive */
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablets (768px and below) */
 @media (max-width: 768px) {
+  .modal {
+    padding: 1.5rem;
+    max-width: 95%;
+  }
+
+  .header {
+    padding-right: 2rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .question {
+    font-size: 1.1rem;
+  }
+
   .options {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .option {
+    min-height: 80px;
+    padding: 1rem;
+  }
+
+  .toggleGroup {
+    gap: 0.75rem;
+  }
+
+  .buttonGroup {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    padding: 1rem;
+  }
+}
+
+/* Mobile (480px and below) */
+@media (max-width: 480px) {
+  .overlay {
+    padding: 0.5rem;
+  }
+
+  .modal {
+    padding: 1rem;
+    max-height: 95vh;
+  }
+
+  .closeBtn {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem;
+  }
+
+  .closeBtn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header {
+    padding-right: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .question {
+    font-size: 1rem;
+  }
+
+  .hint {
+    font-size: 0.8rem;
+  }
+
+  .step {
+    gap: 1rem;
+  }
+
+  .options {
+    gap: 0.5rem;
+  }
+
+  .option {
+    min-height: 70px;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .option svg {
+    width: 20px;
+    height: 20px;
   }
 
   .toggleGroup {
     grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .toggle {
+    padding: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .input {
+    padding: 0.75rem;
+    font-size: 1.1rem;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .skipButton {
+    padding: 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .error {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .progressText {
+    font-size: 0.75rem;
+  }
+}
+
+/* Extra small devices (360px and below) */
+@media (max-width: 360px) {
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .question {
+    font-size: 0.95rem;
   }
 
   .option {
+    min-height: 60px;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .option svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    font-size: 0.8rem;
+  }
+}
+
+/* Landscape mode on mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .modal {
+    max-height: 95vh;
     padding: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .question {
+    font-size: 1rem;
+  }
+
+  .step {
+    gap: 0.75rem;
+  }
+
+  .options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .option {
+    min-height: 60px;
+    padding: 0.75rem;
   }
 }
