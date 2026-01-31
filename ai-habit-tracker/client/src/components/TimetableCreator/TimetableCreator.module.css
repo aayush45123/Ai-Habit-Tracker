@@ -1,10 +1,12 @@
-/* TimetableCreator.module.css - Tabular input styling */
+/* client/src/components/TimetableCreator/TimetableCreator.module.css - COMPLETE RESPONSIVE VERSION */
+
 .root {
   background: var(--color-bg-primary);
   border: 3px solid var(--color-border);
   padding: 2rem;
   position: relative;
 }
+
 .root::after {
   content: "";
   position: absolute;
@@ -16,32 +18,40 @@
   opacity: 0.2;
   z-index: -1;
 }
+
+/* ===== HEADER ===== */
 .headerCard {
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 3px solid var(--color-border);
 }
+
 .headerTitle {
   font-size: 1.75rem;
   font-weight: 900;
   text-transform: uppercase;
   margin: 0 0 1.5rem 0;
+  letter-spacing: -0.5px;
 }
+
 .basicInfo {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
+
 .infoGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
+
 .infoRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
+
 .label {
   font-weight: 700;
   text-transform: uppercase;
@@ -49,11 +59,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  letter-spacing: 0.5px;
 }
+
 .labelIcon {
   width: 16px;
   height: 16px;
 }
+
 .input,
 .select {
   background: var(--color-bg-secondary);
@@ -62,13 +75,16 @@
   font-size: 1rem;
   font-weight: 600;
   font-family: var(--font-primary);
+  width: 100%;
 }
+
 .input:focus,
 .select:focus {
   outline: none;
   background: var(--color-bg-primary);
   box-shadow: 0 0 0 3px var(--color-accent-primary);
 }
+
 .checkboxLabel {
   display: flex;
   align-items: center;
@@ -77,23 +93,36 @@
   border: 3px solid var(--color-border);
   background: var(--color-bg-secondary);
   cursor: pointer;
+  flex-wrap: wrap;
 }
+
 .checkbox {
   width: 20px;
   height: 20px;
   accent-color: var(--color-accent-primary);
+  flex-shrink: 0;
 }
+
 .sportsRow {
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
 }
+
+.sportsRow .select {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ===== DAY TABS ===== */
 .dayTabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
 }
+
 .dayTab {
   background: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
@@ -104,29 +133,38 @@
   align-items: center;
   gap: 0.25rem;
   transition: all 0.2s;
+  flex: 1;
+  min-width: 80px;
 }
+
 .dayTab:hover {
   background: var(--color-bg-tertiary);
 }
+
 .activeTab {
   background: var(--color-accent-primary);
   color: var(--color-text-on-dark);
 }
+
 .dayNumber {
   font-size: 0.75rem;
   font-weight: 700;
 }
+
 .dayName {
   font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
 }
+
+/* ===== DAY EDITOR ===== */
 .dayEditor {
   background: var(--color-bg-primary);
   border: 3px solid var(--color-border);
   padding: 2rem;
   margin-bottom: 2rem;
 }
+
 .dayHeader {
   display: flex;
   justify-content: space-between;
@@ -134,13 +172,17 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 2px solid var(--color-border);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
+
 .dayTitle {
   font-size: 1.5rem;
   font-weight: 900;
   text-transform: uppercase;
   margin: 0;
 }
+
 .restDayToggle {
   display: flex;
   align-items: center;
@@ -148,32 +190,41 @@
   font-weight: 700;
   cursor: pointer;
 }
+
 .dayBasicInfo {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
+
 .timeInputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+
+/* ===== EXERCISES TABLE ===== */
 .exercisesSection {
   margin: 2rem 0;
 }
+
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
+
 .sectionTitle {
   font-size: 1.1rem;
   font-weight: 800;
   text-transform: uppercase;
   margin: 0;
 }
+
 .addExerciseBtn {
   background: var(--color-accent-primary);
   color: var(--color-text-on-dark);
@@ -184,19 +235,30 @@
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+  transition: all 0.2s;
 }
+
+.addExerciseBtn:hover {
+  transform: translate(-2px, -2px);
+}
+
 .btnIcon {
   width: 16px;
   height: 16px;
 }
+
 .tableWrapper {
   overflow-x: auto;
   border: 3px solid var(--color-border);
+  -webkit-overflow-scrolling: touch;
 }
+
 .exerciseTable {
   width: 100%;
   border-collapse: collapse;
+  min-width: 800px;
 }
+
 .exerciseTable th {
   background: var(--color-accent-primary);
   color: var(--color-text-on-dark);
@@ -206,16 +268,21 @@
   text-transform: uppercase;
   font-size: 0.85rem;
   border: 2px solid var(--color-border);
+  white-space: nowrap;
 }
+
 .exerciseTable td {
   padding: 0.5rem;
   border: 2px solid var(--color-border);
 }
+
 .numberCell {
   text-align: center;
   font-weight: 900;
   font-size: 1rem;
+  white-space: nowrap;
 }
+
 .tableInput {
   width: 100%;
   background: var(--color-bg-secondary);
@@ -223,45 +290,61 @@
   padding: 0.5rem;
   font-family: var(--font-primary);
   font-weight: 600;
+  min-width: 100px;
 }
+
 .tableInput:focus {
   outline: none;
   background: var(--color-bg-primary);
 }
+
 .removeBtn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .removeBtn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
+
 .removeIcon {
   width: 18px;
   height: 18px;
-  color: var(--color-error);
+  color: #ff0000;
 }
+
+/* ===== TIME BLOCKS ===== */
 .timeBlocksSection {
   margin-top: 2rem;
 }
+
 .timeBlocksGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
+
 .timeBlockInput {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
+
+/* ===== ACTIONS ===== */
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
+  flex-wrap: wrap;
 }
+
 .cancelBtn,
 .saveBtn {
   padding: 1rem 2rem;
@@ -272,20 +355,369 @@
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-primary);
+  position: relative;
 }
+
+.cancelBtn::after,
+.saveBtn::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border);
+  opacity: 0.3;
+  z-index: -1;
+  transition: all 0.2s;
+}
+
 .cancelBtn {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
 }
+
 .saveBtn {
   background: var(--color-accent-primary);
   color: var(--color-text-on-dark);
 }
+
+.cancelBtn:hover,
+.saveBtn:hover {
+  transform: translate(-3px, -3px);
+}
+
+.cancelBtn:hover::after,
+.saveBtn:hover::after {
+  transform: translate(2px, 2px);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablets (1024px and below) */
+@media (max-width: 1024px) {
+  .timeBlocksGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .exerciseTable {
+    font-size: 0.9rem;
+  }
+
+  .exerciseTable th,
+  .exerciseTable td {
+    padding: 0.6rem;
+  }
+}
+
+/* Tablets (768px and below) */
 @media (max-width: 768px) {
+  .root {
+    padding: 1.5rem;
+  }
+
+  .headerTitle {
+    font-size: 1.5rem;
+  }
+
+  .infoRow {
+    grid-template-columns: 1fr;
+  }
+
   .dayBasicInfo {
     grid-template-columns: 1fr;
   }
-  .tableWrapper {
+
+  .timeInputs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dayTabs {
+    gap: 0.4rem;
+  }
+
+  .dayTab {
+    min-width: 70px;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .dayName {
+    font-size: 0.75rem;
+  }
+
+  .dayEditor {
+    padding: 1.5rem;
+  }
+
+  .dayTitle {
+    font-size: 1.25rem;
+  }
+
+  .timeBlocksGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .exerciseTable {
+    min-width: 700px;
     font-size: 0.85rem;
+  }
+
+  .tableInput {
+    min-width: 80px;
+    padding: 0.4rem;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Mobile (480px and below) */
+@media (max-width: 480px) {
+  .root {
+    padding: 1rem;
+    border-width: 2px;
+  }
+
+  .headerCard {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .headerTitle {
+    font-size: 1.25rem;
+  }
+
+  .label {
+    font-size: 0.75rem;
+  }
+
+  .labelIcon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .input,
+  .select {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  .sportsRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sportsRow .checkboxLabel {
+    width: 100%;
+  }
+
+  .sportsRow .select {
+    min-width: 100%;
+  }
+
+  .dayTabs {
+    gap: 0.3rem;
+  }
+
+  .dayTab {
+    min-width: 60px;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .dayNumber {
+    font-size: 0.7rem;
+  }
+
+  .dayName {
+    font-size: 0.7rem;
+  }
+
+  .dayEditor {
+    padding: 1rem;
+    border-width: 2px;
+  }
+
+  .dayHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dayTitle {
+    font-size: 1.1rem;
+  }
+
+  .dayBasicInfo {
+    gap: 1rem;
+  }
+
+  .timeInputs {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .addExerciseBtn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .btnIcon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .tableWrapper {
+    border-width: 2px;
+  }
+
+  .exerciseTable {
+    min-width: 600px;
+    font-size: 0.8rem;
+  }
+
+  .exerciseTable th {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .exerciseTable td {
+    padding: 0.4rem 0.3rem;
+  }
+
+  .tableInput {
+    padding: 0.4rem;
+    font-size: 0.85rem;
+    min-width: 70px;
+  }
+
+  .removeIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .timeBlocksGrid {
+    gap: 0.75rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    justify-content: center;
+  }
+}
+
+/* Extra small devices (360px and below) */
+@media (max-width: 360px) {
+  .root {
+    padding: 0.75rem;
+  }
+
+  .headerTitle {
+    font-size: 1.1rem;
+  }
+
+  .dayTab {
+    min-width: 50px;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .dayNumber {
+    font-size: 0.65rem;
+  }
+
+  .dayName {
+    font-size: 0.65rem;
+  }
+
+  .dayEditor {
+    padding: 0.75rem;
+  }
+
+  .dayTitle {
+    font-size: 1rem;
+  }
+
+  .exerciseTable {
+    min-width: 550px;
+    font-size: 0.75rem;
+  }
+
+  .exerciseTable th {
+    padding: 0.4rem 0.3rem;
+    font-size: 0.7rem;
+  }
+
+  .tableInput {
+    padding: 0.3rem;
+    font-size: 0.8rem;
+    min-width: 60px;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Landscape mode on mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .root {
+    padding: 1rem;
+  }
+
+  .dayEditor {
+    padding: 1rem;
+  }
+
+  .dayBasicInfo,
+  .timeBlocksGrid {
+    gap: 0.75rem;
+  }
+
+  .exercisesSection {
+    margin: 1rem 0;
+  }
+}
+
+/* Print styles */
+@media print {
+  .root {
+    border: none;
+    padding: 0;
+  }
+
+  .root::after {
+    display: none;
+  }
+
+  .dayTabs,
+  .actions {
+    display: none;
+  }
+
+  .tableWrapper {
+    overflow: visible;
+  }
+
+  .exerciseTable {
+    min-width: 100%;
   }
 }
