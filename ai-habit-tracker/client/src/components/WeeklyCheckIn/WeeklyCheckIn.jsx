@@ -1,3 +1,4 @@
+// client/src/components/WeeklyCheckIn/WeeklyCheckIn.jsx - FIXED VERSION
 import React, { useState } from "react";
 import {
   TrendingUp,
@@ -10,12 +11,15 @@ import {
   Zap,
   Sparkles,
   Battery,
+  X,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./WeeklyCheckIn.module.css";
 
 export default function WeeklyCheckIn({ onComplete }) {
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [answers, setAnswers] = useState({
     weightChange: "",
     feelingBetter: "",
@@ -26,28 +30,92 @@ export default function WeeklyCheckIn({ onComplete }) {
 
   async function handleSubmit() {
     try {
-      await api.post("/calories/weekly-checkin", answers);
+      setLoading(true);
+      setError("");
+
+      // Validate required fields
+      if (
+        !answers.weightChange ||
+        !answers.feelingBetter ||
+        !answers.energyLevel
+      ) {
+        setError("Please answer all questions");
+        setLoading(false);
+        return;
+      }
+
+      // If updateProfile is true, validate newWeight
+      if (
+        answers.updateProfile &&
+        (!answers.newWeight || isNaN(answers.newWeight))
+      ) {
+        setError("Please provide a valid weight");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Submitting check-in:", answers);
+
+      // ✅ FIXED: Correct API endpoint
+      await api.post("/calories/weekly-checkin", {
+        weightChange: answers.weightChange,
+        feelingBetter: answers.feelingBetter,
+        energyLevel: answers.energyLevel,
+        updateProfile: answers.updateProfile,
+        newWeight: answers.newWeight ? Number(answers.newWeight) : null,
+      });
+
+      console.log("Check-in submitted successfully");
       onComplete();
     } catch (err) {
       console.error("Error submitting check-in:", err);
-      alert("Failed to save check-in");
+      setError(
+        err.response?.data?.message ||
+          "Failed to save check-in. Please try again.",
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
   function handleSkip() {
-    onComplete();
+    if (confirm("Are you sure you want to skip this week's check-in?")) {
+      onComplete();
+    }
   }
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
+        {/* CLOSE BUTTON */}
+        <button className={styles.closeBtn} onClick={handleSkip}>
+          <X size={24} />
+        </button>
+
         <div className={styles.header}>
           <h3 className={styles.title}>Weekly Check-In</h3>
           <p className={styles.subtitle}>
             It's been a week! Let's track your progress
           </p>
+          <div className={styles.progress}>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${(step / 4) * 100}%` }}
+              ></div>
+            </div>
+            <span className={styles.progressText}>Step {step} of 4</span>
+          </div>
         </div>
 
+        {/* ERROR MESSAGE */}
+        {error && (
+          <div className={styles.error}>
+            <span>⚠️ {error}</span>
+          </div>
+        )}
+
+        {/* STEP 1: WEIGHT CHANGE */}
         {step === 1 && (
           <div className={styles.step}>
             <p className={styles.question}>
@@ -58,32 +126,37 @@ export default function WeeklyCheckIn({ onComplete }) {
                 className={`${styles.option} ${
                   answers.weightChange === "increased" ? styles.selected : ""
                 }`}
-                onClick={() =>
-                  setAnswers({ ...answers, weightChange: "increased" })
-                }
+                onClick={() => {
+                  setAnswers({ ...answers, weightChange: "increased" });
+                  setError("");
+                }}
               >
-                <TrendingUp size={20} style={{ marginRight: "8px" }} />
-                Increased
+                <TrendingUp size={20} />
+                <span>Increased</span>
               </button>
               <button
                 className={`${styles.option} ${
                   answers.weightChange === "decreased" ? styles.selected : ""
                 }`}
-                onClick={() =>
-                  setAnswers({ ...answers, weightChange: "decreased" })
-                }
+                onClick={() => {
+                  setAnswers({ ...answers, weightChange: "decreased" });
+                  setError("");
+                }}
               >
-                <TrendingDown size={20} style={{ marginRight: "8px" }} />
-                Decreased
+                <TrendingDown size={20} />
+                <span>Decreased</span>
               </button>
               <button
                 className={`${styles.option} ${
                   answers.weightChange === "same" ? styles.selected : ""
                 }`}
-                onClick={() => setAnswers({ ...answers, weightChange: "same" })}
+                onClick={() => {
+                  setAnswers({ ...answers, weightChange: "same" });
+                  setError("");
+                }}
               >
-                <Minus size={20} style={{ marginRight: "8px" }} />
-                No Change
+                <Minus size={20} />
+                <span>No Change</span>
               </button>
             </div>
             <button
@@ -96,6 +169,7 @@ export default function WeeklyCheckIn({ onComplete }) {
           </div>
         )}
 
+        {/* STEP 2: FEELING */}
         {step === 2 && (
           <div className={styles.step}>
             <p className={styles.question}>How are you feeling overall?</p>
@@ -104,45 +178,49 @@ export default function WeeklyCheckIn({ onComplete }) {
                 className={`${styles.option} ${
                   answers.feelingBetter === "much_better" ? styles.selected : ""
                 }`}
-                onClick={() =>
-                  setAnswers({ ...answers, feelingBetter: "much_better" })
-                }
+                onClick={() => {
+                  setAnswers({ ...answers, feelingBetter: "much_better" });
+                  setError("");
+                }}
               >
-                <Star size={20} style={{ marginRight: "8px" }} />
-                Much Better
+                <Star size={20} />
+                <span>Much Better</span>
               </button>
               <button
                 className={`${styles.option} ${
                   answers.feelingBetter === "better" ? styles.selected : ""
                 }`}
-                onClick={() =>
-                  setAnswers({ ...answers, feelingBetter: "better" })
-                }
+                onClick={() => {
+                  setAnswers({ ...answers, feelingBetter: "better" });
+                  setError("");
+                }}
               >
-                <Smile size={20} style={{ marginRight: "8px" }} />
-                Better
+                <Smile size={20} />
+                <span>Better</span>
               </button>
               <button
                 className={`${styles.option} ${
                   answers.feelingBetter === "same" ? styles.selected : ""
                 }`}
-                onClick={() =>
-                  setAnswers({ ...answers, feelingBetter: "same" })
-                }
+                onClick={() => {
+                  setAnswers({ ...answers, feelingBetter: "same" });
+                  setError("");
+                }}
               >
-                <Meh size={20} style={{ marginRight: "8px" }} />
-                Same
+                <Meh size={20} />
+                <span>Same</span>
               </button>
               <button
                 className={`${styles.option} ${
                   answers.feelingBetter === "worse" ? styles.selected : ""
                 }`}
-                onClick={() =>
-                  setAnswers({ ...answers, feelingBetter: "worse" })
-                }
+                onClick={() => {
+                  setAnswers({ ...answers, feelingBetter: "worse" });
+                  setError("");
+                }}
               >
-                <Frown size={20} style={{ marginRight: "8px" }} />
-                Worse
+                <Frown size={20} />
+                <span>Worse</span>
               </button>
             </div>
             <div className={styles.buttonGroup}>
@@ -163,6 +241,7 @@ export default function WeeklyCheckIn({ onComplete }) {
           </div>
         )}
 
+        {/* STEP 3: ENERGY LEVEL */}
         {step === 3 && (
           <div className={styles.step}>
             <p className={styles.question}>How's your energy level?</p>
@@ -171,30 +250,37 @@ export default function WeeklyCheckIn({ onComplete }) {
                 className={`${styles.option} ${
                   answers.energyLevel === "high" ? styles.selected : ""
                 }`}
-                onClick={() => setAnswers({ ...answers, energyLevel: "high" })}
+                onClick={() => {
+                  setAnswers({ ...answers, energyLevel: "high" });
+                  setError("");
+                }}
               >
-                <Zap size={20} style={{ marginRight: "8px" }} />
-                High Energy
+                <Zap size={20} />
+                <span>High Energy</span>
               </button>
               <button
                 className={`${styles.option} ${
                   answers.energyLevel === "moderate" ? styles.selected : ""
                 }`}
-                onClick={() =>
-                  setAnswers({ ...answers, energyLevel: "moderate" })
-                }
+                onClick={() => {
+                  setAnswers({ ...answers, energyLevel: "moderate" });
+                  setError("");
+                }}
               >
-                <Sparkles size={20} style={{ marginRight: "8px" }} />
-                Moderate
+                <Sparkles size={20} />
+                <span>Moderate</span>
               </button>
               <button
                 className={`${styles.option} ${
                   answers.energyLevel === "low" ? styles.selected : ""
                 }`}
-                onClick={() => setAnswers({ ...answers, energyLevel: "low" })}
+                onClick={() => {
+                  setAnswers({ ...answers, energyLevel: "low" });
+                  setError("");
+                }}
               >
-                <Battery size={20} style={{ marginRight: "8px" }} />
-                Low Energy
+                <Battery size={20} />
+                <span>Low Energy</span>
               </button>
             </div>
             <div className={styles.buttonGroup}>
@@ -215,6 +301,7 @@ export default function WeeklyCheckIn({ onComplete }) {
           </div>
         )}
 
+        {/* STEP 4: UPDATE WEIGHT */}
         {step === 4 && (
           <div className={styles.step}>
             <p className={styles.question}>
@@ -227,16 +314,29 @@ export default function WeeklyCheckIn({ onComplete }) {
             <div className={styles.toggleGroup}>
               <button
                 className={`${styles.toggle} ${
-                  answers.updateProfile ? styles.toggleActive : ""
+                  !answers.updateProfile ? styles.toggleActive : ""
                 }`}
-                onClick={() =>
+                onClick={() => {
                   setAnswers({
                     ...answers,
-                    updateProfile: !answers.updateProfile,
-                  })
-                }
+                    updateProfile: false,
+                    newWeight: "",
+                  });
+                  setError("");
+                }}
               >
-                {answers.updateProfile ? "Yes, Update" : "No, Keep Same"}
+                No, Keep Same
+              </button>
+              <button
+                className={`${styles.toggle} ${
+                  answers.updateProfile ? styles.toggleActive : ""
+                }`}
+                onClick={() => {
+                  setAnswers({ ...answers, updateProfile: true });
+                  setError("");
+                }}
+              >
+                Yes, Update
               </button>
             </div>
 
@@ -247,12 +347,14 @@ export default function WeeklyCheckIn({ onComplete }) {
                   type="number"
                   className={styles.input}
                   value={answers.newWeight}
-                  onChange={(e) =>
-                    setAnswers({ ...answers, newWeight: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setAnswers({ ...answers, newWeight: e.target.value });
+                    setError("");
+                  }}
                   placeholder="70"
                   min="20"
                   max="500"
+                  step="0.1"
                 />
               </div>
             )}
@@ -261,21 +363,29 @@ export default function WeeklyCheckIn({ onComplete }) {
               <button
                 className={styles.btnSecondary}
                 onClick={() => setStep(3)}
+                disabled={loading}
               >
                 Back
               </button>
               <button
                 className={styles.btnPrimary}
                 onClick={handleSubmit}
-                disabled={answers.updateProfile && !answers.newWeight}
+                disabled={
+                  loading || (answers.updateProfile && !answers.newWeight)
+                }
               >
-                Complete Check-In
+                {loading ? "Saving..." : "Complete Check-In"}
               </button>
             </div>
           </div>
         )}
 
-        <button className={styles.skipButton} onClick={handleSkip}>
+        {/* SKIP BUTTON */}
+        <button
+          className={styles.skipButton}
+          onClick={handleSkip}
+          disabled={loading}
+        >
           Skip for now
         </button>
       </div>
