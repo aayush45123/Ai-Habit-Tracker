@@ -260,3 +260,235 @@
     flex-direction: column;
   }
 }
+/* ADD THESE STYLES TO WeeklyCheckIn.module.css */
+
+/* Close Button */
+.closeBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: 2px solid var(--color-border);
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  transform: rotate(90deg);
+}
+
+/* Progress Bar */
+.progress {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-accent-primary);
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+/* Error Message */
+.error {
+  background: #ff0000;
+  color: #ffffff;
+  padding: 1rem;
+  border: 3px solid var(--color-border);
+  margin-bottom: 1rem;
+  font-weight: 700;
+  text-align: center;
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* Option Buttons - Better spacing */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  font-size: 0.95rem;
+}
+
+.option span {
+  display: block;
+}
+
+.option:hover {
+  transform: translate(-3px, -3px);
+  background: var(--color-bg-primary);
+}
+
+.option.selected {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border-color: var(--color-accent-primary);
+}
+
+/* Toggle Group - Better styling */
+.toggleGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.toggle {
+  padding: 1.25rem;
+  background: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.toggle:hover {
+  transform: translate(-2px, -2px);
+}
+
+.toggleActive {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border-color: var(--color-accent-primary);
+}
+
+/* Input Group */
+.inputGroup {
+  margin: 1.5rem 0;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.label {
+  display: block;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+.input {
+  width: 100%;
+  padding: 1rem;
+  background: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  transform: translate(-2px, -2px);
+}
+
+/* Button States */
+.btnPrimary:disabled,
+.btnSecondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btnPrimary:disabled:hover,
+.btnSecondary:disabled:hover {
+  transform: none !important;
+}
+
+/* Skip Button */
+.skipButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  border: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
+
+.skipButton:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.skipButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .options {
+    grid-template-columns: 1fr;
+  }
+
+  .toggleGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .option {
+    padding: 1rem;
+  }
+}
