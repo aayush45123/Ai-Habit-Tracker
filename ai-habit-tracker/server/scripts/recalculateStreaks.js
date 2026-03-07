@@ -1,6 +1,6 @@
 // server/src/scripts/recalculateStreaks.js
 import mongoose from "mongoose";
-import Habit from "../models/Habit.js";
+import Habit from "../src/models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
 import {
   normalizeDateIST,
