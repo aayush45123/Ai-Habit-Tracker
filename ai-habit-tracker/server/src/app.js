@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import cron from "node-cron";
 import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -13,6 +14,9 @@ import focusRoutes from "./routes/focusRoutes.js";
 import aiChatRoutes from "./routes/aiChatRoutes.js";
 import calorieRoutes from "./routes/calorieRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
+
+// Import streak reset function
+import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
 
 /* =======================
    ENV & DB
@@ -77,6 +81,39 @@ app.use("/api/calories", calorieRoutes); // ✅ Changed from /calorie to /calori
 // Timetable routes (support both plural and singular paths for backward compatibility)
 app.use("/api/timetables", timetableRoutes);
 app.use("/api/timetable", timetableRoutes);
+
+/* =======================
+   ⏰ AUTOMATIC STREAK RESET - DAILY CRON JOB
+======================= */
+
+// Run initial streak check when server starts
+console.log("🔄 Running initial streak check on server startup...");
+checkAndResetMissedStreaks()
+  .then(() => {
+    console.log("✅ Initial streak check completed successfully");
+  })
+  .catch((err) => {
+    console.error("❌ Initial streak check failed:", err);
+  });
+
+// Schedule daily streak reset at 00:01 AM IST
+cron.schedule(
+  "1 0 * * *",
+  async () => {
+    console.log("⏰ Running scheduled daily streak check...");
+    try {
+      await checkAndResetMissedStreaks();
+      console.log("✅ Daily streak check completed successfully");
+    } catch (err) {
+      console.error("❌ Daily streak check failed:", err);
+    }
+  },
+  {
+    timezone: "Asia/Kolkata",
+  },
+);
+
+console.log("✅ Streak reset cron job scheduled (runs daily at 00:01 IST)");
 
 /* =======================
    HEALTH CHECK
