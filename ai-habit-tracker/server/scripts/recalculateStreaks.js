@@ -8,7 +8,7 @@ import {
   getYesterdayIST,
   getDaysAgoIST,
   areConsecutiveDays,
-} from "../utils/getTodayIST.js";
+} from "../src/utils/getTodayIST.js";
 import dotenv from "dotenv";
 
 dotenv.config();
