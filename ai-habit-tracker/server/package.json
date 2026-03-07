@@ -21,6 +21,7 @@
     "groq-sdk": "^0.37.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.0.0",
+    "node-cron": "^4.2.1",
     "openai": "^6.14.0"
   },
   "devDependencies": {
