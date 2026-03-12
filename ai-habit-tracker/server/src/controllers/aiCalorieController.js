@@ -1,3 +1,4 @@
+// server/src/controllers/aiCalorieController.js
 import OpenAI from "openai";
 import FoodLog from "../models/FoodLog.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
@@ -11,6 +12,7 @@ function createGroqClient() {
 
 /* ============================
    ESTIMATE FOOD CALORIES & PROTEIN
+   ✅ IMPROVED: Better prompts for accurate estimates
 ============================ */
 export const estimateFoodCalories = async (req, res) => {
   try {
@@ -26,20 +28,44 @@ export const estimateFoodCalories = async (req, res) => {
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
-      temperature: 0.2,
+      temperature: 0.1, // Lower temperature for more consistent estimates
       messages: [
         {
           role: "system",
-          content: `You are a nutrition expert. Estimate the calories and protein for the given food item.
+          content: `You are an expert nutritionist specializing in Indian and international cuisine. Provide accurate calorie and protein estimates for food items.
+
+IMPORTANT GUIDELINES:
+1. Consider TYPICAL PORTION SIZES for the food mentioned
+2. If "half plate" or "full plate" is mentioned, estimate accordingly:
+   - Half plate = 200-250g for rice/noodles
+   - Full plate = 400-500g
+   - Bowl = 250-300ml
+3. Account for cooking methods (fried foods have more calories)
+4. Include all ingredients (oil, ghee, cheese, etc.)
+5. Be realistic about protein content
+
+PROTEIN GUIDELINES (per 100g):
+- Rice/noodles: 2-4g
+- Chicken/fish: 20-30g
+- Paneer/cheese: 18-25g
+- Dal/lentils: 7-9g
+- Vegetables: 1-3g
+- Egg: ~13g per egg
+
+CALORIE GUIDELINES (per 100g):
+- Plain rice: 130 kcal
+- Fried rice: 150-180 kcal
+- Noodles: 130-160 kcal
+- Roti/chapati: ~70 kcal per piece
+- Dal: 90-110 kcal
+
 Return ONLY valid JSON in this exact format:
 { "calories": number, "protein": number }
 
-Guidelines:
-- Provide realistic estimates for a typical serving
-- Calories should be between 10 and 3000
-- Protein should be in grams (0-200g)
-- For vague items, estimate a standard portion
-- Consider common preparation methods`,
+Example outputs:
+- "half plate shezwan fried rice" → {"calories": 550, "protein": 15}
+- "2 eggs" → {"calories": 155, "protein": 26}
+- "chicken tikka 6 pieces" → {"calories": 280, "protein": 35}`,
         },
         {
           role: "user",
@@ -78,12 +104,17 @@ Guidelines:
     // Validate the response
     if (
       typeof parsed.calories !== "number" ||
-      typeof parsed.protein !== "number"
+      typeof parsed.protein !== "number" ||
+      parsed.calories < 10 ||
+      parsed.calories > 5000 ||
+      parsed.protein < 0 ||
+      parsed.protein > 300
     ) {
+      console.warn("Invalid nutrition estimate:", parsed);
       return res.status(500).json({
         message: "Invalid nutrition estimate received",
-        calories: 200,
-        protein: 10,
+        calories: 250,
+        protein: 12,
       });
     }
 
@@ -95,8 +126,8 @@ Guidelines:
     console.error("Nutrition estimation error:", err);
     res.status(500).json({
       message: "Nutrition estimation failed",
-      calories: 200,
-      protein: 10,
+      calories: 250,
+      protein: 12,
     });
   }
 };
