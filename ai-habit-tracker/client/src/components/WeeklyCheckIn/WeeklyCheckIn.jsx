@@ -1,4 +1,4 @@
-// client/src/components/WeeklyCheckIn/WeeklyCheckIn.jsx - FIXED VERSION
+// client/src/components/WeeklyCheckIn/WeeklyCheckIn.jsx
 import React, { useState } from "react";
 import {
   TrendingUp,
@@ -45,19 +45,25 @@ export default function WeeklyCheckIn({ onComplete }) {
       }
 
       // If updateProfile is true, validate newWeight
-      if (
-        answers.updateProfile &&
-        (!answers.newWeight || isNaN(answers.newWeight))
-      ) {
-        setError("Please provide a valid weight");
+      if (answers.updateProfile && !answers.newWeight) {
+        setError("Please provide your new weight");
         setLoading(false);
         return;
       }
 
-      console.log("Submitting check-in:", answers);
+      // Validate weight is a positive number
+      if (answers.updateProfile && answers.newWeight) {
+        const weight = Number(answers.newWeight);
+        if (isNaN(weight) || weight <= 0 || weight > 500) {
+          setError("Please provide a valid weight between 1 and 500 kg");
+          setLoading(false);
+          return;
+        }
+      }
 
-      // ✅ FIXED: Correct API endpoint
-      await api.post("/calories/weekly-checkin", {
+      console.log("📤 Submitting check-in:", answers);
+
+      const response = await api.post("/calories/weekly-checkin", {
         weightChange: answers.weightChange,
         feelingBetter: answers.feelingBetter,
         energyLevel: answers.energyLevel,
@@ -65,10 +71,22 @@ export default function WeeklyCheckIn({ onComplete }) {
         newWeight: answers.newWeight ? Number(answers.newWeight) : null,
       });
 
-      console.log("Check-in submitted successfully");
+      console.log("✅ Check-in submitted successfully:", response.data);
+
+      // Show success message if profile was updated
+      if (response.data.profileUpdated && response.data.newRecommendations) {
+        alert(
+          `Success! Your weight has been updated to ${response.data.newRecommendations.weight}kg.\n\n` +
+            `New daily goals:\n` +
+            `Calories: ${response.data.newRecommendations.calories} kcal\n` +
+            `Protein: ${response.data.newRecommendations.protein}g`,
+        );
+      }
+
       onComplete();
     } catch (err) {
-      console.error("Error submitting check-in:", err);
+      console.error("❌ Error submitting check-in:", err);
+      console.error("Response data:", err.response?.data);
       setError(
         err.response?.data?.message ||
           "Failed to save check-in. Please try again.",
@@ -79,7 +97,7 @@ export default function WeeklyCheckIn({ onComplete }) {
   }
 
   function handleSkip() {
-    if (confirm("Are you sure you want to skip this week's check-in?")) {
+    if (window.confirm("Are you sure you want to skip this week's check-in?")) {
       onComplete();
     }
   }
@@ -88,7 +106,11 @@ export default function WeeklyCheckIn({ onComplete }) {
     <div className={styles.overlay}>
       <div className={styles.modal}>
         {/* CLOSE BUTTON */}
-        <button className={styles.closeBtn} onClick={handleSkip}>
+        <button
+          className={styles.closeBtn}
+          onClick={handleSkip}
+          disabled={loading}
+        >
           <X size={24} />
         </button>
 
@@ -352,7 +374,7 @@ export default function WeeklyCheckIn({ onComplete }) {
                     setError("");
                   }}
                   placeholder="70"
-                  min="20"
+                  min="1"
                   max="500"
                   step="0.1"
                 />
