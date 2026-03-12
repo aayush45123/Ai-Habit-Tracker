@@ -1,3 +1,4 @@
+// server/src/controllers/calorieController.js
 import FoodLog from "../models/FoodLog.js";
 import CalorieProfile from "../models/CalorieProfile.js";
 import WeeklyCheckIn from "../models/WeeklyCheckIn.js";
@@ -170,7 +171,6 @@ function calculateRecommendations(profile) {
 
 /* ============================
    SET / UPDATE PROFILE
-   ✅ FIXED: Now properly handles manual goal updates
 ============================ */
 export const saveCalorieProfile = async (req, res) => {
   try {
@@ -472,11 +472,8 @@ export const checkWeeklyCheckIn = async (req, res) => {
 };
 
 /* ============================
-   SAVE WEEKLY CHECK-IN
-   ✅ FIXED: Better error handling and validation
-============================ */
-/* ============================
    SAVE WEEKLY CHECK-IN - FIXED VERSION
+   ✅ Proper validation and error handling
 ============================ */
 export const saveWeeklyCheckIn = async (req, res) => {
   try {
@@ -489,33 +486,43 @@ export const saveWeeklyCheckIn = async (req, res) => {
       newWeight,
     } = req.body;
 
-    console.log("Weekly check-in received:", {
+    console.log("📝 Weekly check-in received:", {
       weightChange,
       feelingBetter,
       energyLevel,
       updateProfile,
       newWeight,
+      userId,
     });
 
     // ✅ FIXED: Validate required fields
     if (!weightChange || !feelingBetter || !energyLevel) {
-      console.error("Validation failed: Missing required fields");
+      console.error("❌ Validation failed: Missing required fields");
       return res.status(400).json({
         message: "Please answer all questions",
+        missingFields: {
+          weightChange: !weightChange,
+          feelingBetter: !feelingBetter,
+          energyLevel: !energyLevel,
+        },
       });
     }
 
-    // ✅ FIXED: Only validate newWeight if updateProfile is true
+    // ✅ FIXED: Only validate newWeight if updateProfile is explicitly true
     if (updateProfile === true) {
-      if (!newWeight || isNaN(Number(newWeight)) || Number(newWeight) <= 0) {
-        console.error("Validation failed: Invalid weight", newWeight);
+      const weightNum = Number(newWeight);
+      if (!newWeight || isNaN(weightNum) || weightNum <= 0 || weightNum > 500) {
+        console.error("❌ Validation failed: Invalid weight", {
+          newWeight,
+          parsed: weightNum,
+        });
         return res.status(400).json({
-          message: "Please provide a valid weight",
+          message: "Please provide a valid weight (between 1 and 500 kg)",
         });
       }
     }
 
-    // Create check-in record
+    // ✅ Create check-in record
     const checkIn = await WeeklyCheckIn.create({
       userId,
       weightChange,
@@ -524,18 +531,16 @@ export const saveWeeklyCheckIn = async (req, res) => {
       updatedProfile: updateProfile === true,
     });
 
-    console.log("Check-in saved:", checkIn._id);
+    console.log("✅ Check-in saved successfully:", checkIn._id);
 
-    // Update profile if requested
+    // ✅ Update profile if requested AND newWeight is provided
     if (updateProfile === true && newWeight) {
       const profile = await CalorieProfile.findOne({ userId });
 
       if (!profile) {
-        console.warn("Profile not found for weight update");
-        // Still return success for check-in, but note profile wasn't updated
+        console.warn("⚠️ Profile not found for user", userId);
         return res.json({
-          message:
-            "Check-in saved successfully, but profile not found for weight update",
+          message: "Check-in saved, but no profile found to update weight",
           checkIn,
           profileUpdated: false,
         });
@@ -544,12 +549,7 @@ export const saveWeeklyCheckIn = async (req, res) => {
       const oldWeight = profile.weight;
       const newWeightNum = Number(newWeight);
 
-      console.log(
-        "Updating profile weight from",
-        oldWeight,
-        "to",
-        newWeightNum,
-      );
+      console.log(`📊 Updating weight: ${oldWeight}kg → ${newWeightNum}kg`);
 
       // Update weight
       profile.weight = newWeightNum;
@@ -561,34 +561,38 @@ export const saveWeeklyCheckIn = async (req, res) => {
 
       await profile.save();
 
-      console.log("Profile updated with new recommendations:", {
+      console.log("✅ Profile updated:", {
         weight: profile.weight,
         dailyGoal: profile.dailyGoal,
         proteinGoal: profile.proteinGoal,
       });
 
       return res.json({
-        message: "Check-in saved and profile updated successfully",
+        message: "Check-in saved and profile updated successfully! 🎉",
         checkIn,
         profileUpdated: true,
         newRecommendations: {
           calories: profile.dailyGoal,
           protein: profile.proteinGoal,
+          weight: profile.weight,
         },
       });
     }
 
-    // Success without profile update
+    // ✅ Success without profile update
+    console.log("✅ Check-in completed without profile update");
     res.json({
-      message: "Check-in saved successfully",
+      message: "Check-in saved successfully! 🎉",
       checkIn,
       profileUpdated: false,
     });
   } catch (err) {
-    console.error("Error saving check-in:", err);
+    console.error("❌ Error saving check-in:", err);
+    console.error("Stack trace:", err.stack);
     res.status(500).json({
       message: "Failed to save check-in",
       error: err.message,
+      details: process.env.NODE_ENV === "development" ? err.stack : undefined,
     });
   }
 };
