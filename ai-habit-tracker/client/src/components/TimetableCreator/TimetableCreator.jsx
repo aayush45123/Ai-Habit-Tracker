@@ -22,7 +22,6 @@ const DAYS = [
   "Sunday",
 ];
 
-// ✅ FIXED: Function to create fresh empty exercise
 const createEmptyExercise = () => ({
   name: "",
   sets: "",
@@ -32,14 +31,14 @@ const createEmptyExercise = () => ({
   notes: "",
 });
 
-// ✅ FIXED: Function to create fresh empty day
+// ✅ FIX 1: exercises starts as [] — no phantom empty exercise
 const createEmptyDay = (dayName) => ({
   day: dayName,
   focusArea: "",
   startTime: "",
   endTime: "",
   isRestDay: false,
-  exercises: [createEmptyExercise()],
+  exercises: [],
   timeBlock: {
     morning: "",
     afternoon: "",
@@ -60,58 +59,49 @@ export default function TimetableCreator({ onSave, onCancel, initialData }) {
   );
   const [sport, setSport] = useState(initialData?.sportsMode?.sport || "none");
 
-  // ✅ FIXED: Initialize schedule with unique objects for each day
   const [schedule, setSchedule] = useState(() => {
     if (
       initialData?.weeklySchedule &&
       initialData.weeklySchedule.length === 7
     ) {
-      // Deep clone to avoid reference issues
       return initialData.weeklySchedule.map((day) => ({
         ...day,
-        exercises: day.exercises.map((ex) => ({ ...ex })),
+        // ✅ FIX 2: When loading existing data, strip exercises with empty names
+        exercises: (day.exercises || [])
+          .filter((ex) => ex.name && ex.name.trim() !== "")
+          .map((ex) => ({ ...ex })),
         timeBlock: { ...day.timeBlock },
       }));
     }
-    // Create fresh empty day for each day of the week
     return DAYS.map((dayName) => createEmptyDay(dayName));
   });
 
   const [activeDay, setActiveDay] = useState(0);
 
-  // ✅ FIXED: Update day immutably
   const updateDay = (dayIndex, field, value) => {
-    setSchedule((prevSchedule) => {
-      const updated = [...prevSchedule];
-      updated[dayIndex] = {
-        ...updated[dayIndex],
-        [field]: value,
-      };
+    setSchedule((prev) => {
+      const updated = [...prev];
+      updated[dayIndex] = { ...updated[dayIndex], [field]: value };
       return updated;
     });
   };
 
-  // ✅ FIXED: Update exercise immutably
   const updateExercise = (dayIndex, exIndex, field, value) => {
-    setSchedule((prevSchedule) => {
-      const updated = [...prevSchedule];
+    setSchedule((prev) => {
+      const updated = [...prev];
       const updatedExercises = [...updated[dayIndex].exercises];
       updatedExercises[exIndex] = {
         ...updatedExercises[exIndex],
         [field]: value,
       };
-      updated[dayIndex] = {
-        ...updated[dayIndex],
-        exercises: updatedExercises,
-      };
+      updated[dayIndex] = { ...updated[dayIndex], exercises: updatedExercises };
       return updated;
     });
   };
 
-  // ✅ FIXED: Add exercise with fresh object
   const addExercise = (dayIndex) => {
-    setSchedule((prevSchedule) => {
-      const updated = [...prevSchedule];
+    setSchedule((prev) => {
+      const updated = [...prev];
       updated[dayIndex] = {
         ...updated[dayIndex],
         exercises: [...updated[dayIndex].exercises, createEmptyExercise()],
@@ -120,42 +110,38 @@ export default function TimetableCreator({ onSave, onCancel, initialData }) {
     });
   };
 
-  // ✅ FIXED: Remove exercise immutably
   const removeExercise = (dayIndex, exIndex) => {
-    setSchedule((prevSchedule) => {
-      const updated = [...prevSchedule];
-      if (updated[dayIndex].exercises.length > 1) {
-        const updatedExercises = [...updated[dayIndex].exercises];
-        updatedExercises.splice(exIndex, 1);
-        updated[dayIndex] = {
-          ...updated[dayIndex],
-          exercises: updatedExercises,
-        };
-      }
+    setSchedule((prev) => {
+      const updated = [...prev];
+      const updatedExercises = [...updated[dayIndex].exercises];
+      updatedExercises.splice(exIndex, 1);
+      updated[dayIndex] = { ...updated[dayIndex], exercises: updatedExercises };
       return updated;
     });
   };
 
-  // ✅ FIXED: Update time block immutably
   const updateTimeBlock = (dayIndex, block, value) => {
-    setSchedule((prevSchedule) => {
-      const updated = [...prevSchedule];
+    setSchedule((prev) => {
+      const updated = [...prev];
       updated[dayIndex] = {
         ...updated[dayIndex],
-        timeBlock: {
-          ...updated[dayIndex].timeBlock,
-          [block]: value,
-        },
+        timeBlock: { ...updated[dayIndex].timeBlock, [block]: value },
       };
       return updated;
     });
   };
 
+  // ✅ FIX 3: Filter out exercises with empty names before saving
   const handleSave = () => {
-    // Validation
-    const hasContent = schedule.some(
-      (day) =>
-        day.focusArea || day.exercises.some((ex) => ex.name) || day.isRestDay,
+    const cleanedSchedule = schedule.map((day) => ({
+      ...day,
+      exercises: (day.exercises || []).filter(
+        (ex) => ex.name && ex.name.trim() !== "",
+      ),
+    }));
+
+    const hasContent = cleanedSchedule.some(
+      (day) => day.focusArea || day.exercises.length > 0 || day.isRestDay,
     );
 
     if (!hasContent) {
@@ -172,7 +158,7 @@ export default function TimetableCreator({ onSave, onCancel, initialData }) {
         enabled: sportsEnabled,
         sport: sportsEnabled ? sport : "none",
       },
-      weeklySchedule: schedule,
+      weeklySchedule: cleanedSchedule,
     });
   };
 
@@ -374,134 +360,143 @@ export default function TimetableCreator({ onSave, onCancel, initialData }) {
               </button>
             </div>
 
-            <div className={styles.tableWrapper}>
-              <table className={styles.exerciseTable}>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Exercise Name</th>
-                    <th>Sets</th>
-                    <th>Reps</th>
-                    <th>Duration</th>
-                    <th>Rest</th>
-                    <th>Notes</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentDay.exercises.map((exercise, exIndex) => (
-                    <tr key={exIndex}>
-                      <td className={styles.numberCell}>{exIndex + 1}</td>
-                      <td>
-                        <input
-                          type="text"
-                          className={styles.tableInput}
-                          value={exercise.name}
-                          onChange={(e) =>
-                            updateExercise(
-                              activeDay,
-                              exIndex,
-                              "name",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="e.g., Bench Press"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          className={styles.tableInput}
-                          value={exercise.sets}
-                          onChange={(e) =>
-                            updateExercise(
-                              activeDay,
-                              exIndex,
-                              "sets",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="4"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          className={styles.tableInput}
-                          value={exercise.reps}
-                          onChange={(e) =>
-                            updateExercise(
-                              activeDay,
-                              exIndex,
-                              "reps",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="8-10"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          className={styles.tableInput}
-                          value={exercise.duration}
-                          onChange={(e) =>
-                            updateExercise(
-                              activeDay,
-                              exIndex,
-                              "duration",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="30s"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          className={styles.tableInput}
-                          value={exercise.restBetweenSets}
-                          onChange={(e) =>
-                            updateExercise(
-                              activeDay,
-                              exIndex,
-                              "restBetweenSets",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="90s"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          className={styles.tableInput}
-                          value={exercise.notes}
-                          onChange={(e) =>
-                            updateExercise(
-                              activeDay,
-                              exIndex,
-                              "notes",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="Form notes..."
-                        />
-                      </td>
-                      <td>
-                        <button
-                          className={styles.removeBtn}
-                          onClick={() => removeExercise(activeDay, exIndex)}
-                          disabled={currentDay.exercises.length === 1}
-                        >
-                          <Trash2 className={styles.removeIcon} />
-                        </button>
-                      </td>
+            {/* ✅ FIX 4: Show empty state when no exercises instead of blank row */}
+            {currentDay.exercises.length === 0 ? (
+              <div className={styles.emptyExercises}>
+                <p>
+                  No exercises added yet. Click "Add Exercise" to get started.
+                </p>
+              </div>
+            ) : (
+              <div className={styles.tableWrapper}>
+                <table className={styles.exerciseTable}>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Exercise Name</th>
+                      <th>Sets</th>
+                      <th>Reps</th>
+                      <th>Duration</th>
+                      <th>Rest</th>
+                      <th>Notes</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {currentDay.exercises.map((exercise, exIndex) => (
+                      <tr key={exIndex}>
+                        <td className={styles.numberCell}>{exIndex + 1}</td>
+                        <td>
+                          <input
+                            type="text"
+                            className={styles.tableInput}
+                            value={exercise.name}
+                            onChange={(e) =>
+                              updateExercise(
+                                activeDay,
+                                exIndex,
+                                "name",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="e.g., Bench Press"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className={styles.tableInput}
+                            value={exercise.sets}
+                            onChange={(e) =>
+                              updateExercise(
+                                activeDay,
+                                exIndex,
+                                "sets",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="4"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className={styles.tableInput}
+                            value={exercise.reps}
+                            onChange={(e) =>
+                              updateExercise(
+                                activeDay,
+                                exIndex,
+                                "reps",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="8-10"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className={styles.tableInput}
+                            value={exercise.duration}
+                            onChange={(e) =>
+                              updateExercise(
+                                activeDay,
+                                exIndex,
+                                "duration",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="30s"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className={styles.tableInput}
+                            value={exercise.restBetweenSets}
+                            onChange={(e) =>
+                              updateExercise(
+                                activeDay,
+                                exIndex,
+                                "restBetweenSets",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="90s"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className={styles.tableInput}
+                            value={exercise.notes}
+                            onChange={(e) =>
+                              updateExercise(
+                                activeDay,
+                                exIndex,
+                                "notes",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Form notes..."
+                          />
+                        </td>
+                        <td>
+                          {/* ✅ FIX 5: Allow removing any exercise (no minimum of 1) */}
+                          <button
+                            className={styles.removeBtn}
+                            onClick={() => removeExercise(activeDay, exIndex)}
+                          >
+                            <Trash2 className={styles.removeIcon} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
