@@ -15,6 +15,7 @@ import TodaysWorkout from "../../components/TodaysWorkout/TodaysWorkout";
 import WeeklySchedule from "../../components/WeeklySchedule/WeeklySchedule";
 import TimetableCreator from "../../components/TimetableCreator/TimetableCreator";
 import AIImprovements from "../../components/AIImprovements/AIImprovements";
+import AITimetableGenerator from "../../components/AITimetableGenerator/AITimetableGenerator";
 
 export default function TimetablePage() {
   const [activeTimetable, setActiveTimetable] = useState(null);
@@ -217,17 +218,27 @@ export default function TimetablePage() {
       )}
 
       {/* CREATOR MODE */}
+      {/* CREATOR MODE */}
       {showCreator && (
-        <TimetableCreator
-          onSave={handleSaveTimetable}
-          onCancel={() => {
-            setShowCreator(false);
-            if (!activeTimetable) {
-              loadActiveTimetable();
-            }
-          }}
-          initialData={activeTimetable}
-        />
+        <>
+          <AITimetableGenerator
+            onGenerated={(generatedTimetable) => {
+              handleSaveTimetable(generatedTimetable);
+            }}
+          />
+
+          <TimetableCreator
+            onSave={handleSaveTimetable}
+            onCancel={() => {
+              setShowCreator(false);
+
+              if (!activeTimetable) {
+                loadActiveTimetable();
+              }
+            }}
+            initialData={activeTimetable}
+          />
+        </>
       )}
 
       {/* VIEW MODE */}
