@@ -39,74 +39,120 @@ export const generateAITimetable = async (req, res) => {
     const groq = createGroqClient();
 
     const prompt = `
-You are an elite strength and conditioning coach.
+You are an elite Strength & Conditioning Coach.
 
-Generate a COMPLETE 7-day workout timetable.
+Create a COMPLETE 7-day workout timetable.
 
-User Profile:
-Goal: ${fitnessGoal}
-Level: ${fitnessLevel}
+USER DETAILS
+
+Fitness Goal: ${fitnessGoal}
+Fitness Level: ${fitnessLevel}
 Days Per Week: ${daysPerWeek}
-Workout Duration: ${workoutDuration} minutes
-Equipment: ${equipment}
-Injuries: ${injuries}
+Workout Duration: ${workoutDuration}
+Available Equipment: ${equipment}
+Injuries / Limitations: ${injuries}
 Focus Areas: ${focusAreas}
-Notes: ${additionalNotes}
+Additional Notes: ${additionalNotes}
 
-Return ONLY VALID JSON.
+WORKOUT GENERATION RULES
+
+- Generate exactly 7 days (Monday to Sunday)
+- Include at least 1 recovery/rest day
+- Every training day must contain 5-8 exercises
+- Every exercise must have sets, reps, restBetweenSets and notes
+- Use realistic gym exercises
+- Use proper focus areas
+- Include start and end times
+- Include morning, afternoon, evening and night time blocks
+- Focus on balanced programming
+- Do not repeat the same workout every day
+- If goal is Sports Stamina, prioritize athletic performance, conditioning and mobility
+- If goal is Fat Loss, include conditioning and calorie-burning work
+- If goal is Muscle Gain, include progressive strength training
+- If goal is Strength, prioritize compound lifts
+
+WORKOUT SPLIT EXAMPLE
+
+Monday:
+Lower Body Strength
+
+Tuesday:
+Upper Body Strength
+
+Wednesday:
+Conditioning + Core
+
+Thursday:
+Lower Body Power
+
+Friday:
+Upper Body + Mobility
+
+Saturday:
+Sports Conditioning
+
+Sunday:
+Recovery
+
+RETURN ONLY VALID JSON
 
 {
-  "name": "Workout Name",
+  "name": "string",
   "category": "sports_specific",
   "goal": "sports_stamina",
   "level": "intermediate",
   "weeklySchedule": [
     {
       "day": "Monday",
-      "focusArea": "Lower Body Power",
+      "focusArea": "Lower Body Strength",
       "isRestDay": false,
-      "startTime": "06:00",
-      "endTime": "07:00",
+      "startTime": "18:00",
+      "endTime": "19:30",
       "exercises": [
         {
           "name": "Barbell Squat",
           "sets": "4",
-          "reps": "6",
+          "reps": "6-8",
           "duration": "",
           "restBetweenSets": "90s",
-          "notes": "Explosive movement"
+          "notes": "Control the movement"
         }
       ],
       "timeBlock": {
         "morning": "Mobility",
-        "afternoon": "Recovery",
-        "evening": "Strength Session",
+        "afternoon": "Work/Study",
+        "evening": "Main Workout",
         "night": "Stretching"
       }
     }
   ]
 }
 
-STRICT RULES:
+STRICT VALIDATION
 
-1. weeklySchedule MUST contain exactly 7 days.
-2. Every workout day MUST contain 4-8 exercises.
-3. Every exercise MUST have a non-empty name.
-4. Rest days ONLY when required.
-5. Do NOT make all days rest days.
-6. For training days:
-   - isRestDay = false
-   - exercises must contain real exercises.
-7. For rest days:
-   - isRestDay = true
-   - exercises = []
-8. Include realistic focus areas.
-9. Include realistic morning/evening activities.
-10. Output ONLY JSON.
+1. weeklySchedule must contain EXACTLY 7 objects.
+2. Each object must contain:
+   day
+   focusArea
+   isRestDay
+   startTime
+   endTime
+   exercises
+   timeBlock
+3. Training days must contain 5-8 exercises.
+4. Exercise names cannot be empty.
+5. Rest days must have:
+   isRestDay=true
+   exercises=[]
+6. Output ONLY JSON.
+7. No markdown.
+8. No explanation.
+9. No code block.
+10. No text before or after JSON.
 `;
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "llama-3.1-8b-instant",
       temperature: 0.5,
       messages: [
         {
@@ -129,6 +175,7 @@ STRICT RULES:
       .trim();
 
     const parsed = JSON.parse(raw);
+    console.log(JSON.stringify(parsed, null, 2));
 
     parsed.weeklySchedule = DAYS.map((day, index) => {
       const current = parsed.weeklySchedule[index] || {};
