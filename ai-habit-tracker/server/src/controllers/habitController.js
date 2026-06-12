@@ -8,6 +8,7 @@ import {
   getDaysAgoIST,
   areConsecutiveDays,
 } from "../utils/getTodayIST.js";
+import { generateProfile } from "../ai/profileGenerator.js";
 
 // ----------------------------------------------------
 // RECALCULATE STREAKS (FIXED VERSION)
@@ -213,6 +214,8 @@ export const checkAndResetMissedStreaks = async () => {
           streak: 0,
           lastStatus: "missed",
         });
+
+        await generateProfile(habit.userId);
       }
     }
 
