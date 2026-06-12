@@ -72,6 +72,7 @@ app.options(/.*/, cors());
 /* =======================
    ROUTES - FIXED CALORIE PATH
 ======================= */
+app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/habits", habitRoutes);
 app.use("/api/ai", aiRoutes);
