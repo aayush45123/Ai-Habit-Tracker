@@ -7,4 +7,3 @@ const router = express.Router();
 router.post("/predict", authMiddleware, predictHabit);
 
 export default router;
-
