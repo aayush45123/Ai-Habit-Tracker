@@ -1,23 +1,21 @@
 from sklearn.ensemble import RandomForestClassifier
-import joblib
 import pandas as pd
+import joblib
+import os
 
-data = pd.DataFrame([
-    [1,20,0],
-    [2,35,0],
-    [5,60,1],
-    [8,80,1],
-    [15,95,1],
-    [3,40,0],
-    [12,90,1],
-    [4,50,0]
-], columns=[
-    "streak",
-    "completion",
-    "target"
-])
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-X = data[["streak","completion"]]
+csv_path = os.path.join(
+    BASE_DIR,
+    "habits.csv"
+)
+
+data = pd.read_csv(csv_path)
+
+X = data[
+    ["streak","completion"]
+]
+
 y = data["target"]
 
 model = RandomForestClassifier(
@@ -29,7 +27,12 @@ model.fit(X,y)
 
 joblib.dump(
     model,
-    "model.pkl"
+    os.path.join(
+        BASE_DIR,
+        "model.pkl"
+    )
 )
 
-print("MODEL TRAINED")
+print(
+    "MODEL TRAINED FROM REAL DATA"
+)
