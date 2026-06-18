@@ -17,6 +17,7 @@ import timetableRoutes from "./routes/timetableRoutes.js";
 import aiTimetableRoutes from "./routes/aiTimetableRoutes.js";
 import aiCoachRoutes from "./routes/aiCoachRoutes.js";
 import mlRoutes from "./routes/mlRoutes.js";
+import datasetRoutes from "./routes/datasetRoutes.js"; // Import dataset routes
 
 // Import streak reset function
 import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
@@ -88,6 +89,7 @@ app.use("/api/timetable", timetableRoutes);
 app.use("/api/ai-timetable", aiTimetableRoutes);
 app.use("/api/coach", aiCoachRoutes);
 app.use("/api/ml", mlRoutes);
+app.use("/api/dataset", datasetRoutes); // Use dataset routes
 
 /* =======================
    ⏰ AUTOMATIC STREAK RESET - DAILY CRON JOB
