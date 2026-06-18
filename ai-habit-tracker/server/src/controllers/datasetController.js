@@ -7,35 +7,39 @@ export const generateDataset = async (req, res) => {
   try {
     const habits = await Habit.find();
 
-    let csv = "streak,completion,target\n";
+    let csv = "streak,target\n";
 
     for (const habit of habits) {
       const logs = await HabitLog.find({
         habitId: habit._id,
+      }).sort({
+        date: 1,
       });
 
-      if (logs.length < 2) continue;
+      let currentStreak = 0;
 
-      const doneCount = logs.filter((l) => l.status === "done").length;
+      for (const log of logs) {
+        const target = log.status === "done" ? 1 : 0;
 
-      const completion = Math.round((doneCount / logs.length) * 100);
+        csv += `${currentStreak},${target}\n`;
 
-      const target = completion >= 50 ? 1 : 0;
-
-      csv += `${habit.streak},${completion},${target}\n`;
+        if (log.status === "done") {
+          currentStreak++;
+        } else {
+          currentStreak = 0;
+        }
+      }
     }
 
-    const csvPath = path.join(process.cwd(), "python", "habits.csv");
+    const filePath = path.join(process.cwd(), "python", "habits.csv");
 
-    fs.writeFileSync(csvPath, csv);
+    fs.writeFileSync(filePath, csv);
 
     res.json({
       message: "Dataset generated",
-      path: csvPath,
+      path: filePath,
     });
   } catch (err) {
-    console.error(err);
-
     res.status(500).json({
       message: err.message,
     });
