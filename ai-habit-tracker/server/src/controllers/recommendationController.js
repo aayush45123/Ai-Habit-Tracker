@@ -223,14 +223,14 @@ function generateWeeklyInsights(habitStats) {
   if (avgCompletion >= 80) {
     insights.push({
       type: "excellent",
-      title: "🔥 On Fire!",
+      title: "On Fire!",
       message: `You're maintaining ${avgCompletion}% consistency. That's excellent!`,
       icon: "flame",
     });
   } else if (avgCompletion >= 60) {
     insights.push({
       type: "good",
-      title: "📈 Good Progress",
+      title: "Good Progress",
       message: `You're at ${avgCompletion}% completion. Keep pushing!`,
       icon: "trend",
     });
@@ -250,7 +250,7 @@ function generateWeeklyInsights(habitStats) {
   if (bestHabit) {
     insights.push({
       type: "best_habit",
-      title: "⭐ Star Habit",
+      title: "Star Habit",
       message: `"${bestHabit.title}" is your strongest habit at ${bestHabit.completionRate}%!`,
       icon: "star",
     });
@@ -261,7 +261,7 @@ function generateWeeklyInsights(habitStats) {
   if (longestStreak >= 30) {
     insights.push({
       type: "milestone",
-      title: "🎯 Milestone!",
+      title: "Milestone!",
       message: `You've reached a ${longestStreak}-day streak! That's dedication.`,
       icon: "milestone",
     });
@@ -290,7 +290,7 @@ function generateChallengeSuggestions(habitStats, habits) {
     description: "Complete all habits for 7 consecutive days",
     reward: 100,
     difficulty: "Medium",
-    icon: "📅",
+    icon: "calendar",
     target: 7,
   });
 
@@ -302,7 +302,7 @@ function generateChallengeSuggestions(habitStats, habits) {
       description: "Maintain a 30-day streak on any single habit",
       reward: 250,
       difficulty: "Hard",
-      icon: "🔥",
+      icon: "fire",
       target: 30,
     });
   }
@@ -314,7 +314,7 @@ function generateChallengeSuggestions(habitStats, habits) {
     description: "Achieve 100% completion rate for one full week",
     reward: 200,
     difficulty: "Hard",
-    icon: "✨",
+    icon: "sparkles",
     target: 7,
   });
 
@@ -327,7 +327,7 @@ function generateChallengeSuggestions(habitStats, habits) {
       description: `Boost "${lowPerformers[0].title}" completion to 80%`,
       reward: 150,
       difficulty: "Medium",
-      icon: "🎓",
+      icon: "book",
       target: 80,
     });
   }
@@ -339,7 +339,7 @@ function generateChallengeSuggestions(habitStats, habits) {
     description: "Link 3 habits into one daily routine",
     reward: 175,
     difficulty: "Medium",
-    icon: "🔗",
+    icon: "link",
     target: 3,
   });
 

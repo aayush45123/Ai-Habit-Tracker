@@ -9,6 +9,7 @@ import {
   Sun,
   Sunset,
   Moon,
+  Lightbulb,
 } from "lucide-react";
 import styles from "./TodaysWorkout.module.css";
 
@@ -170,7 +171,10 @@ export default function TodaysWorkout({ workout }) {
 
                 {exercise.notes && (
                   <div className={styles.exerciseNotes}>
-                    <span>💡 {exercise.notes}</span>
+                    <span>
+                      <Lightbulb className={styles.notesIcon} />{" "}
+                      {exercise.notes}
+                    </span>
                   </div>
                 )}
               </div>

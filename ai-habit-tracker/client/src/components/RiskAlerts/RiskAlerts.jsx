@@ -4,6 +4,7 @@ import {
   FaExclamationTriangle,
   FaShieldAlt,
   FaExclamationCircle,
+  FaSyncAlt,
 } from "react-icons/fa";
 import styles from "./RiskAlerts.module.css";
 
@@ -136,15 +137,15 @@ export default function RiskAlerts() {
 
             <div className={styles.alertMessage}>
               {alert.risk === "HIGH" &&
-                "⚠️ Needs attention. Keep the streak alive!"}
-              {alert.risk === "MEDIUM" && "📈 Push for consistency this week."}
+                "Needs attention. Keep the streak alive!"}
+              {alert.risk === "MEDIUM" && "Push for consistency this week."}
             </div>
           </div>
         ))}
       </div>
 
       <button className={styles.refreshBtn} onClick={fetchRiskAnalysis}>
-        🔄 Refresh
+        <FaSyncAlt className={styles.btnIcon} /> Refresh
       </button>
     </div>
   );

@@ -27,7 +27,7 @@ async function normalizeLogs() {
       }
     }
 
-    console.log("\n🔥 Normalization complete!");
+    console.log("\nNormalization complete!");
     process.exit(0);
   } catch (err) {
     console.error(err);

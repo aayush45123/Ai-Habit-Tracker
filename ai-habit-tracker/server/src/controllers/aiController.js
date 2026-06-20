@@ -106,7 +106,7 @@ Required JSON format:
       if (apiErr?.status === 429) {
         console.error(
           "🚫 GROQ RATE LIMIT EXCEEDED:",
-          apiErr?.error?.message || apiErr.message
+          apiErr?.error?.message || apiErr.message,
         );
 
         return res.json({
@@ -125,7 +125,7 @@ Required JSON format:
         });
       }
 
-      console.error("❌ GROQ API ERROR:", apiErr);
+      console.error("GROQ API ERROR:", apiErr);
       throw apiErr;
     }
 
@@ -153,7 +153,7 @@ Required JSON format:
         parsed = JSON.parse(parsed.summary);
       }
     } catch (err) {
-      console.error("⚠️ GROQ JSON PARSE FAILED:", err);
+      console.error("GROQ JSON PARSE FAILED:", err);
 
       parsed = {
         summary: raw,
@@ -177,7 +177,7 @@ Keep going — small wins add up!
 
     return res.json({ ai: parsed });
   } catch (err) {
-    console.error(" AI INSIGHTS ERROR:", err);
+    console.error("AI INSIGHTS ERROR:", err);
     return res.status(500).json({
       message: "AI insights failed",
       error: err.message,

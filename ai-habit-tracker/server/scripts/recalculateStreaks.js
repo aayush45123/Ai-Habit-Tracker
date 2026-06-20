@@ -17,9 +17,9 @@ dotenv.config();
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("✅ MongoDB connected for migration");
+    console.log("MongoDB connected for migration");
   } catch (error) {
-    console.error("❌ MongoDB connection error:", error);
+    console.error("MongoDB connection error:", error);
     process.exit(1);
   }
 };
@@ -155,7 +155,7 @@ const fixHabitMetadata = async () => {
       if (!habit.frequency) {
         updateData.frequency = "daily"; // Default to daily
         needsUpdate = true;
-        console.log(`   🔄 Setting frequency for "${habit.title}": daily`);
+        console.log(`   Setting frequency for "${habit.title}": daily`);
       }
 
       if (needsUpdate) {
@@ -164,33 +164,33 @@ const fixHabitMetadata = async () => {
       }
     }
 
-    console.log(`\n✅ Fixed metadata for ${fixed} habits\n`);
+    console.log(`\nFixed metadata for ${fixed} habits\n`);
   } catch (error) {
-    console.error("❌ Error fixing habit metadata:", error);
+    console.error("Error fixing habit metadata:", error);
   }
 };
 
 // Main migration function
 const recalculateAllStreaks = async () => {
   try {
-    console.log("🔄 Starting full migration for all habits...\n");
+    console.log("Starting full migration for all habits...\n");
     console.log("=".repeat(60));
 
     // Step 1: Fix missing metadata
     await fixHabitMetadata();
 
     console.log("=".repeat(60));
-    console.log("\n🔄 Recalculating streaks for all habits...\n");
+    console.log("\nRecalculating streaks for all habits...\n");
 
     const habits = await Habit.find({});
-    console.log(`📊 Found ${habits.length} habits to process\n`);
+    console.log(`Found ${habits.length} habits to process\n`);
 
     let updated = 0;
     let failed = 0;
 
     for (const habit of habits) {
       try {
-        console.log(`⏳ Processing: ${habit.title} (ID: ${habit._id})`);
+        console.log(`Processing: ${habit.title} (ID: ${habit._id})`);
 
         const { currentStreak, longestStreak } = await calculateStreakForHabit(
           habit._id,
@@ -231,9 +231,9 @@ const recalculateAllStreaks = async () => {
             ? Math.round((doneCount / daysSinceStart) * 100)
             : 0;
 
-        console.log(`   ✅ Updated successfully`);
-        console.log(`   📈 Current Streak: ${currentStreak}`);
-        console.log(`   🏆 Longest Streak: ${longestStreak}`);
+        console.log(`   Updated successfully`);
+        console.log(`   Current Streak: ${currentStreak}`);
+        console.log(`   Longest Streak: ${longestStreak}`);
         console.log(
           `   📊 Completion Rate: ${completionRate}% (${doneCount}/${daysSinceStart} days)`,
         );
@@ -241,21 +241,21 @@ const recalculateAllStreaks = async () => {
 
         updated++;
       } catch (error) {
-        console.error(`   ❌ Failed to update ${habit.title}:`, error.message);
+        console.log(`   Failed to update ${habit.title}:`, error.message);
         failed++;
       }
     }
 
     console.log("=".repeat(60));
-    console.log("📊 MIGRATION SUMMARY");
+    console.log("MIGRATION SUMMARY");
     console.log("=".repeat(60));
-    console.log(`✅ Successfully updated: ${updated} habits`);
-    console.log(`❌ Failed: ${failed} habits`);
-    console.log(`📝 Total processed: ${habits.length} habits`);
+    console.log(`Successfully updated: ${updated} habits`);
+    console.log(`Failed: ${failed} habits`);
+    console.log(`Total processed: ${habits.length} habits`);
     console.log("=".repeat(60) + "\n");
 
-    console.log("✨ Migration completed!");
-    console.log("\n📋 What was fixed:");
+    console.log("Migration completed!");
+    console.log("\nWhat was fixed:");
     console.log("   ✓ Streaks recalculated with FIXED logic");
     console.log("   ✓ Current streaks now check if today OR yesterday is done");
     console.log("   ✓ Grace period implemented (24-hour buffer)");
@@ -263,13 +263,13 @@ const recalculateAllStreaks = async () => {
     console.log("   ✓ Missing startDate fields filled");
     console.log("   ✓ Missing frequency fields set to 'daily'");
     console.log("   ✓ Completion rates now calculated correctly");
-    console.log("\n💡 Next steps:");
+    console.log("\nNext steps:");
     console.log("   1. Restart your server");
     console.log("   2. Check the Dashboard to see your streaks");
     console.log("   3. Check Analytics page for leaderboard");
     console.log("   4. Log a new habit to test real-time updates\n");
   } catch (error) {
-    console.error("❌ Migration failed:", error);
+    console.error("Migration failed:", error);
     throw error;
   }
 };
@@ -280,12 +280,12 @@ const runMigration = async () => {
     await connectDB();
     await recalculateAllStreaks();
 
-    console.log("🎉 Migration completed successfully!");
-    console.log("💡 You can now restart your server.\n");
+    console.log("Migration completed successfully!");
+    console.log("You can now restart your server.\n");
 
     process.exit(0);
   } catch (error) {
-    console.error("\n❌ Migration failed:", error);
+    console.error("\nMigration failed:", error);
     process.exit(1);
   }
 };

@@ -6,6 +6,10 @@ import {
   FaFire,
   FaTrophy,
   FaChartLine,
+  FaChartBar,
+  FaBullseye,
+  FaStar,
+  FaSyncAlt,
 } from "react-icons/fa";
 import styles from "./Recommendations.module.css";
 
@@ -57,34 +61,38 @@ export default function Recommendations() {
   if (loading) {
     return (
       <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>💡 Insights & Recommendations</h3>
-        <div className={styles.loading}>Analyzing your habits…</div>
+        <h3 className={styles.panelTitle}>
+          <FaLightbulb /> Insights & Recommendations
+        </h3>
+        <div className={styles.loading}>Analyzing your habits...</div>
       </div>
     );
   }
 
   return (
     <div className={styles.panel}>
-      <h3 className={styles.panelTitle}>💡 Insights & Recommendations</h3>
+      <h3 className={styles.panelTitle}>
+        <FaLightbulb /> Insights & Recommendations
+      </h3>
 
       <div className={styles.tabContainer}>
         <button
           className={`${styles.tabBtn} ${activeTab === "recommendations" ? styles.active : ""}`}
           onClick={() => setActiveTab("recommendations")}
         >
-          💡 Ideas
+          <FaLightbulb /> Ideas
         </button>
         <button
           className={`${styles.tabBtn} ${activeTab === "insights" ? styles.active : ""}`}
           onClick={() => setActiveTab("insights")}
         >
-          📊 Insights
+          <FaChartBar /> Insights
         </button>
         <button
           className={`${styles.tabBtn} ${activeTab === "challenges" ? styles.active : ""}`}
           onClick={() => setActiveTab("challenges")}
         >
-          🎯 Challenges
+          <FaBullseye /> Challenges
         </button>
       </div>
 
@@ -94,7 +102,7 @@ export default function Recommendations() {
           <div className={styles.tabContent}>
             {recommendations.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>✨ No recommendations yet. Start tracking more habits!</p>
+                <p>No recommendations yet. Start tracking more habits!</p>
               </div>
             ) : (
               <div className={styles.itemsList}>
@@ -107,7 +115,9 @@ export default function Recommendations() {
                       </span>
                     </div>
                     <p className={styles.recDescription}>{rec.description}</p>
-                    <div className={styles.recReason}>💭 {rec.reason}</div>
+                    <div className={styles.recReason}>
+                      <FaLightbulb className={styles.reasonIcon} /> {rec.reason}
+                    </div>
                     <button className={styles.actionBtn}>
                       {rec.type === "starter" ? "Start Now" : "Learn More"} →
                     </button>
@@ -123,7 +133,9 @@ export default function Recommendations() {
           <div className={styles.tabContent}>
             {insights.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>📊 Add more habits to unlock insights!</p>
+                <p>
+                  <FaChartBar /> Add more habits to unlock insights!
+                </p>
               </div>
             ) : (
               <div className={styles.itemsList}>
@@ -151,7 +163,9 @@ export default function Recommendations() {
           <div className={styles.tabContent}>
             {challenges.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>🎯 No challenges available yet.</p>
+                <p>
+                  <FaBullseye /> No challenges available yet.
+                </p>
               </div>
             ) : (
               <div className={styles.itemsList}>
@@ -166,7 +180,7 @@ export default function Recommendations() {
                         </span>
                       </div>
                       <div className={styles.chalReward}>
-                        <span className={styles.rewardIcon}>⭐</span>
+                        <FaStar className={styles.rewardIcon} />
                         <span className={styles.rewardValue}>
                           {challenge.reward}
                         </span>
@@ -195,7 +209,7 @@ export default function Recommendations() {
       </div>
 
       <button className={styles.refreshBtn} onClick={fetchRecommendations}>
-        🔄 Refresh
+        <FaSyncAlt className={styles.btnIcon} /> Refresh
       </button>
     </div>
   );

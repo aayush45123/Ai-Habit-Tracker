@@ -1,6 +1,6 @@
 // client/src/components/NotificationBanner/NotificationBanner.jsx
 import React, { useState, useEffect } from "react";
-import { Bell, BellOff, Check, X, AlertCircle } from "lucide-react";
+import { Bell, BellOff, Check, X, AlertCircle, BellRing } from "lucide-react";
 import notificationService from "../../utils/notificationService";
 import styles from "./NotificationBanner.module.css";
 
@@ -133,7 +133,9 @@ export default function NotificationBanner({ challenge, days }) {
           <Check className={styles.icon} />
         </div>
         <div className={styles.statusContent}>
-          <span className={styles.statusText}>🔔 Notifications Enabled</span>
+          <span className={styles.statusText}>
+            <BellRing className={styles.inlineIcon} /> Notifications Enabled
+          </span>
           <span className={styles.statusSubtext}>
             You'll receive reminders for upcoming habit deadlines
           </span>

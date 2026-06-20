@@ -29,14 +29,14 @@ class NotificationService {
       this.permission = permission;
 
       if (permission === "granted") {
-        console.log("✅ Notification permission granted");
+        console.log("Notification permission granted");
         await this.registerServiceWorker();
         return true;
       } else if (permission === "denied") {
-        console.warn("❌ Notification permission denied");
+        console.warn("Notification permission denied");
         return false;
       } else {
-        console.log("⏸️ Notification permission dismissed");
+        console.log("Notification permission dismissed");
         return false;
       }
     } catch (error) {
@@ -53,19 +53,19 @@ class NotificationService {
       try {
         const registration = await navigator.serviceWorker.register(
           "/service-worker.js",
-          { scope: "/" }
+          { scope: "/" },
         );
 
         this.serviceWorkerRegistration = registration;
-        console.log("✅ Service Worker registered:", registration);
+        console.log("Service Worker registered:", registration);
 
         // Wait for service worker to be ready
         await navigator.serviceWorker.ready;
-        console.log("✅ Service Worker is ready");
+        console.log("Service Worker is ready");
 
         return registration;
       } catch (error) {
-        console.error("❌ Service Worker registration failed:", error);
+        console.error("Service Worker registration failed:", error);
         return null;
       }
     }
@@ -96,7 +96,7 @@ class NotificationService {
         // Use service worker for persistent notifications
         await this.serviceWorkerRegistration.showNotification(
           title,
-          notificationOptions
+          notificationOptions,
         );
       } else {
         // Fallback to direct notification
@@ -173,15 +173,18 @@ class NotificationService {
       clearInterval(this.checkInterval);
     }
 
-    console.log("🔔 Starting habit monitoring for notifications...");
+    console.log("Starting habit monitoring for notifications...");
 
     // Check immediately
     this.checkHabitsAndNotify(challenge, days);
 
     // Check every 2 minutes
-    this.checkInterval = setInterval(() => {
-      this.checkHabitsAndNotify(challenge, days);
-    }, 2 * 60 * 1000); // 2 minutes
+    this.checkInterval = setInterval(
+      () => {
+        this.checkHabitsAndNotify(challenge, days);
+      },
+      2 * 60 * 1000,
+    ); // 2 minutes
   }
 
   /**
@@ -191,7 +194,7 @@ class NotificationService {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
-      console.log("🔕 Stopped habit monitoring");
+      console.log("Stopped habit monitoring");
     }
   }
 
@@ -214,7 +217,7 @@ class NotificationService {
       if (this.shouldSendReminder(habit, status, hasLog)) {
         const minutesLeft = this.calculateTimeUntilDeadline(habit.endTime);
 
-        this.showNotification(`⏰ Habit Reminder: ${habit.title}`, {
+        this.showNotification(`Habit Reminder: ${habit.title}`, {
           body: `You have ${minutesLeft} minutes left to complete this habit!`,
           icon: "/logo192.png",
           tag: `habit-reminder-${index}`,
@@ -225,14 +228,14 @@ class NotificationService {
           ],
         });
 
-        console.log(`🔔 Sent reminder for: ${habit.title}`);
+        console.log(`Sent reminder for: ${habit.title}`);
       }
 
       // Check for urgent 5-minute alert
       if (this.isDeadlineImminent(habit, status, hasLog)) {
         const minutesLeft = this.calculateTimeUntilDeadline(habit.endTime);
 
-        this.showNotification(`🚨 URGENT: ${habit.title}`, {
+        this.showNotification(`URGENT: ${habit.title}`, {
           body: `Only ${minutesLeft} minutes left! Complete your habit now!`,
           icon: "/logo192.png",
           tag: `habit-urgent-${index}`,
@@ -245,7 +248,7 @@ class NotificationService {
           ],
         });
 
-        console.log(`🚨 Sent urgent alert for: ${habit.title}`);
+        console.log(`Sent urgent alert for: ${habit.title}`);
       }
     });
   }
@@ -266,7 +269,7 @@ class NotificationService {
    * Send a test notification
    */
   async sendTestNotification() {
-    return this.showNotification("✅ Notifications Enabled!", {
+    return this.showNotification("Notifications Enabled!", {
       body: "You will now receive reminders for your habits.",
       icon: "/logo192.png",
       tag: "test-notification",
