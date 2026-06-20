@@ -136,7 +136,7 @@ Rules:
       });
 
       onGenerated({
-        name: parsed.name || \"My Fitness Schedule\",
+        name: parsed.name || "My Fitness Schedule",
         category: parsed.category || "general_fitness",
         goal: parsed.goal || "general_fitness",
         level: parsed.level || "intermediate",
