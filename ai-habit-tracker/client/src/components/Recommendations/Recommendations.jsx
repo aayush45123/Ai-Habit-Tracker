@@ -57,17 +57,17 @@ export default function Recommendations() {
   if (loading) {
     return (
       <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>Insights & Recommendations</h3>
-        <div className={styles.loading}>Loading personalized insights…</div>
+        <h3 className={styles.panelTitle}>💡 Insights & Recommendations</h3>
+        <div className={styles.loading}>Analyzing your habits…</div>
       </div>
     );
   }
 
   return (
     <div className={styles.panel}>
-      <h3 className={styles.panelTitle}>Insights & Recommendations</h3>
+      <h3 className={styles.panelTitle}>💡 Insights & Recommendations</h3>
 
-      <div className={styles.tabs}>
+      <div className={styles.tabContainer}>
         <button
           className={`${styles.tabBtn} ${activeTab === "recommendations" ? styles.active : ""}`}
           onClick={() => setActiveTab("recommendations")}
@@ -88,97 +88,107 @@ export default function Recommendations() {
         </button>
       </div>
 
-      <div className={styles.content}>
+      <div className={styles.contentArea}>
         {/* RECOMMENDATIONS TAB */}
         {activeTab === "recommendations" && (
-          <div className={styles.itemsList}>
+          <div className={styles.tabContent}>
             {recommendations.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>No recommendations available yet.</p>
+                <p>✨ No recommendations yet. Start tracking more habits!</p>
               </div>
             ) : (
-              recommendations.map((rec, idx) => (
-                <div key={idx} className={styles.recommendationCard}>
-                  <div className={styles.recHeader}>
-                    <h4 className={styles.recTitle}>{rec.title}</h4>
-                    <span className={styles.difficulty}>{rec.difficulty}</span>
+              <div className={styles.itemsList}>
+                {recommendations.map((rec, idx) => (
+                  <div key={idx} className={styles.recommendationCard}>
+                    <div className={styles.recHeader}>
+                      <h4 className={styles.recTitle}>{rec.title}</h4>
+                      <span className={styles.difficulty}>
+                        {rec.difficulty}
+                      </span>
+                    </div>
+                    <p className={styles.recDescription}>{rec.description}</p>
+                    <div className={styles.recReason}>💭 {rec.reason}</div>
+                    <button className={styles.actionBtn}>
+                      {rec.type === "starter" ? "Start Now" : "Learn More"} →
+                    </button>
                   </div>
-                  <p className={styles.recDescription}>{rec.description}</p>
-                  <div className={styles.recReason}>💭 {rec.reason}</div>
-                  <button className={styles.actionBtn}>
-                    {rec.type === "starter" ? "Start Now" : "Learn More"}
-                  </button>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         )}
 
         {/* INSIGHTS TAB */}
         {activeTab === "insights" && (
-          <div className={styles.itemsList}>
+          <div className={styles.tabContent}>
             {insights.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>Add more habits to get insights.</p>
+                <p>📊 Add more habits to unlock insights!</p>
               </div>
             ) : (
-              insights.map((insight, idx) => (
-                <div
-                  key={idx}
-                  className={`${styles.insightCard} ${styles[`insight-${insight.type}`]}`}
-                >
-                  <div className={styles.insightIcon}>
-                    {getIcon(insight.type)}
+              <div className={styles.itemsList}>
+                {insights.map((insight, idx) => (
+                  <div
+                    key={idx}
+                    className={`${styles.insightCard} ${styles[`insight-${insight.type}`]}`}
+                  >
+                    <div className={styles.insightIcon}>
+                      {getIcon(insight.type)}
+                    </div>
+                    <div className={styles.insightContent}>
+                      <h4 className={styles.insightTitle}>{insight.title}</h4>
+                      <p className={styles.insightMessage}>{insight.message}</p>
+                    </div>
                   </div>
-                  <div className={styles.insightContent}>
-                    <h4 className={styles.insightTitle}>{insight.title}</h4>
-                    <p className={styles.insightMessage}>{insight.message}</p>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         )}
 
         {/* CHALLENGES TAB */}
         {activeTab === "challenges" && (
-          <div className={styles.itemsList}>
+          <div className={styles.tabContent}>
             {challenges.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>No challenges available.</p>
+                <p>🎯 No challenges available yet.</p>
               </div>
             ) : (
-              challenges.map((challenge, idx) => (
-                <div key={idx} className={styles.challengeCard}>
-                  <div className={styles.chalHeader}>
-                    <div className={styles.chalIconBox}>{challenge.icon}</div>
-                    <div className={styles.chalInfo}>
-                      <h4 className={styles.chalTitle}>{challenge.title}</h4>
-                      <span className={styles.chalDifficulty}>
-                        {challenge.difficulty}
-                      </span>
+              <div className={styles.itemsList}>
+                {challenges.map((challenge, idx) => (
+                  <div key={idx} className={styles.challengeCard}>
+                    <div className={styles.chalHeader}>
+                      <div className={styles.chalIconBox}>{challenge.icon}</div>
+                      <div className={styles.chalInfo}>
+                        <h4 className={styles.chalTitle}>{challenge.title}</h4>
+                        <span className={styles.chalDifficulty}>
+                          {challenge.difficulty}
+                        </span>
+                      </div>
+                      <div className={styles.chalReward}>
+                        <span className={styles.rewardIcon}>⭐</span>
+                        <span className={styles.rewardValue}>
+                          {challenge.reward}
+                        </span>
+                      </div>
                     </div>
-                    <div className={styles.chalReward}>
-                      <span className={styles.rewardIcon}>⭐</span>
-                      <span className={styles.rewardValue}>
-                        {challenge.reward}
-                      </span>
+                    <p className={styles.chalDescription}>
+                      {challenge.description}
+                    </p>
+                    <div className={styles.chalFooter}>
+                      <div className={styles.targetProgress}>
+                        Target: {challenge.target}
+                        {challenge.type === "streak" && " days"}
+                        {challenge.type === "consistency" && " days"}
+                        {challenge.type === "perfect_week" && " days"}
+                      </div>
+                      <button className={styles.joinBtn}>
+                        Start Challenge →
+                      </button>
                     </div>
                   </div>
-                  <p className={styles.chalDescription}>
-                    {challenge.description}
-                  </p>
-                  <div className={styles.chalFooter}>
-                    <div className={styles.targetProgress}>
-                      Target: {challenge.target}
-                      {challenge.type === "streak" && " days"}
-                      {challenge.type === "consistency" && " days"}
-                      {challenge.type === "perfect_week" && " days"}
-                    </div>
-                    <button className={styles.joinBtn}>Start Challenge</button>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         )}
