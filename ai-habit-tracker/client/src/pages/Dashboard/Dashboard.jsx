@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import HabitCard from "../../components/HabitCard/HabitCard";
 import RiskAlerts from "../../components/RiskAlerts/RiskAlerts";
+import Recommendations from "../../components/Recommendations/Recommendations";
 import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
 import { FaRobot } from "react-icons/fa";
 import styles from "./Dashboard.module.css";
@@ -250,6 +251,9 @@ export default function Dashboard() {
           </div>
         </aside>
       </main>
+
+      {/* RECOMMENDATIONS SECTION */}
+      <Recommendations />
 
       {/* FLOATING AI CHAT */}
       <AIChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
