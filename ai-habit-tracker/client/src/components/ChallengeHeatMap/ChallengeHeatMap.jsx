@@ -204,11 +204,19 @@ export default function ChallengeHeatmap() {
             <div className={styles.statValue}>{stats.currentStreak}</div>
             <div className={styles.statLabel}>Current Streak</div>
             <div className={styles.statBadge}>
-              {stats.currentStreak >= 7
-                ? <><FaFire /> On Fire</>
-                : stats.currentStreak >= 3
-                  ? <><FaDumbbell /> Strong</>
-                  : <><GiPlantSeed /> Growing</>
+              {stats.currentStreak >= 7 ? (
+                <>
+                  <FaFire /> On Fire
+                </>
+              ) : stats.currentStreak >= 3 ? (
+                <>
+                  <FaDumbbell /> Strong
+                </>
+              ) : (
+                <>
+                  <GiPlantSeed /> Growing
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -221,9 +229,15 @@ export default function ChallengeHeatmap() {
             <div className={styles.statValue}>{stats.longestStreak}</div>
             <div className={styles.statLabel}>Longest Streak</div>
             <div className={styles.statBadge}>
-              {stats.longestStreak === stats.currentStreak
-                ? <><FaBullseye /> Current Best</>
-                : <><FaChartLine /> Beat It!</>
+              {stats.longestStreak === stats.currentStreak ? (
+                <>
+                  <FaBullseye /> Current Best
+                </>
+              ) : (
+                <>
+                  <FaChartLine /> Beat It!
+                </>
+              )}
             </div>
           </div>
         </div>
