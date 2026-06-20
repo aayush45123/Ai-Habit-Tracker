@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import HabitCard from "../../components/HabitCard/HabitCard";
+import RiskAlerts from "../../components/RiskAlerts/RiskAlerts";
 import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
 import { FaRobot } from "react-icons/fa";
 import styles from "./Dashboard.module.css";
@@ -89,7 +90,7 @@ export default function Dashboard() {
 
   const total = habits.length;
   const completedToday = habits.filter(
-    (h) => h.lastDate === formatDateISO() && h.lastStatus === "done"
+    (h) => h.lastDate === formatDateISO() && h.lastStatus === "done",
   ).length;
 
   // Display longest streak across all habits
@@ -113,7 +114,7 @@ export default function Dashboard() {
             <div className={styles.statValue}>
               {weeklyData.length
                 ? Math.round(
-                    weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length
+                    weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length,
                   )
                 : 0}
               %
@@ -212,6 +213,8 @@ export default function Dashboard() {
 
         {/* RIGHT COLUMN */}
         <aside className={styles.rightCol}>
+          <RiskAlerts />
+
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>Weekly Completion</h3>
 
