@@ -75,13 +75,13 @@ async function migrateLongestStreaks() {
         longestStreak: longestStreak,
       });
 
-      console.log(`  ✅ Updated longestStreak to ${longestStreak}`);
+      console.log(`  Updated longestStreak to ${longestStreak}`);
     }
 
-    console.log("\n✅ Migration completed successfully!");
+    console.log("\nMigration completed successfully!");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Migration failed:", error);
+    console.error("Migration failed:", error);
     process.exit(1);
   }
 }

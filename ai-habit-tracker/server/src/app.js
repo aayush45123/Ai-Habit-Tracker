@@ -83,7 +83,7 @@ app.use("/api/focus", focusRoutes);
 app.use("/api/admin/templates", adminTemplateRoutes);
 app.use("/api/templates", publicTemplateRoutes);
 app.use("/api/ai-chat", aiChatRoutes);
-app.use("/api/calories", calorieRoutes); // ✅ Changed from /calorie to /calories
+app.use("/api/calories", calorieRoutes); // Changed from /calorie to /calories
 // Timetable routes (support both plural and singular paths for backward compatibility)
 app.use("/api/timetables", timetableRoutes);
 app.use("/api/timetable", timetableRoutes);
@@ -94,29 +94,29 @@ app.use("/api/dataset", datasetRoutes); // Use dataset routes
 app.use("/api/recommendations", recommendationRoutes);
 
 /* =======================
-   ⏰ AUTOMATIC STREAK RESET - DAILY CRON JOB
+   AUTOMATIC STREAK RESET - DAILY CRON JOB
 ======================= */
 
 // Run initial streak check when server starts
-console.log("🔄 Running initial streak check on server startup...");
+console.log("Running initial streak check on server startup...");
 checkAndResetMissedStreaks()
   .then(() => {
-    console.log("✅ Initial streak check completed successfully");
+    console.log("Initial streak check completed successfully");
   })
   .catch((err) => {
-    console.error("❌ Initial streak check failed:", err);
+    console.error("Initial streak check failed:", err);
   });
 
 // Schedule daily streak reset at 00:01 AM IST
 cron.schedule(
   "1 0 * * *",
   async () => {
-    console.log("⏰ Running scheduled daily streak check...");
+    console.log("Running scheduled daily streak check...");
     try {
       await checkAndResetMissedStreaks();
-      console.log("✅ Daily streak check completed successfully");
+      console.log("Daily streak check completed successfully");
     } catch (err) {
-      console.error("❌ Daily streak check failed:", err);
+      console.error("Daily streak check failed:", err);
     }
   },
   {
@@ -124,13 +124,13 @@ cron.schedule(
   },
 );
 
-console.log("✅ Streak reset cron job scheduled (runs daily at 00:01 IST)");
+console.log("Streak reset cron job scheduled (runs daily at 00:01 IST)");
 
 /* =======================
    HEALTH CHECK
 ======================= */
 app.get("/", (req, res) => {
-  res.status(200).send("AI Habit Tracker Backend Running 🚀");
+  res.status(200).send("AI Habit Tracker Backend Running");
 });
 
 /* =======================

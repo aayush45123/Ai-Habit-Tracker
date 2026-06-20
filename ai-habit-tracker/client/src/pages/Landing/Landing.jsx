@@ -228,7 +228,7 @@ export default function Landing() {
         </div>
 
         <div className={styles.footerBottom}>
-          <p>© 2024 HabitAI. Built with ❤️ by Aayush Bharda</p>
+          <p>© 2024 HabitAI. Built with care by Aayush Bharda</p>
         </div>
       </footer>
     </div>

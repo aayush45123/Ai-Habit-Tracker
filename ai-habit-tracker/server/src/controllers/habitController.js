@@ -19,9 +19,9 @@ const recalculateStreaks = async (habitId) => {
     const todayISO = getTodayIST();
     const allLogs = await HabitLog.find({ habitId }).sort({ date: 1 });
 
-    console.log(`\n🔄 Recalculating streaks for habit ${habitId}`);
-    console.log(`📅 Today: ${todayISO}`);
-    console.log(`📊 Total logs: ${allLogs.length}`);
+    console.log(`\nRecalculating streaks for habit ${habitId}`);
+    console.log(`Today: ${todayISO}`);
+    console.log(`Total logs: ${allLogs.length}`);
 
     // Calculate LONGEST STREAK (all-time best)
     let longestStreak = 0;
@@ -96,7 +96,7 @@ const recalculateStreaks = async (habitId) => {
     // Case 1: Today is marked as "done" - count streak from today backwards
     if (todayLog && todayLog.status === "done") {
       currentStreak = 1;
-      console.log(`✅ Today is DONE - starting streak count`);
+      console.log(`Today is DONE - starting streak count`);
 
       // Count backwards from yesterday
       for (let daysBack = 1; daysBack <= 365; daysBack++) {
@@ -158,11 +158,11 @@ const recalculateStreaks = async (habitId) => {
     // Case 3: Neither today nor yesterday is done - streak is BROKEN (0)
     else {
       currentStreak = 0;
-      console.log(`❌ Streak BROKEN - neither today nor yesterday is done`);
+      console.log(`Streak BROKEN - neither today nor yesterday is done`);
     }
 
     console.log(
-      `🏆 Final streaks - Current: ${currentStreak}, Longest: ${longestStreak}\n`,
+      `Final streaks - Current: ${currentStreak}, Longest: ${longestStreak}\n`,
     );
 
     return { currentStreak, longestStreak };
@@ -178,7 +178,7 @@ const recalculateStreaks = async (habitId) => {
 // ----------------------------------------------------
 export const checkAndResetMissedStreaks = async () => {
   try {
-    console.log("\n⏰ Running daily streak check...");
+    console.log("\nRunning daily streak check...");
 
     const todayISO = getTodayIST();
     const yesterdayISO = getYesterdayIST();
@@ -186,7 +186,7 @@ export const checkAndResetMissedStreaks = async () => {
     // Get all habits
     const allHabits = await Habit.find({});
 
-    console.log(`📊 Checking ${allHabits.length} habits for missed streaks\n`);
+    console.log(`Checking ${allHabits.length} habits for missed streaks\n`);
 
     for (const habit of allHabits) {
       // Check if today is logged
@@ -219,9 +219,9 @@ export const checkAndResetMissedStreaks = async () => {
       }
     }
 
-    console.log("✅ Daily streak check completed\n");
+    console.log("Daily streak check completed\n");
   } catch (err) {
-    console.error("❌ Error in daily streak check:", err);
+    console.error("Error in daily streak check:", err);
   }
 };
 
@@ -366,7 +366,7 @@ export const logHabit = async (req, res) => {
       // Update existing log instead of creating duplicate
       existingLog.status = status;
       await existingLog.save();
-      console.log(`✅ Updated existing log for ${todayISO} to ${status}`);
+      console.log(`Updated existing log for ${todayISO} to ${status}`);
     } else {
       // Create new log
       await HabitLog.create({
@@ -374,7 +374,7 @@ export const logHabit = async (req, res) => {
         date: todayISO,
         status,
       });
-      console.log(`✅ Created new log for ${todayISO} with status ${status}`);
+      console.log(`Created new log for ${todayISO} with status ${status}`);
     }
 
     // Recalculate streaks
@@ -394,7 +394,7 @@ export const logHabit = async (req, res) => {
       longestStreak,
     });
   } catch (err) {
-    console.error("❌ Error in logHabit:", err);
+    console.error("Error in logHabit:", err);
     res
       .status(500)
       .json({ message: "Error logging habit", error: err.message });

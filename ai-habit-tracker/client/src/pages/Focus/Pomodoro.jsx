@@ -93,7 +93,7 @@ export default function Pomodoro() {
 
       // Only log as completed if it wasn't manually skipped
       if (sessionType === "focus" && !wasSkipped) {
-        notify("Focus complete 🎉");
+        notify("Focus complete!");
         const newCycle = cycleCount + 1;
         setCycleCount(newCycle);
 

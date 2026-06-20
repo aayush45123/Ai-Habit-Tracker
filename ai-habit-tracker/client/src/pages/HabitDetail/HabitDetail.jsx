@@ -89,7 +89,7 @@ export default function HabitDetail() {
         <h2>{habit.title}</h2>
         <p>{habit.description}</p>
         <p>
-          Frequency: {habit.frequency} • Streak: {habit.streak || 0}🔥 • Last:{" "}
+          Frequency: {habit.frequency} • Streak: {habit.streak || 0} • Last:{" "}
           {habit.lastDate || "—"}
         </p>
 
