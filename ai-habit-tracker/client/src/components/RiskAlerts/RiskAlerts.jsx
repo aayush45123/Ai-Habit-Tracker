@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
-import { FaExclamationTriangle, FaShieldAlt, FaAlertCircle } from "react-icons/fa";
+import {
+  FaExclamationTriangle,
+  FaShieldAlt,
+  FaExclamationCircle,
+} from "react-icons/fa";
 import styles from "./RiskAlerts.module.css";
 
 export default function RiskAlerts() {
@@ -17,7 +21,7 @@ export default function RiskAlerts() {
     try {
       setLoading(true);
       const res = await api.get("/ml/risk-analysis");
-      
+
       // Filter for HIGH and MEDIUM risk only
       const filtered = res.data.filter((item) => item.risk !== "LOW");
       setAlerts(filtered);
@@ -39,7 +43,7 @@ export default function RiskAlerts() {
     if (risk === "HIGH") {
       return <FaExclamationTriangle className={styles.iconHigh} />;
     } else if (risk === "MEDIUM") {
-      return <FaAlertCircle className={styles.iconMedium} />;
+      return <FaExclamationCircle className={styles.iconMedium} />;
     }
     return <FaShieldAlt className={styles.iconLow} />;
   }
@@ -76,7 +80,8 @@ export default function RiskAlerts() {
   return (
     <div className={styles.container}>
       <h3 className={styles.title}>
-        AI Risk Alerts <span className={styles.badge}>{visibleAlerts.length}</span>
+        AI Risk Alerts{" "}
+        <span className={styles.badge}>{visibleAlerts.length}</span>
       </h3>
 
       <div className={styles.alertsList}>
@@ -91,7 +96,9 @@ export default function RiskAlerts() {
               </div>
               <div className={styles.alertTitle}>
                 <h4>{alert.habit}</h4>
-                <span className={`${styles.riskBadge} ${styles[`risk-${alert.risk.toLowerCase()}`]}`}>
+                <span
+                  className={`${styles.riskBadge} ${styles[`risk-${alert.risk.toLowerCase()}`]}`}
+                >
                   {alert.risk} RISK
                 </span>
               </div>
@@ -130,12 +137,14 @@ export default function RiskAlerts() {
             <div className={styles.alertFooter}>
               {alert.risk === "HIGH" && (
                 <p className={styles.recommendation}>
-                  ⚠️ This habit needs immediate attention. Focus on completing it daily to build momentum.
+                  ⚠️ This habit needs immediate attention. Focus on completing
+                  it daily to build momentum.
                 </p>
               )}
               {alert.risk === "MEDIUM" && (
                 <p className={styles.recommendation}>
-                  📈 Good progress! Push for consistent completion to reach your goals.
+                  📈 Good progress! Push for consistent completion to reach your
+                  goals.
                 </p>
               )}
             </div>
