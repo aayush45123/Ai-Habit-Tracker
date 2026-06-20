@@ -1,39 +1,47 @@
-.container {
+.panel {
   background-color: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
-  padding: 1.5rem;
-  box-shadow: 6px 6px 0px var(--color-accent-primary);
+  padding: 1.75rem;
   transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.container:hover {
-  transform: translate(-2px, -2px);
   box-shadow: 8px 8px 0px var(--color-accent-primary);
 }
 
-.title {
+.panel:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 10px 10px 0px var(--color-accent-primary);
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.panelTitle {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin: 0 0 1.5rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  margin: 0;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid var(--color-border);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  flex: 1;
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-danger);
+  background-color: #ef4444;
   color: white;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  margin-bottom: 1rem;
 }
 
 .loading,
@@ -49,101 +57,102 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  color: #6ee7b7;
+  color: #10b981;
 }
 
 .noAlerts p {
   margin: 0;
   font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .alertsList {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .alertCard {
   background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1.25rem;
+  border: 3px solid var(--color-border);
+  padding: 1rem;
   transition: all var(--transition-speed) var(--transition-easing);
+  box-shadow: 5px 5px 0px var(--color-border);
 }
 
 .alertCard:hover {
-  transform: translateY(-2px);
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0px var(--color-accent-primary);
 }
 
 .alert-high {
-  border-left: 5px solid #ef4444;
-  background-color: rgba(239, 68, 68, 0.05);
+  border-left: 6px solid #ef4444;
 }
 
 .alert-medium {
-  border-left: 5px solid #f59e0b;
-  background-color: rgba(245, 158, 11, 0.05);
+  border-left: 6px solid #f59e0b;
 }
 
 .alert-low {
-  border-left: 5px solid #10b981;
-  background-color: rgba(16, 185, 129, 0.05);
+  border-left: 6px solid #10b981;
 }
 
-.alertHeader {
+.alertTop {
   display: flex;
+  justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
   margin-bottom: 1rem;
-  position: relative;
+  gap: 1rem;
 }
 
-.iconWrapper {
+.habitInfo {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.iconBox {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 6px;
   background-color: rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
+  font-size: 1.2rem;
 }
 
 .iconHigh {
   color: #ef4444;
-  font-size: 1.2rem;
 }
 
 .iconMedium {
   color: #f59e0b;
-  font-size: 1.2rem;
 }
 
 .iconLow {
   color: #10b981;
-  font-size: 1.2rem;
 }
 
-.alertTitle {
-  flex: 1;
-}
-
-.alertTitle h4 {
-  margin: 0 0 0.35rem 0;
-  font-size: 1.05rem;
+.habitName {
+  margin: 0;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .riskBadge {
   display: inline-block;
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.7rem;
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  margin-top: 0.35rem;
 }
 
 .risk-high {
@@ -162,95 +171,90 @@
 }
 
 .dismissBtn {
-  position: absolute;
-  top: 0;
-  right: 0;
   background: none;
   border: none;
   font-size: 1.5rem;
   color: var(--color-text-secondary);
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  transition: all var(--transition-speed) var(--transition-easing);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .dismissBtn:hover {
   background-color: var(--color-danger);
   color: white;
-  transform: scale(1.1);
 }
 
-.alertBody {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
+.metricsRow {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--color-border);
 }
 
-@media (max-width: 768px) {
-  .alertBody {
-    grid-template-columns: 1fr;
-  }
-}
-
-.metric {
+.metricItem {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1;
 }
 
-.label {
-  font-size: 0.8rem;
+.metricLabel {
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 }
 
-.value {
-  font-size: 1.1rem;
+.metricValue {
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
-.predictionSuccess {
+.metricSeparator {
+  width: 1px;
+  height: 24px;
+  background-color: var(--color-border);
+}
+
+.success {
   color: #10b981;
 }
 
-.predictionFailure {
+.failure {
   color: #ef4444;
 }
 
-.alertFooter {
-  padding: 0;
-}
-
-.recommendation {
-  margin: 0;
-  font-size: 0.9rem;
+.alertMessage {
+  font-size: 0.85rem;
   color: var(--color-text-secondary);
-  line-height: 1.5;
-  padding: 0.75rem;
+  padding: 0.6rem;
   background-color: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
   border-left: 3px solid var(--color-accent-primary);
+  line-height: 1.4;
 }
 
 .refreshBtn {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
-  border: 2px solid var(--color-accent-primary);
+  border: 3px solid var(--color-accent-primary);
   border-radius: 6px;
   font-weight: 700;
   font-size: 0.9rem;
@@ -258,11 +262,12 @@
   transition: all var(--transition-speed) var(--transition-easing);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  box-shadow: 5px 5px 0px var(--color-border);
 }
 
 .refreshBtn:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0px var(--color-accent-primary);
+  box-shadow: 7px 7px 0px var(--color-accent-primary);
 }
 
 .refreshBtn:active {

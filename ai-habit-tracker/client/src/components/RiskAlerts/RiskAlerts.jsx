@@ -10,7 +10,6 @@ import styles from "./RiskAlerts.module.css";
 export default function RiskAlerts() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [dismissedAlerts, setDismissedAlerts] = useState(new Set());
 
   useEffect(() => {
@@ -21,13 +20,10 @@ export default function RiskAlerts() {
     try {
       setLoading(true);
       const res = await api.get("/ml/risk-analysis");
-
-      // Filter for HIGH and MEDIUM risk only
       const filtered = res.data.filter((item) => item.risk !== "LOW");
       setAlerts(filtered);
     } catch (err) {
       console.error("Error fetching risk analysis:", err);
-      setError("");
     } finally {
       setLoading(false);
     }
@@ -58,31 +54,31 @@ export default function RiskAlerts() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <h3 className={styles.title}>AI Risk Alerts</h3>
-        <div className={styles.loading}>Analyzing your habits…</div>
+      <div className={styles.panel}>
+        <h3 className={styles.panelTitle}>AI Risk Alerts</h3>
+        <div className={styles.loading}>Analyzing…</div>
       </div>
     );
   }
 
   if (visibleAlerts.length === 0) {
     return (
-      <div className={styles.container}>
-        <h3 className={styles.title}>AI Risk Alerts</h3>
+      <div className={styles.panel}>
+        <h3 className={styles.panelTitle}>AI Risk Alerts</h3>
         <div className={styles.noAlerts}>
-          <FaShieldAlt size={24} />
-          <p>All habits are performing well!</p>
+          <FaShieldAlt size={32} />
+          <p>All good!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <h3 className={styles.title}>
-        AI Risk Alerts{" "}
+    <div className={styles.panel}>
+      <div className={styles.titleRow}>
+        <h3 className={styles.panelTitle}>AI Risk Alerts</h3>
         <span className={styles.badge}>{visibleAlerts.length}</span>
-      </h3>
+      </div>
 
       <div className={styles.alertsList}>
         {visibleAlerts.map((alert, idx) => (
@@ -90,70 +86,65 @@ export default function RiskAlerts() {
             key={idx}
             className={`${styles.alertCard} ${styles[`alert-${getRiskColor(alert.risk)}`]}`}
           >
-            <div className={styles.alertHeader}>
-              <div className={styles.iconWrapper}>
-                {getRiskIcon(alert.risk)}
-              </div>
-              <div className={styles.alertTitle}>
-                <h4>{alert.habit}</h4>
-                <span
-                  className={`${styles.riskBadge} ${styles[`risk-${alert.risk.toLowerCase()}`]}`}
-                >
-                  {alert.risk} RISK
-                </span>
+            <div className={styles.alertTop}>
+              <div className={styles.habitInfo}>
+                <div className={styles.iconBox}>{getRiskIcon(alert.risk)}</div>
+                <div>
+                  <h4 className={styles.habitName}>{alert.habit}</h4>
+                  <span
+                    className={`${styles.riskBadge} ${styles[`risk-${alert.risk.toLowerCase()}`]}`}
+                  >
+                    {alert.risk}
+                  </span>
+                </div>
               </div>
               <button
                 className={styles.dismissBtn}
                 onClick={() => dismissAlert(idx)}
-                title="Dismiss alert"
+                title="Dismiss"
               >
                 ✕
               </button>
             </div>
 
-            <div className={styles.alertBody}>
-              <div className={styles.metric}>
-                <span className={styles.label}>Current Streak:</span>
-                <span className={styles.value}>{alert.streak} days</span>
+            <div className={styles.metricsRow}>
+              <div className={styles.metricItem}>
+                <span className={styles.metricLabel}>Streak</span>
+                <span className={styles.metricValue}>{alert.streak}d</span>
               </div>
-              <div className={styles.metric}>
-                <span className={styles.label}>Completion Rate:</span>
-                <span className={styles.value}>{alert.completionRate}%</span>
+              <div className={styles.metricSeparator} />
+              <div className={styles.metricItem}>
+                <span className={styles.metricLabel}>Completion</span>
+                <span className={styles.metricValue}>
+                  {alert.completionRate}%
+                </span>
               </div>
-              <div className={styles.metric}>
-                <span className={styles.label}>Prediction:</span>
+              <div className={styles.metricSeparator} />
+              <div className={styles.metricItem}>
+                <span className={styles.metricLabel}>Outlook</span>
                 <span
-                  className={`${styles.value} ${
+                  className={`${styles.metricValue} ${
                     alert.prediction === "LIKELY_SUCCESS"
-                      ? styles.predictionSuccess
-                      : styles.predictionFailure
+                      ? styles.success
+                      : styles.failure
                   }`}
                 >
-                  {alert.prediction}
+                  {alert.prediction === "LIKELY_SUCCESS" ? "✓" : "⚠"}
                 </span>
               </div>
             </div>
 
-            <div className={styles.alertFooter}>
-              {alert.risk === "HIGH" && (
-                <p className={styles.recommendation}>
-                  ⚠️ This habit needs immediate attention. Focus on completing
-                  it daily to build momentum.
-                </p>
-              )}
-              {alert.risk === "MEDIUM" && (
-                <p className={styles.recommendation}>
-                  📈 Good progress! Push for consistent completion to reach your
-                  goals.
-                </p>
-              )}
+            <div className={styles.alertMessage}>
+              {alert.risk === "HIGH" &&
+                "⚠️ Needs attention. Keep the streak alive!"}
+              {alert.risk === "MEDIUM" && "📈 Push for consistency this week."}
             </div>
           </div>
         ))}
       </div>
 
       <button className={styles.refreshBtn} onClick={fetchRiskAnalysis}>
-        🔄 Refresh Analysis
+        🔄 Refresh
       </button>
     </div>
   );
