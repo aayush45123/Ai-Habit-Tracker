@@ -1,35 +1,5 @@
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
-import { spawn } from "child_process";
-
-function predictRisk(streak, completion) {
-  return new Promise((resolve, reject) => {
-    const python = spawn("python", [
-      "./python/predict.py",
-      streak.toString(),
-      completion.toString(),
-    ]);
-
-    let result = "";
-    let error = "";
-
-    python.stdout.on("data", (data) => {
-      result += data.toString();
-    });
-
-    python.stderr.on("data", (data) => {
-      error += data.toString();
-    });
-
-    python.on("close", () => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result.trim());
-      }
-    });
-  });
-}
 
 export const getRiskAnalysis = async (req, res) => {
   try {
@@ -61,14 +31,23 @@ export const getRiskAnalysis = async (req, res) => {
         risk = "MEDIUM";
       }
 
-      const prediction = await predictRisk(habit.streak || 0, completionRate);
+      // Rule-based prediction logic
+      let prediction = "LIKELY_FAILURE";
+
+      if (habit.streak >= 6) {
+        prediction = "LIKELY_SUCCESS";
+      } else if (habit.streak >= 3 && completionRate >= 70) {
+        prediction = "LIKELY_SUCCESS";
+      } else if (habit.streak < 3 && completionRate >= 80) {
+        prediction = "LIKELY_SUCCESS";
+      }
 
       report.push({
         habit: habit.title,
         streak: habit.streak,
         completionRate,
         risk,
-        prediction: prediction === "1" ? "LIKELY_SUCCESS" : "LIKELY_FAILURE",
+        prediction,
       });
     }
 
