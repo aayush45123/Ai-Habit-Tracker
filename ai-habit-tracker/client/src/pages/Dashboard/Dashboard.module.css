@@ -1,98 +1,75 @@
-/* ============================================================
-   DASHBOARD — Neobrutalist 2D Layout
-   Uses only: --color-bg-primary/secondary/tertiary,
-              --color-accent-primary/secondary,
-              --color-text-primary/secondary/on-dark,
-              --color-border, --font-primary,
-              --transition-speed, --transition-easing
-   ============================================================ */
-
 /* Root Container */
 .dashRoot {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0;
+  padding: 2rem;
   font-family: var(--font-primary);
-  background-color: var(--color-bg-primary);
-  min-height: 100vh;
 }
 
-/* ============================================================
-   HEADER BAR — full-width, flush top
-   ============================================================ */
+/* Header */
 .dashHeader {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 2rem;
-  padding: 1.5rem 2rem;
-  background-color: var(--color-accent-primary);
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
   border-bottom: 3px solid var(--color-border);
 }
 
 .dashHeader h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--color-text-on-dark);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.dashDescription {
-  margin: 0.25rem 0 0;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.65);
-  font-weight: 500;
-  letter-spacing: 0.3px;
+  letter-spacing: -0.5px;
 }
 
 .dashHeaderRight {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
-/* ============================================================
-   STAT CARD (header widget)
-   ============================================================ */
+/* Stat Card (Small) */
 .statCard {
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
-  padding: 0.875rem 1.25rem;
-  min-width: 160px;
-  box-shadow: 4px 4px 0px var(--color-bg-secondary);
+  padding: 1.25rem;
+  min-width: 180px;
+  box-shadow: 6px 6px 0px var(--color-accent-primary);
   transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .statCard:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px var(--color-bg-secondary);
+  box-shadow: 8px 8px 0px var(--color-accent-primary);
 }
 
 .statSmall {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .statLabel {
-  font-size: 0.7rem;
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 .statValue {
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 2rem;
+  font-weight: 700;
   color: var(--color-accent-primary);
   line-height: 1;
 }
 
+/* Sparkline */
 .sparklineContainer {
-  height: 20px;
+  height: 24px;
   margin-top: 0.25rem;
 }
 
@@ -103,211 +80,117 @@
 
 /* CTA Button */
 .ctaBtn {
-  padding: 0.75rem 1.5rem;
-  background-color: var(--color-bg-primary);
-  color: var(--color-accent-primary);
-  border: 3px solid var(--color-bg-primary);
+  padding: 0.875rem 1.75rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border: 3px solid var(--color-accent-primary);
   font-family: var(--font-primary);
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 4px 4px 0px var(--color-accent-secondary);
-  white-space: nowrap;
-}
-
-.ctaBtn:hover {
-  background-color: var(--color-bg-secondary);
-  transform: translate(-2px, -2px);
+  letter-spacing: 0.5px;
   box-shadow: 6px 6px 0px var(--color-accent-secondary);
 }
 
+.ctaBtn:hover {
+  background-color: var(--color-accent-secondary);
+  border-color: var(--color-accent-secondary);
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px var(--color-accent-secondary);
+}
+
 .ctaBtn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0px var(--color-accent-secondary);
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0px var(--color-accent-secondary);
 }
 
-/* ============================================================
-   METRICS STRIP — 4 KPIs in one horizontal bar
-   ============================================================ */
-.metricsStrip {
+/* Main Section */
+.dashMain {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-bottom: 3px solid var(--color-border);
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
 }
 
-.metricCell {
-  padding: 1.25rem 1.75rem;
-  border-right: 3px solid var(--color-border);
-  background-color: var(--color-bg-secondary);
-  transition: all var(--transition-speed) var(--transition-easing);
-  cursor: default;
-}
-
-.metricCell:last-child {
-  border-right: none;
-}
-
-.metricCell:hover {
-  background-color: var(--color-bg-tertiary);
-}
-
-.metricCellLabel {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 0.4rem;
-}
-
-.metricCellNum {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--color-accent-primary);
-  line-height: 1;
-}
-
-/* ============================================================
-   MAIN BODY — 3-column grid: habits | right panels
-   ============================================================ */
-.dashBody {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  min-height: calc(100vh - 140px);
-  border-top: none;
-}
-
-/* ============================================================
-   LEFT COLUMN
-   ============================================================ */
-.leftCol {
-  border-right: 3px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-}
-
-/* ============================================================
-   RIGHT COLUMN
-   ============================================================ */
+/* Columns */
+.leftCol,
 .rightCol {
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg-secondary);
+  gap: 2rem;
 }
 
-/* ============================================================
-   SECTION BLOCK — reusable panel unit
-   ============================================================ */
+/* Panel */
 .panel {
-  background-color: var(--color-bg-primary);
-  border-bottom: 3px solid var(--color-border);
-  padding: 1.5rem;
-  transition: background-color var(--transition-speed) var(--transition-easing);
-}
-
-.panel:last-child {
-  border-bottom: none;
-}
-
-.rightCol .panel {
   background-color: var(--color-bg-secondary);
-  border-bottom: 3px solid var(--color-border);
-  box-shadow: none;
+  border: 3px solid var(--color-border);
+  padding: 1.75rem;
+  transition: all var(--transition-speed) var(--transition-easing);
+  box-shadow: 8px 8px 0px var(--color-accent-primary);
 }
 
-.rightCol .panel:hover {
-  background-color: var(--color-bg-tertiary);
-  transform: none;
-  box-shadow: none;
+.panel:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 10px 10px 0px var(--color-accent-primary);
 }
 
 .panelTitle {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--color-text-secondary);
-  margin: 0 0 1.25rem 0;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--color-border);
-}
-
-/* ============================================================
-   TODAY'S HABITS SECTION
-   ============================================================ */
-.habitsSection {
-  flex: 1;
-  padding: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
   border-bottom: 3px solid var(--color-border);
-}
-
-.habitsSectionTitle {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--color-text-secondary);
-  margin: 0 0 1.25rem 0;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--color-border);
-}
-
-.habitList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-/* ============================================================
-   CHART BOX
-   ============================================================ */
-.chartBox {
-  height: 72px;
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  box-shadow: 3px 3px 0px var(--color-border);
-  margin-bottom: 0.75rem;
-}
-
-.bigSpark {
-  width: 100%;
-  height: 100%;
-}
-
-.miniLegend {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* ============================================================
-   AI SHORT BOX
-   ============================================================ */
-.shortAIBox {
-  padding: 1rem;
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  border-left: 5px solid var(--color-accent-primary);
-  font-size: 0.875rem;
-  line-height: 1.65;
-  color: var(--color-text-primary);
-  box-shadow: 3px 3px 0px var(--color-border);
+/* Summary Grid */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
-/* ============================================================
-   EMPTY / LOADING STATES
-   ============================================================ */
+.summaryCard {
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  padding: 1.25rem;
+  text-align: center;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.summaryCard:hover {
+  border-color: var(--color-accent-primary);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px var(--color-accent-primary);
+}
+
+.summaryCard .num {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-accent-primary);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.summaryCard .label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Habit List */
+.habitList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Empty State */
 .empty {
   display: flex;
   flex-direction: column;
@@ -316,183 +199,306 @@
   padding: 3rem 2rem;
   text-align: center;
   gap: 1rem;
-  border: 2px dashed var(--color-border);
-  background-color: var(--color-bg-secondary);
 }
 
 .empty p {
-  font-size: 1rem;
+  font-size: 1.125rem;
   color: var(--color-text-secondary);
   margin: 0;
-  font-weight: 600;
 }
 
-.muted {
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  padding: 1.5rem 0;
-  text-align: center;
-}
-
+/* Secondary Button */
 .secondary {
-  padding: 0.625rem 1.25rem;
+  padding: 0.75rem 1.5rem;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--color-border);
   font-family: var(--font-primary);
-  font-size: 0.8125rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 3px 3px 0px var(--color-accent-primary);
+  box-shadow: 4px 4px 0px var(--color-accent-primary);
 }
 
 .secondary:hover {
   background-color: var(--color-accent-primary);
-  color: var(--color-text-on-dark);
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px var(--color-accent-secondary);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent-primary);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--color-accent-secondary);
 }
 
-/* ============================================================
-   RECOMMENDATIONS SECTION — full-width strip below main grid
-   ============================================================ */
-.recommendationsRow {
-  border-top: 3px solid var(--color-border);
-  background-color: var(--color-bg-secondary);
+.secondary:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px var(--color-accent-primary);
 }
 
-/* ============================================================
-   FLOATING AI BUTTON
-   ============================================================ */
-.floatingAI {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 52px;
-  height: 52px;
-  border-radius: 0;
-  background: var(--color-accent-primary);
-  color: var(--color-text-on-dark);
-  font-size: 20px;
+/* Chart Box */
+.chartBox {
+  height: 80px;
+  padding: 1rem;
+  background-color: var(--color-bg-primary);
   border: 3px solid var(--color-border);
-  cursor: pointer;
-  box-shadow: 5px 5px 0px var(--color-accent-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 5px 5px 0px var(--color-accent-primary);
   transition: all var(--transition-speed) var(--transition-easing);
-  z-index: 100;
 }
 
-.floatingAI:hover {
+.chartBox:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0px var(--color-accent-primary);
+}
+
+.bigSpark {
+  width: 100%;
+  height: 100%;
+}
+
+/* Mini Legend */
+.miniLegend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* AI Short Box */
+.shortAIBox {
+  padding: 1.25rem;
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  border-left-width: 6px;
+  border-left-color: var(--color-accent-primary);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--color-text-primary);
+  box-shadow: 6px 6px 0px var(--color-accent-primary);
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.shortAIBox:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0px var(--color-accent-secondary);
+  box-shadow: 8px 8px 0px var(--color-accent-primary);
 }
 
-.floatingAI:active {
-  transform: translate(1px, 1px);
-  box-shadow: 3px 3px 0px var(--color-accent-secondary);
+/* Muted Text */
+.muted {
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
 }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 1024px) {
-  .dashBody {
-    grid-template-columns: 1fr;
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .dashMain {
+    grid-template-columns: 1fr 350px;
+    gap: 1.5rem;
   }
 
-  .leftCol {
-    border-right: none;
+  .statCard {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashRoot {
+    padding: 1.5rem;
+  }
+
+  .dashHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .dashHeaderRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .statCard {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .dashMain {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
   .rightCol {
-    border-top: 3px solid var(--color-border);
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .rightCol .panel {
-    border-right: 3px solid var(--color-border);
-    border-bottom: none;
-  }
-
-  .rightCol .panel:nth-child(even) {
-    border-right: none;
-  }
-
-  .metricsStrip {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .metricCell:nth-child(2) {
-    border-right: none;
-  }
-
-  .metricCell:nth-child(3) {
-    border-top: 3px solid var(--color-border);
-  }
-
-  .metricCell:nth-child(4) {
-    border-top: 3px solid var(--color-border);
-    border-right: none;
+    order: -1;
   }
 }
 
 @media (max-width: 768px) {
+  .dashRoot {
+    padding: 1rem;
+  }
+
   .dashHeader {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 1.25rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .dashHeader h1 {
+    font-size: 1.75rem;
   }
 
   .dashHeaderRight {
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .statCard {
+    width: 100%;
+    box-shadow: 5px 5px 0px var(--color-accent-primary);
   }
 
   .ctaBtn {
     width: 100%;
-    text-align: center;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 5px 5px 0px var(--color-accent-secondary);
   }
 
-  .metricsStrip {
-    grid-template-columns: repeat(2, 1fr);
+  .panel {
+    padding: 1.5rem;
+    box-shadow: 6px 6px 0px var(--color-accent-primary);
   }
 
-  .rightCol {
+  .panelTitle {
+    font-size: 1.125rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .summaryGrid {
     grid-template-columns: 1fr;
+    gap: 0.875rem;
   }
 
-  .rightCol .panel {
-    border-right: none;
-    border-bottom: 3px solid var(--color-border);
+  .summaryCard {
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .summaryCard .num {
+    font-size: 2rem;
+  }
+
+  .habitList {
+    gap: 0.875rem;
+  }
+
+  .chartBox {
+    height: 70px;
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .secondary {
+    box-shadow: 3px 3px 0px var(--color-accent-primary);
+  }
+
+  .shortAIBox {
+    box-shadow: 5px 5px 0px var(--color-accent-primary);
   }
 }
 
 @media (max-width: 480px) {
-  .dashHeader {
-    padding: 1rem;
+  .dashRoot {
+    padding: 0.75rem;
   }
 
   .dashHeader h1 {
-    font-size: 1.25rem;
-  }
-
-  .metricsStrip {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .metricCellNum {
     font-size: 1.5rem;
   }
 
-  .habitsSection,
-  .panel {
-    padding: 1.25rem 1rem;
+  .dashHeader {
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
   }
+
+  .statCard {
+    padding: 1rem;
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .statValue {
+    font-size: 1.75rem;
+  }
+
+  .ctaBtn {
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+    box-shadow: 4px 4px 0px var(--color-accent-secondary);
+  }
+
+  .panel {
+    padding: 1.25rem;
+    box-shadow: 5px 5px 0px var(--color-accent-primary);
+  }
+
+  .panelTitle {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .summaryCard {
+    padding: 1rem;
+    box-shadow: 3px 3px 0px var(--color-accent-primary);
+  }
+
+  .summaryCard .num {
+    font-size: 1.75rem;
+  }
+
+  .summaryCard .label {
+    font-size: 0.8125rem;
+  }
+
+  .empty {
+    padding: 2rem 1rem;
+  }
+
+  .empty p {
+    font-size: 1rem;
+  }
+
+  .chartBox {
+    height: 60px;
+    padding: 0.75rem;
+    box-shadow: 3px 3px 0px var(--color-accent-primary);
+  }
+
+  .miniLegend {
+    font-size: 0.8125rem;
+  }
+
+  .shortAIBox {
+    padding: 1rem;
+    font-size: 0.875rem;
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .secondary {
+    box-shadow: 3px 3px 0px var(--color-accent-primary);
+  }
+}
+.floatingAI {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #60a5fa;
+  color: black;
+  font-size: 22px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
