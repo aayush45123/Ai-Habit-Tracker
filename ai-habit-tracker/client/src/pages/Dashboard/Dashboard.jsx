@@ -19,11 +19,9 @@ export default function Dashboard() {
   const [weeklyData, setWeeklyData] = useState([]);
   const [weekChange, setWeekChange] = useState(0);
 
-  // AI Insights
   const [ai, setAI] = useState(null);
   const [aiLoading, setAILoading] = useState(true);
 
-  // Floating AI Chat
   const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
@@ -47,10 +45,8 @@ export default function Dashboard() {
   async function fetchAnalytics() {
     try {
       const res = await api.get("/habits/analytics/all");
-
       const raw = Object.values(res.data.weekly || {});
       const scaled = raw.map((v) => Math.min(100, v * 20));
-
       setWeeklyData(scaled);
       setWeekChange(res.data.weekChange || 0);
     } catch (err) {
@@ -64,7 +60,6 @@ export default function Dashboard() {
       const res = await api.get("/ai/insights");
       setAI(res.data.ai);
     } catch (err) {
-      console.error(err);
       setAI(null);
     } finally {
       setAILoading(false);
@@ -77,10 +72,7 @@ export default function Dashboard() {
         date: formatDateISO(new Date()),
         status: done ? "done" : "missed",
       };
-
       await api.post(`/habits/${habitId}/log`, payload);
-
-      // Refresh all data
       await fetchHabits();
       await fetchAnalytics();
       await fetchAIInsights();
@@ -93,36 +85,34 @@ export default function Dashboard() {
   const completedToday = habits.filter(
     (h) => h.lastDate === formatDateISO() && h.lastStatus === "done",
   ).length;
-
-  // Display longest streak across all habits
   const longestStreak = Math.max(...habits.map((h) => h.longestStreak || 0), 0);
+  const weekAvg = weeklyData.length
+    ? Math.round(weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length)
+    : 0;
 
   return (
     <div className={styles.dashRoot}>
-      {/* HEADER */}
+      {/* ── HEADER ── */}
       <header className={styles.dashHeader}>
         <div>
-          <h1>Welcome back</h1>
+          <h1>Welcome Back</h1>
           <p className={styles.dashDescription}>
-            Track your daily habits, build powerful streaks, and transform your
-            life one day at a time.
+            Track daily habits · Build streaks · Transform your routine
           </p>
         </div>
 
         <div className={styles.dashHeaderRight}>
           <div className={`${styles.statCard} ${styles.statSmall}`}>
             <div className={styles.statLabel}>This week</div>
-            <div className={styles.statValue}>
-              {weeklyData.length
-                ? Math.round(
-                    weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length,
-                  )
-                : 0}
-              %
-            </div>
-
+            <div className={styles.statValue}>{weekAvg}%</div>
             <div className={styles.sparklineContainer}>
               <svg viewBox="0 0 70 20" className={styles.spark}>
+                <defs>
+                  <linearGradient id="g1" x1="0" x2="1">
+                    <stop offset="0%" stopColor="#6ee7b7" />
+                    <stop offset="100%" stopColor="#60a5fa" />
+                  </linearGradient>
+                </defs>
                 <polyline
                   fill="none"
                   stroke="url(#g1)"
@@ -131,12 +121,6 @@ export default function Dashboard() {
                     .map((v, i) => `${i * 10 + 2},${20 - v / 6}`)
                     .join(" ")}
                 />
-                <defs>
-                  <linearGradient id="g1" x1="0" x2="1">
-                    <stop offset="0%" stopColor="#6ee7b7" />
-                    <stop offset="100%" stopColor="#60a5fa" />
-                  </linearGradient>
-                </defs>
               </svg>
             </div>
           </div>
@@ -150,47 +134,41 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* MAIN */}
-      <main className={styles.dashMain}>
-        {/* LEFT COLUMN */}
-        <section className={styles.leftCol}>
-          <div className={styles.panel}>
-            <h3 className={styles.panelTitle}>Quick Summary</h3>
-
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryCard}>
-                <div className={styles.num}>{total}</div>
-                <div className={styles.label}>Total Habits</div>
-              </div>
-
-              <div className={styles.summaryCard}>
-                <div className={styles.num}>{completedToday}</div>
-                <div className={styles.label}>Completed Today</div>
-              </div>
-
-              <div className={styles.summaryCard}>
-                <div className={styles.num}>{longestStreak}</div>
-                <div className={styles.label}>Longest Streak</div>
-              </div>
-
-              <div className={styles.summaryCard}>
-                <div className={styles.num}>
-                  {weekChange > 0 ? "+" : ""}
-                  {weekChange}%
-                </div>
-                <div className={styles.label}>Week Change</div>
-              </div>
-            </div>
+      {/* ── METRICS STRIP ── */}
+      <div className={styles.metricsStrip}>
+        <div className={styles.metricCell}>
+          <div className={styles.metricCellLabel}>Total Habits</div>
+          <div className={styles.metricCellNum}>{total}</div>
+        </div>
+        <div className={styles.metricCell}>
+          <div className={styles.metricCellLabel}>Completed Today</div>
+          <div className={styles.metricCellNum}>{completedToday}</div>
+        </div>
+        <div className={styles.metricCell}>
+          <div className={styles.metricCellLabel}>Longest Streak</div>
+          <div className={styles.metricCellNum}>{longestStreak}d</div>
+        </div>
+        <div className={styles.metricCell}>
+          <div className={styles.metricCellLabel}>Week Change</div>
+          <div className={styles.metricCellNum}>
+            {weekChange > 0 ? "+" : ""}
+            {weekChange}%
           </div>
+        </div>
+      </div>
 
-          <div className={styles.panel}>
-            <h3 className={styles.panelTitle}>Today's Habits</h3>
+      {/* ── MAIN BODY ── */}
+      <div className={styles.dashBody}>
+        {/* LEFT — Today's Habits */}
+        <section className={styles.leftCol}>
+          <div className={styles.habitsSection}>
+            <h3 className={styles.habitsSectionTitle}>Today's Habits</h3>
 
             {loading ? (
               <div className={styles.muted}>Loading habits…</div>
             ) : habits.length === 0 ? (
               <div className={styles.empty}>
-                <p>No habits yet.</p>
+                <p>No habits yet. Start building your routine.</p>
                 <button
                   className={styles.secondary}
                   onClick={() => (window.location.href = "/add")}
@@ -212,18 +190,19 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* RIGHT COLUMN */}
+        {/* RIGHT — Sidebar panels */}
         <aside className={styles.rightCol}>
+          {/* Risk Alerts */}
           <RiskAlerts />
 
+          {/* Weekly Completion */}
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>Weekly Completion</h3>
-
             <div className={styles.chartBox}>
               <svg viewBox="0 0 140 60" className={styles.bigSpark}>
                 <polyline
                   fill="none"
-                  stroke="#60a5fa"
+                  stroke="var(--color-accent-primary)"
                   strokeWidth="3"
                   points={weeklyData
                     .map((v, i) => `${i * 20 + 5},${60 - v / 2}`)
@@ -231,39 +210,39 @@ export default function Dashboard() {
                 />
               </svg>
             </div>
-
             <div className={styles.miniLegend}>
-              <div>Completion trend</div>
-              <div className={styles.muted}>Aim for 80%+</div>
+              <span>Completion trend</span>
+              <span>Aim 80%+</span>
             </div>
           </div>
 
+          {/* AI Insights */}
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>AI Insights</h3>
-
             {aiLoading ? (
-              <div className={styles.muted}>Analyzing your habits…</div>
+              <div className={styles.muted}>Analysing your habits…</div>
             ) : !ai ? (
-              <div className={styles.muted}>No insights available.</div>
+              <div className={styles.muted}>No insights available yet.</div>
             ) : (
               <div className={styles.shortAIBox}>{ai.shortSummary}</div>
             )}
           </div>
         </aside>
-      </main>
+      </div>
 
-      {/* RECOMMENDATIONS SECTION */}
-      <Recommendations />
+      {/* ── RECOMMENDATIONS (full width) ── */}
+      <div className={styles.recommendationsRow}>
+        <Recommendations />
+      </div>
 
-      {/* FLOATING AI CHAT */}
+      {/* ── FLOATING AI CHAT ── */}
       <AIChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
-
       <button
         className={styles.floatingAI}
         onClick={() => setChatOpen(true)}
         title="Chat with AI Coach"
       >
-        <FaRobot size={24} />
+        <FaRobot size={20} />
       </button>
     </div>
   );
