@@ -1,11 +1,10 @@
-
-# 🧠 AI Habit Tracker
+# AI Habit Tracker
 
 AI Habit Tracker is a full-stack, production-ready web application that helps users build consistency, improve focus, and track habits using smart insights, challenges, and visual analytics.
 
 ---
 
-## 🌐 Live Application
+## Live Application
 
 **Frontend (Vercel)**  
 https://ai-habit-tracker-eb72.vercel.app
@@ -15,38 +14,43 @@ https://ai-habit-tracker-n8w9.onrender.com
 
 ---
 
-## 📸 Output Screenshots
+## Output Screenshots
 
 ### Dashboard
+
 ![Dashboard](./ai-habit-tracker/client/src/assets/dashboard.png)
 
 ### Daily Habits View
+
 ![Daily Habits](./ai-habit-tracker/client/src/assets/21.png)
 
 ### Pomodoro / Focus Mode
+
 ![Pomodoro](./ai-habit-tracker/client/src/assets/pomodoro.png)
 
 ### Habit Templates
+
 ![Templates](./ai-habit-tracker/client/src/assets/templates.png)
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- 🔐 User authentication with JWT
-- ✅ Create, update, and track daily habits
-- 📊 Visual progress analytics and charts
-- 🤖 AI-based habit recommendations
-- ⏱️ Focus sessions and Pomodoro tracking
-- 🏆 Challenges and streak maintenance
-- 📱 Responsive and clean user interface
-- ☁️ Deployed with cloud-ready configuration
+- User authentication with JWT
+- Create, update, and track daily habits
+- Visual progress analytics and charts
+- AI-based habit recommendations
+- Focus sessions and Pomodoro tracking
+- Challenges and streak maintenance
+- Responsive and clean user interface
+- Deployed with cloud-ready configuration
 
 ---
 
-## 🛠 Technology Stack
+## Technology Stack
 
 ### Frontend
+
 - React (Vite)
 - React Router DOM
 - Axios
@@ -54,6 +58,7 @@ https://ai-habit-tracker-n8w9.onrender.com
 - CSS Modules
 
 ### Backend
+
 - Node.js
 - Express.js
 - MongoDB with Mongoose
@@ -61,43 +66,48 @@ https://ai-habit-tracker-n8w9.onrender.com
 - Secure CORS configuration
 
 ### Deployment
+
 - Frontend: Vercel
 - Backend: Render
 - Database: MongoDB Atlas
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 Ai-Habit-Tracker
 └── ai-habit-tracker
-    ├── client
-    │   └── src
-    │       └── assets
-    ├── server
-    └── README.md
+├── client
+│ └── src
+│ └── assets
+├── server
+└── README.md
 
 ---
 
-## ⚙ Environment Variables
+## Environment Variables
 
 ### Backend (server/.env)
+
 PORT=10000
 MONGO_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
 
 ### Frontend (client/.env)
+
 VITE_API_BASE_URL=https://ai-habit-tracker-n8w9.onrender.com
 
 ---
 
-## 🚀 Local Development Setup
+## Local Development Setup
 
 ### 1. Clone the repository
+
 git clone https://github.com/aayush45123/Ai-Habit-Tracker.git
 cd Ai-Habit-Tracker/ai-habit-tracker
 
 ### 2. Backend setup
+
 cd server
 npm install
 npm start
@@ -105,6 +115,7 @@ npm start
 Backend runs at http://localhost:10000
 
 ### 3. Frontend setup
+
 cd ../client
 npm install
 npm run dev
@@ -116,23 +127,25 @@ Frontend runs at http://localhost:5173
 ## 🌍 Deployment Configuration
 
 ### Vercel (Frontend)
+
 - Root Directory: ai-habit-tracker/client
 - Build Command: npm run build
 - Output Directory: dist
 
 ### Render (Backend)
+
 - Root Directory: ai-habit-tracker/server
 - Build Command: npm install
 - Start Command: npm start
 
 ---
 
-## 🔐 Production Notes
+## Production Notes
 
-- ✅ CORS configured for localhost and all Vercel deployments
-- ✅ Secure environment variables
-- ✅ Optimized Vite production build
-- ✅ Compatible with Node.js 22
+- CORS configured for localhost and all Vercel deployments
+- Secure environment variables
+- Optimized Vite production build
+- Compatible with Node.js 22
 
 ---
 
@@ -146,7 +159,7 @@ Frontend runs at http://localhost:5173
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Aayush**  
 AI & Data Science Student  
@@ -167,8 +180,8 @@ Feel free to check the issues page.
 
 ---
 
-## ⭐ Show your support
+## Show your support
 
-Give a ⭐️ if this project helped you!
+Give a star if this project helped you!
 
 EOF
