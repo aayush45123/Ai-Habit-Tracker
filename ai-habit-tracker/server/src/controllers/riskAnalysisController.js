@@ -18,6 +18,19 @@ function predictRisk(
   habitAge,
 ) {
   return new Promise((resolve, reject) => {
+    console.log("Launching Python with:");
+
+    console.log([
+      "./python/predict.py",
+      streak,
+      completion,
+      longestStreak,
+      totalLogs,
+      missedLogs,
+      successRate,
+      habitAge,
+    ]);
+
     const python = spawn("python", [
       "./python/predict.py",
 
@@ -164,6 +177,16 @@ export const getRiskAnalysis = async (req, res) => {
       //-----------------------------------------------------
       // ML PREDICTION
       //-----------------------------------------------------
+
+      console.log({
+        streak: habit.streak || 0,
+        completionRate,
+        longestStreak,
+        totalLogs,
+        missedLogs,
+        successRate,
+        habitAge,
+      });
 
       const result = await predictRisk(
         habit.streak || 0,
