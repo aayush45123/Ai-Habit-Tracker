@@ -8,12 +8,26 @@ import { spawn } from "child_process";
 |--------------------------------------------------------------------------
 */
 
-function predictRisk(streak, completion) {
+function predictRisk(
+  streak,
+  completion,
+  longestStreak,
+  totalLogs,
+  missedLogs,
+  successRate,
+  habitAge,
+) {
   return new Promise((resolve, reject) => {
     const python = spawn("python", [
       "./python/predict.py",
+
       streak.toString(),
       completion.toString(),
+      longestStreak.toString(),
+      totalLogs.toString(),
+      missedLogs.toString(),
+      successRate.toString(),
+      habitAge.toString(),
     ]);
 
     let output = "";
@@ -28,7 +42,7 @@ function predictRisk(streak, completion) {
     });
 
     python.on("close", () => {
-      if (error) {
+      if (error.length > 0) {
         return reject(error);
       }
 
@@ -36,7 +50,6 @@ function predictRisk(streak, completion) {
     });
   });
 }
-
 /*
 |--------------------------------------------------------------------------
 | Explainable AI
@@ -121,6 +134,21 @@ export const getRiskAnalysis = async (req, res) => {
       const completionRate =
         logs.length === 0 ? 0 : Math.round((doneCount / logs.length) * 100);
 
+      const totalLogs = logs.length;
+
+      const missedLogs = logs.filter((log) => log.status === "missed").length;
+
+      const successRate = completionRate;
+
+      const habitAge = Math.max(
+        1,
+        Math.floor(
+          (Date.now() - new Date(habit.startDate)) / (1000 * 60 * 60 * 24),
+        ),
+      );
+
+      const longestStreak = habit.longestStreak || 0;
+
       //-----------------------------------------------------
       // RULE-BASED RISK
       //-----------------------------------------------------
@@ -137,14 +165,31 @@ export const getRiskAnalysis = async (req, res) => {
       // ML PREDICTION
       //-----------------------------------------------------
 
-      const result = await predictRisk(habit.streak || 0, completionRate);
+      const result = await predictRisk(
+        habit.streak || 0,
+        completionRate,
+        longestStreak,
+        totalLogs,
+        missedLogs,
+        successRate,
+        habitAge,
+      );
 
-      const [predictionValue, confidenceValue] = result.split(",");
+      const [
+        predictionValue,
+        confidenceValue,
+        successProbability,
+        failureProbability,
+      ] = result.split(",");
 
       const prediction =
         predictionValue === "1" ? "LIKELY_SUCCESS" : "LIKELY_FAILURE";
 
       const confidence = Number(confidenceValue);
+
+      const successChance = Number(successProbability);
+
+      const failureChance = Number(failureProbability);
 
       //-----------------------------------------------------
       // EXPLANATION
@@ -161,13 +206,27 @@ export const getRiskAnalysis = async (req, res) => {
 
         streak: habit.streak,
 
+        longestStreak,
+
         completionRate,
+
+        totalLogs,
+
+        missedLogs,
+
+        successRate,
+
+        habitAge,
 
         risk,
 
         prediction,
 
         confidence,
+
+        successChance,
+
+        failureChance,
 
         reasons: explanation.reasons,
 
