@@ -16,6 +16,10 @@ sample = pd.DataFrame(
     columns=["streak", "completion"]
 )
 
-prediction = model.predict(sample)
+prediction = model.predict(sample)[0]
 
-print(int(prediction[0]))
+probability = model.predict_proba(sample)[0]
+
+confidence = round(max(probability) * 100)
+
+print(f"{prediction},{confidence}")
