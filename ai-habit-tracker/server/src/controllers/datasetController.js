@@ -17,46 +17,49 @@ export const generateDataset = async (req, res) => {
         date: 1,
       });
 
-      const totalLogs = logs.length;
+      if (logs.length === 0) continue;
 
-      if (totalLogs === 0) continue;
-
-      const doneLogs = logs.filter((log) => log.status === "done").length;
-
-      const missedLogs = logs.filter((log) => log.status === "missed").length;
-
-      const completion = Math.round((doneLogs / totalLogs) * 100);
-
-      const successRate = completion;
-
-      const habitAge = Math.max(
-        1,
-        Math.floor(
-          (Date.now() - new Date(habit.startDate)) / (1000 * 60 * 60 * 24),
-        ),
-      );
+      const habitStartDate = new Date(habit.startDate);
 
       let currentStreak = 0;
+      let longestStreak = 0;
+      let doneCount = 0;
+      let missedCount = 0;
 
-      for (const log of logs) {
+      logs.forEach((log, i) => {
         if (log.status === "done") {
           currentStreak++;
+          doneCount++;
         } else {
           currentStreak = 0;
+          missedCount++;
         }
+
+        longestStreak = Math.max(longestStreak, currentStreak);
+
+        const totalLogsSoFar = i + 1;
+        const completion = Math.round((doneCount / totalLogsSoFar) * 100);
+        const successRate = completion;
+
+        const habitAge = Math.max(
+          1,
+          Math.floor(
+            (new Date(log.date) - habitStartDate) / (1000 * 60 * 60 * 24),
+          ) + 1,
+        );
 
         const target = log.status === "done" ? 1 : 0;
 
         csv +=
           `${currentStreak},` +
           `${completion},` +
-          `${habit.longestStreak},` +
-          `${totalLogs},` +
-          `${missedLogs},` +
+          `${longestStreak},` +
+          `${totalLogsSoFar},` +
+          `${missedCount},` +
           `${successRate},` +
           `${habitAge},` +
           `${target}\n`;
-      }
+      });
     }
 
     const pythonFolder = path.join(process.cwd(), "python");
