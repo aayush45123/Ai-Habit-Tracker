@@ -1,270 +1,267 @@
+// server/src/controllers/riskAnalysisController.js
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
-import { spawn } from "child_process";
 
-/*
-|--------------------------------------------------------------------------
-| Run Python ML Model
-|--------------------------------------------------------------------------
-*/
+/* ─────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────── */
 
-function predictRisk(
-  streak,
-  completion,
-  longestStreak,
-  totalLogs,
-  missedLogs,
-  successRate,
-  habitAge,
-) {
-  return new Promise((resolve, reject) => {
-    console.log("Launching Python with:");
-
-    console.log([
-      "./python/predict.py",
-      streak,
-      completion,
-      longestStreak,
-      totalLogs,
-      missedLogs,
-      successRate,
-      habitAge,
-    ]);
-
-    const python = spawn("python", [
-      "./python/predict.py",
-
-      streak.toString(),
-      completion.toString(),
-      longestStreak.toString(),
-      totalLogs.toString(),
-      missedLogs.toString(),
-      successRate.toString(),
-      habitAge.toString(),
-    ]);
-
-    let output = "";
-    let error = "";
-
-    python.stdout.on("data", (data) => {
-      output += data.toString();
-    });
-
-    python.stderr.on("data", (data) => {
-      error += data.toString();
-    });
-
-    python.on("close", () => {
-      if (error.length > 0) {
-        return reject(error);
-      }
-
-      resolve(output.trim());
-    });
-  });
+/**
+ * Returns ISO date string for N days ago (UTC midnight)
+ */
+function daysAgo(n) {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - n);
+  return d;
 }
-/*
-|--------------------------------------------------------------------------
-| Explainable AI
-|--------------------------------------------------------------------------
-*/
 
-function buildAIExplanation(habit, completionRate, prediction) {
+/**
+ * Compute a 0-100 confidence score for the prediction.
+ * Weights: completion rate (50%), streak (30%), recent 7-day rate (20%)
+ */
+function computeConfidence(completionRate, streak, recentRate) {
+  const streakScore = Math.min(streak * 10, 100); // cap at 100
+  const raw = completionRate * 0.5 + streakScore * 0.3 + recentRate * 0.2;
+  return Math.round(Math.min(Math.max(raw, 0), 100));
+}
+
+/**
+ * Build human-readable explanations for why a risk level was assigned.
+ */
+function buildReasons(
+  completionRate,
+  streak,
+  recentRate,
+  totalLogs,
+  recentDone,
+) {
   const reasons = [];
-  const suggestions = [];
-
-  // STREAK
-
-  if (habit.streak <= 2) {
-    reasons.push(`Current streak is only ${habit.streak} day(s).`);
-    suggestions.push("Build a streak of at least 3 consecutive days.");
-  }
-
-  if (habit.streak === 0) {
-    reasons.push("No recent successful routine detected.");
-    suggestions.push("Start with a smaller version of this habit.");
-  }
-
-  // COMPLETION
 
   if (completionRate < 40) {
-    reasons.push(`Completion rate is only ${completionRate}%.`);
-    suggestions.push("Reduce the difficulty of this habit.");
+    reasons.push(
+      `Only ${completionRate}% of all tracked days were completed (${totalLogs} total logs)`,
+    );
   } else if (completionRate < 70) {
-    reasons.push(`Completion consistency is moderate (${completionRate}%).`);
-
-    suggestions.push("Try completing this habit at the same time every day.");
+    reasons.push(
+      `Completion rate is ${completionRate}% — below the 70% healthy threshold`,
+    );
   } else {
-    reasons.push(`Strong completion rate of ${completionRate}%.`);
+    reasons.push(`Strong overall completion rate of ${completionRate}%`);
   }
 
-  // ML RESULT
-
-  if (prediction === "LIKELY_FAILURE") {
+  if (streak === 0) {
+    reasons.push("No active streak — habit has not been done recently");
+  } else if (streak < 3) {
     reasons.push(
-      "Machine learning predicts a high chance of breaking the habit.",
+      `Current streak is only ${streak} day${streak === 1 ? "" : "s"} — momentum is fragile`,
     );
-
-    suggestions.push("Enable reminder notifications.");
-    suggestions.push("Pair this habit with an existing routine.");
-    suggestions.push("Track this habit immediately after waking up.");
+  } else if (streak < 7) {
+    reasons.push(`Streak of ${streak} days — building momentum`);
   } else {
-    reasons.push(
-      "Machine learning predicts a high chance of maintaining this habit.",
-    );
-
-    suggestions.push("Maintain your current routine.");
-    suggestions.push("Increase the challenge gradually.");
+    reasons.push(`Strong ${streak}-day streak — solid momentum`);
   }
 
-  return {
-    reasons,
-    suggestions,
-  };
+  if (recentDone === 0) {
+    reasons.push("Not completed a single time in the last 7 days");
+  } else if (recentRate < 43) {
+    reasons.push(
+      `Completed only ${recentDone} out of last 7 days (${recentRate}%)`,
+    );
+  } else if (recentRate < 71) {
+    reasons.push(
+      `Completed ${recentDone} out of last 7 days — room to improve`,
+    );
+  } else {
+    reasons.push(
+      `Completed ${recentDone} out of last 7 days — good recent trend`,
+    );
+  }
+
+  return reasons;
 }
 
-/*
-|--------------------------------------------------------------------------
-| Risk Analysis API
-|--------------------------------------------------------------------------
-*/
+/**
+ * Factor weights shown as progress bars in the UI.
+ * Each factor has a label, a 0-100 value, and a weight (proportion of decision).
+ */
+function buildFactorWeights(completionRate, streak, recentRate) {
+  const streakScore = Math.min(streak * 10, 100);
+  return [
+    {
+      label: "Overall Completion",
+      value: completionRate,
+      weight: 50,
+      description: `${completionRate}% of all logged days marked done`,
+    },
+    {
+      label: "Streak Strength",
+      value: streakScore,
+      weight: 30,
+      description: `${streak} day streak (10 pts per day, max 100)`,
+    },
+    {
+      label: "Last 7 Days",
+      value: recentRate,
+      weight: 20,
+      description: `${recentRate}% completion in the past week`,
+    },
+  ];
+}
+
+/**
+ * Build a one-line recommended action based on the risk level and data.
+ */
+function buildActionSuggestion(
+  risk,
+  prediction,
+  streak,
+  completionRate,
+  recentRate,
+) {
+  if (risk === "HIGH" && streak === 0) {
+    return "Start fresh today — even a single log resets momentum.";
+  }
+  if (risk === "HIGH" && recentRate < 30) {
+    return "Schedule this habit at a fixed time to rebuild consistency.";
+  }
+  if (risk === "MEDIUM" && completionRate >= 60) {
+    return "You're close to the healthy zone — push for 3 more completions this week.";
+  }
+  if (risk === "MEDIUM") {
+    return "Break this habit into smaller steps to reduce friction.";
+  }
+  if (prediction === "LIKELY_SUCCESS" && risk === "LOW") {
+    return "Keep going! You're on track — protect your streak.";
+  }
+  return "Stay consistent. Small daily wins compound over time.";
+}
+
+/* ─────────────────────────────────────────
+   MAIN CONTROLLER
+───────────────────────────────────────── */
 
 export const getRiskAnalysis = async (req, res) => {
   try {
-    const habits = await Habit.find({
-      userId: req.user._id,
-    });
+    const habits = await Habit.find({ userId: req.user._id });
+
+    if (!habits.length) {
+      return res.json([]);
+    }
 
     const report = [];
+    const sevenDaysAgo = daysAgo(7);
+    const thirtyDaysAgo = daysAgo(30);
 
     for (const habit of habits) {
-      const logs = await HabitLog.find({
-        habitId: habit._id,
+      /* ── Raw log data ── */
+      const logs = await HabitLog.find({ habitId: habit._id }).sort({
+        date: 1,
       });
-
-      const doneCount = logs.filter((log) => log.status === "done").length;
-
-      const completionRate =
-        logs.length === 0 ? 0 : Math.round((doneCount / logs.length) * 100);
-
       const totalLogs = logs.length;
 
-      const missedLogs = logs.filter((log) => log.status === "missed").length;
+      const doneCount = logs.filter((l) => l.status === "done").length;
+      const completionRate =
+        totalLogs === 0 ? 0 : Math.round((doneCount / totalLogs) * 100);
 
-      const successRate = completionRate;
+      /* ── Recent 7-day window ── */
+      const recentLogs = logs.filter((l) => new Date(l.date) >= sevenDaysAgo);
+      const recentDone = recentLogs.filter((l) => l.status === "done").length;
+      const recentRate =
+        recentLogs.length === 0
+          ? 0
+          : Math.round((recentDone / recentLogs.length) * 100);
 
-      const habitAge = Math.max(
-        1,
-        Math.floor(
-          (Date.now() - new Date(habit.startDate)) / (1000 * 60 * 60 * 24),
-        ),
-      );
+      /* ── Last 30-day trend ── */
+      const monthLogs = logs.filter((l) => new Date(l.date) >= thirtyDaysAgo);
+      const monthDone = monthLogs.filter((l) => l.status === "done").length;
+      const monthRate =
+        monthLogs.length === 0
+          ? 0
+          : Math.round((monthDone / monthLogs.length) * 100);
 
-      const longestStreak = habit.longestStreak || 0;
-
-      //-----------------------------------------------------
-      // RULE-BASED RISK
-      //-----------------------------------------------------
-
+      /* ── Risk level (rule-based) ── */
       let risk = "LOW";
-
       if (completionRate < 40) {
         risk = "HIGH";
       } else if (completionRate < 70) {
         risk = "MEDIUM";
       }
 
-      //-----------------------------------------------------
-      // ML PREDICTION
-      //-----------------------------------------------------
+      /* ── Prediction ── */
+      let prediction = "LIKELY_FAILURE";
+      if (habit.streak >= 6) {
+        prediction = "LIKELY_SUCCESS";
+      } else if (habit.streak >= 3 && completionRate >= 70) {
+        prediction = "LIKELY_SUCCESS";
+      } else if (habit.streak < 3 && completionRate >= 80) {
+        prediction = "LIKELY_SUCCESS";
+      }
 
-      console.log({
-        streak: habit.streak || 0,
+      /* ── XAI fields ── */
+      const confidence = computeConfidence(
         completionRate,
-        longestStreak,
-        totalLogs,
-        missedLogs,
-        successRate,
-        habitAge,
-      });
-
-      const result = await predictRisk(
-        habit.streak || 0,
+        habit.streak,
+        recentRate,
+      );
+      const reasons = buildReasons(
         completionRate,
-        longestStreak,
+        habit.streak,
+        recentRate,
         totalLogs,
-        missedLogs,
-        successRate,
-        habitAge,
+        recentDone,
+      );
+      const factorWeights = buildFactorWeights(
+        completionRate,
+        habit.streak,
+        recentRate,
+      );
+      const actionSuggestion = buildActionSuggestion(
+        risk,
+        prediction,
+        habit.streak,
+        completionRate,
+        recentRate,
       );
 
-      const [
-        predictionValue,
-        confidenceValue,
-        successProbability,
-        failureProbability,
-      ] = result.split(",");
-
-      const prediction =
-        predictionValue === "1" ? "LIKELY_SUCCESS" : "LIKELY_FAILURE";
-
-      const confidence = Number(confidenceValue);
-
-      const successChance = Number(successProbability);
-
-      const failureChance = Number(failureProbability);
-
-      //-----------------------------------------------------
-      // EXPLANATION
-      //-----------------------------------------------------
-
-      const explanation = buildAIExplanation(habit, completionRate, prediction);
-
-      //-----------------------------------------------------
-      // FINAL RESPONSE
-      //-----------------------------------------------------
+      /* ── Trend direction ── */
+      // Compare recent 7-day rate to 30-day rate
+      let trend = "stable";
+      if (recentRate > monthRate + 10) trend = "improving";
+      else if (recentRate < monthRate - 10) trend = "declining";
 
       report.push({
+        habitId: habit._id,
         habit: habit.title,
-
+        category: habit.category || "General",
         streak: habit.streak,
-
-        longestStreak,
-
+        longestStreak: habit.longestStreak || habit.streak,
         completionRate,
-
+        recentRate,
+        monthRate,
         totalLogs,
-
-        missedLogs,
-
-        successRate,
-
-        habitAge,
-
         risk,
-
         prediction,
-
-        confidence,
-
-        successChance,
-
-        failureChance,
-
-        reasons: explanation.reasons,
-
-        suggestions: explanation.suggestions,
+        confidence, // 0-100 confidence in the prediction
+        reasons, // WHY this risk was assigned (array of strings)
+        factorWeights, // breakdown for UI progress bars
+        actionSuggestion, // one actionable next step
+        trend, // "improving" | "stable" | "declining"
       });
     }
 
-    report.sort((a, b) => a.completionRate - b.completionRate);
+    // Sort: highest risk first, then lowest completion
+    report.sort((a, b) => {
+      const riskOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+      if (riskOrder[a.risk] !== riskOrder[b.risk]) {
+        return riskOrder[a.risk] - riskOrder[b.risk];
+      }
+      return a.completionRate - b.completionRate;
+    });
 
     res.json(report);
   } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
-      message: err.message,
-    });
+    console.error("RISK ANALYSIS ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };
