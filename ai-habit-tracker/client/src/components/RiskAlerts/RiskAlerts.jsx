@@ -1,3 +1,4 @@
+// client/src/components/RiskAlerts/RiskAlerts.jsx
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import {
@@ -5,13 +6,160 @@ import {
   FaShieldAlt,
   FaExclamationCircle,
   FaSyncAlt,
+  FaChevronDown,
+  FaChevronUp,
+  FaLightbulb,
+  FaArrowUp,
+  FaArrowDown,
+  FaMinus,
 } from "react-icons/fa";
 import styles from "./RiskAlerts.module.css";
+
+/* ─────────────────────────────────────────
+   SUB-COMPONENTS
+───────────────────────────────────────── */
+
+/**
+ * Animated factor bar for the XAI breakdown.
+ * Shows how much each factor contributed to the risk decision.
+ */
+function FactorBar({ label, value, weight, description }) {
+  const [animated, setAnimated] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  const pct = Math.min(Math.max(value, 0), 100);
+  const fillColor =
+    pct >= 70
+      ? "var(--factor-good)"
+      : pct >= 40
+        ? "var(--factor-medium)"
+        : "var(--factor-bad)";
+
+  return (
+    <div className={styles.factorRow} title={description}>
+      <div className={styles.factorHeader}>
+        <span className={styles.factorLabel}>{label}</span>
+        <div className={styles.factorMeta}>
+          <span className={styles.factorWeight}>{weight}% weight</span>
+          <span className={styles.factorPct} style={{ color: fillColor }}>
+            {pct}%
+          </span>
+        </div>
+      </div>
+      <div className={styles.factorTrack}>
+        <div
+          className={styles.factorFill}
+          style={{
+            width: animated ? `${pct}%` : "0%",
+            backgroundColor: fillColor,
+          }}
+        />
+      </div>
+      {description && <p className={styles.factorDesc}>{description}</p>}
+    </div>
+  );
+}
+
+/**
+ * Collapsible XAI explanation panel.
+ */
+function ExplainPanel({ alert }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className={styles.explainWrapper}>
+      <button
+        className={styles.explainToggle}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <FaLightbulb className={styles.explainIcon} />
+        <span>Why this alert?</span>
+        {open ? (
+          <FaChevronUp className={styles.chevron} />
+        ) : (
+          <FaChevronDown className={styles.chevron} />
+        )}
+      </button>
+
+      {open && (
+        <div className={styles.explainBody}>
+          {/* Reasons list */}
+          {alert.reasons?.length > 0 && (
+            <div className={styles.reasonsSection}>
+              <p className={styles.reasonsTitle}>Evidence</p>
+              <ul className={styles.reasonsList}>
+                {alert.reasons.map((r, i) => (
+                  <li key={i} className={styles.reasonItem}>
+                    <span className={styles.reasonBullet}>⚡</span>
+                    {r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Factor breakdown bars */}
+          {alert.factorWeights?.length > 0 && (
+            <div className={styles.factorsSection}>
+              <p className={styles.reasonsTitle}>
+                How the score was calculated
+              </p>
+              <div className={styles.factorsList}>
+                {alert.factorWeights.map((f, i) => (
+                  <FactorBar
+                    key={i}
+                    label={f.label}
+                    value={f.value}
+                    weight={f.weight}
+                    description={f.description}
+                  />
+                ))}
+              </div>
+              <p className={styles.confidenceNote}>
+                Prediction confidence:{" "}
+                <strong
+                  style={{
+                    color:
+                      alert.confidence >= 70
+                        ? "var(--factor-good)"
+                        : alert.confidence >= 40
+                          ? "var(--factor-medium)"
+                          : "var(--factor-bad)",
+                  }}
+                >
+                  {alert.confidence}%
+                </strong>
+              </p>
+            </div>
+          )}
+
+          {/* Action suggestion */}
+          {alert.actionSuggestion && (
+            <div className={styles.actionBox}>
+              <span className={styles.actionLabel}>Recommended Action</span>
+              <p className={styles.actionText}>{alert.actionSuggestion}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────── */
 
 export default function RiskAlerts() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dismissedAlerts, setDismissedAlerts] = useState(new Set());
+  const [dismissedIds, setDismissedIds] = useState(new Set());
+  const [filter, setFilter] = useState("ALL"); // ALL | HIGH | MEDIUM
 
   useEffect(() => {
     fetchRiskAnalysis();
@@ -21,8 +169,8 @@ export default function RiskAlerts() {
     try {
       setLoading(true);
       const res = await api.get("/ml/risk-analysis");
-      const filtered = res.data.filter((item) => item.risk !== "LOW");
-      setAlerts(filtered);
+      // Keep all habits but allow filtering
+      setAlerts(res.data || []);
     } catch (err) {
       console.error("Error fetching risk analysis:", err);
     } finally {
@@ -30,45 +178,69 @@ export default function RiskAlerts() {
     }
   }
 
-  function dismissAlert(index) {
-    const newSet = new Set(dismissedAlerts);
-    newSet.add(index);
-    setDismissedAlerts(newSet);
+  function dismissAlert(habitId) {
+    setDismissedIds((prev) => new Set([...prev, habitId]));
   }
 
   function getRiskIcon(risk) {
-    if (risk === "HIGH") {
+    if (risk === "HIGH")
       return <FaExclamationTriangle className={styles.iconHigh} />;
-    } else if (risk === "MEDIUM") {
+    if (risk === "MEDIUM")
       return <FaExclamationCircle className={styles.iconMedium} />;
-    }
     return <FaShieldAlt className={styles.iconLow} />;
   }
 
-  function getRiskColor(risk) {
-    if (risk === "HIGH") return "high";
-    if (risk === "MEDIUM") return "medium";
-    return "low";
+  function getTrendIcon(trend) {
+    if (trend === "improving") return <FaArrowUp className={styles.trendUp} />;
+    if (trend === "declining")
+      return <FaArrowDown className={styles.trendDown} />;
+    return <FaMinus className={styles.trendStable} />;
   }
 
-  const visibleAlerts = alerts.filter((_, idx) => !dismissedAlerts.has(idx));
+  const visibleAlerts = alerts.filter(
+    (a) =>
+      !dismissedIds.has(a.habitId) && (filter === "ALL" || a.risk === filter),
+  );
 
+  const highCount = alerts.filter(
+    (a) => !dismissedIds.has(a.habitId) && a.risk === "HIGH",
+  ).length;
+  const mediumCount = alerts.filter(
+    (a) => !dismissedIds.has(a.habitId) && a.risk === "MEDIUM",
+  ).length;
+  const lowCount = alerts.filter(
+    (a) => !dismissedIds.has(a.habitId) && a.risk === "LOW",
+  ).length;
+
+  /* ── Loading ── */
   if (loading) {
     return (
       <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>AI Risk Alerts</h3>
-        <div className={styles.loading}>Analyzing…</div>
+        <h3 className={styles.panelTitle}>
+          <FaShieldAlt className={styles.titleIcon} /> AI Risk Alerts
+        </h3>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner} />
+          <p>Analyzing your habits…</p>
+        </div>
       </div>
     );
   }
 
-  if (visibleAlerts.length === 0) {
+  /* ── All clear ── */
+  if (visibleAlerts.length === 0 && filter === "ALL") {
     return (
       <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>AI Risk Alerts</h3>
+        <h3 className={styles.panelTitle}>
+          <FaShieldAlt className={styles.titleIcon} /> AI Risk Alerts
+        </h3>
         <div className={styles.noAlerts}>
-          <FaShieldAlt size={32} />
-          <p>All good!</p>
+          <FaShieldAlt size={36} />
+          <p>All habits look healthy!</p>
+          <span>No risks detected based on your current data.</span>
+          <button className={styles.refreshBtn} onClick={fetchRiskAnalysis}>
+            <FaSyncAlt /> Refresh
+          </button>
         </div>
       </div>
     );
@@ -76,76 +248,151 @@ export default function RiskAlerts() {
 
   return (
     <div className={styles.panel}>
+      {/* ── Header ── */}
       <div className={styles.titleRow}>
-        <h3 className={styles.panelTitle}>AI Risk Alerts</h3>
-        <span className={styles.badge}>{visibleAlerts.length}</span>
+        <h3 className={styles.panelTitle}>
+          <FaShieldAlt className={styles.titleIcon} /> AI Risk Alerts
+        </h3>
+        {highCount > 0 && (
+          <span className={styles.badgeHigh}>{highCount} HIGH</span>
+        )}
       </div>
 
-      <div className={styles.alertsList}>
-        {visibleAlerts.map((alert, idx) => (
-          <div
-            key={idx}
-            className={`${styles.alertCard} ${styles[`alert-${getRiskColor(alert.risk)}`]}`}
+      {/* ── Filter tabs ── */}
+      <div className={styles.filterRow}>
+        {[
+          { key: "ALL", label: `All (${highCount + mediumCount + lowCount})` },
+          { key: "HIGH", label: `High (${highCount})` },
+          { key: "MEDIUM", label: `Medium (${mediumCount})` },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            className={`${styles.filterBtn} ${filter === key ? styles.filterActive : ""}`}
+            onClick={() => setFilter(key)}
           >
-            <div className={styles.alertTop}>
-              <div className={styles.habitInfo}>
-                <div className={styles.iconBox}>{getRiskIcon(alert.risk)}</div>
-                <div>
-                  <h4 className={styles.habitName}>{alert.habit}</h4>
-                  <span
-                    className={`${styles.riskBadge} ${styles[`risk-${alert.risk.toLowerCase()}`]}`}
-                  >
-                    {alert.risk}
-                  </span>
-                </div>
-              </div>
-              <button
-                className={styles.dismissBtn}
-                onClick={() => dismissAlert(idx)}
-                title="Dismiss"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className={styles.metricsRow}>
-              <div className={styles.metricItem}>
-                <span className={styles.metricLabel}>Streak</span>
-                <span className={styles.metricValue}>{alert.streak}d</span>
-              </div>
-              <div className={styles.metricSeparator} />
-              <div className={styles.metricItem}>
-                <span className={styles.metricLabel}>Completion</span>
-                <span className={styles.metricValue}>
-                  {alert.completionRate}%
-                </span>
-              </div>
-              <div className={styles.metricSeparator} />
-              <div className={styles.metricItem}>
-                <span className={styles.metricLabel}>Outlook</span>
-                <span
-                  className={`${styles.metricValue} ${
-                    alert.prediction === "LIKELY_SUCCESS"
-                      ? styles.success
-                      : styles.failure
-                  }`}
-                >
-                  {alert.prediction === "LIKELY_SUCCESS" ? "✓" : "⚠"}
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.alertMessage}>
-              {alert.risk === "HIGH" &&
-                "Needs attention. Keep the streak alive!"}
-              {alert.risk === "MEDIUM" && "Push for consistency this week."}
-            </div>
-          </div>
+            {label}
+          </button>
         ))}
       </div>
 
+      {/* ── Alerts list ── */}
+      <div className={styles.alertsList}>
+        {visibleAlerts.length === 0 ? (
+          <div className={styles.emptyFilter}>
+            No {filter.toLowerCase()} risk habits.
+          </div>
+        ) : (
+          visibleAlerts.map((alert) => (
+            <div
+              key={alert.habitId}
+              className={`${styles.alertCard} ${styles[`alert-${alert.risk.toLowerCase()}`]}`}
+            >
+              {/* Card header */}
+              <div className={styles.alertTop}>
+                <div className={styles.habitInfo}>
+                  <div className={styles.iconBox}>
+                    {getRiskIcon(alert.risk)}
+                  </div>
+                  <div className={styles.habitMeta}>
+                    <h4 className={styles.habitName}>{alert.habit}</h4>
+                    <div className={styles.habitTags}>
+                      <span
+                        className={`${styles.riskBadge} ${styles[`risk-${alert.risk.toLowerCase()}`]}`}
+                      >
+                        {alert.risk}
+                      </span>
+                      {alert.category && (
+                        <span className={styles.categoryTag}>
+                          {alert.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className={styles.dismissBtn}
+                  onClick={() => dismissAlert(alert.habitId)}
+                  title="Dismiss this alert"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Metrics row */}
+              <div className={styles.metricsRow}>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Streak</span>
+                  <span className={styles.metricValue}>{alert.streak}d</span>
+                </div>
+                <div className={styles.metricSeparator} />
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>All-time</span>
+                  <span className={styles.metricValue}>
+                    {alert.completionRate}%
+                  </span>
+                </div>
+                <div className={styles.metricSeparator} />
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Last 7d</span>
+                  <span className={styles.metricValue}>
+                    {alert.recentRate ?? "—"}%
+                  </span>
+                </div>
+                <div className={styles.metricSeparator} />
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Trend</span>
+                  <span className={styles.metricValue}>
+                    {getTrendIcon(alert.trend)}
+                  </span>
+                </div>
+                <div className={styles.metricSeparator} />
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Outlook</span>
+                  <span
+                    className={`${styles.metricValue} ${
+                      alert.prediction === "LIKELY_SUCCESS"
+                        ? styles.success
+                        : styles.failure
+                    }`}
+                  >
+                    {alert.prediction === "LIKELY_SUCCESS"
+                      ? "✓ Good"
+                      : "⚠ At risk"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Completion mini-bar */}
+              <div className={styles.completionBar}>
+                <div
+                  className={styles.completionFill}
+                  style={{
+                    width: `${alert.completionRate}%`,
+                    backgroundColor:
+                      alert.risk === "HIGH"
+                        ? "#ef4444"
+                        : alert.risk === "MEDIUM"
+                          ? "#f59e0b"
+                          : "#10b981",
+                  }}
+                />
+              </div>
+              <div className={styles.completionBarLabels}>
+                <span>0%</span>
+                <span className={styles.completionBarTarget}>70% target</span>
+                <span>100%</span>
+              </div>
+
+              {/* Explainable AI panel */}
+              <ExplainPanel alert={alert} />
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Footer */}
       <button className={styles.refreshBtn} onClick={fetchRiskAnalysis}>
-        <FaSyncAlt className={styles.btnIcon} /> Refresh
+        <FaSyncAlt className={styles.btnIcon} /> Refresh Analysis
       </button>
     </div>
   );
