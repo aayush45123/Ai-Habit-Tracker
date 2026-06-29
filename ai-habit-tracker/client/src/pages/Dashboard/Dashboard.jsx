@@ -327,7 +327,9 @@ export default function Dashboard() {
           </div>
 
           {/* Risk Alerts — contained in sidebar */}
-          <RiskAlerts />
+          <div className={styles.riskAlertsWrapper}>
+            <RiskAlerts />
+          </div>
         </aside>
       </div>
 
