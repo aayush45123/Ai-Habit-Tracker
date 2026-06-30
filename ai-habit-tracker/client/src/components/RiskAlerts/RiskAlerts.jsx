@@ -8,6 +8,8 @@ import {
   FaSyncAlt,
   FaChevronDown,
   FaChevronUp,
+  FaChevronLeft,
+  FaChevronRight,
   FaLightbulb,
   FaArrowUp,
   FaArrowDown,
@@ -19,10 +21,6 @@ import styles from "./RiskAlerts.module.css";
    SUB-COMPONENTS
 ───────────────────────────────────────── */
 
-/**
- * Animated factor bar for the XAI breakdown.
- * Shows how much each factor contributed to the risk decision.
- */
 function FactorBar({ label, value, weight, description }) {
   const [animated, setAnimated] = useState(false);
 
@@ -64,9 +62,6 @@ function FactorBar({ label, value, weight, description }) {
   );
 }
 
-/**
- * Collapsible XAI explanation panel.
- */
 function ExplainPanel({ alert }) {
   const [open, setOpen] = useState(false);
 
@@ -88,7 +83,6 @@ function ExplainPanel({ alert }) {
 
       {open && (
         <div className={styles.explainBody}>
-          {/* Reasons list */}
           {alert.reasons?.length > 0 && (
             <div className={styles.reasonsSection}>
               <p className={styles.reasonsTitle}>Evidence</p>
@@ -103,7 +97,6 @@ function ExplainPanel({ alert }) {
             </div>
           )}
 
-          {/* Factor breakdown bars */}
           {alert.factorWeights?.length > 0 && (
             <div className={styles.factorsSection}>
               <p className={styles.reasonsTitle}>
@@ -138,7 +131,6 @@ function ExplainPanel({ alert }) {
             </div>
           )}
 
-          {/* Action suggestion */}
           {alert.actionSuggestion && (
             <div className={styles.actionBox}>
               <span className={styles.actionLabel}>Recommended Action</span>
@@ -152,7 +144,7 @@ function ExplainPanel({ alert }) {
 }
 
 /* ─────────────────────────────────────────
-   MAIN COMPONENT
+   MAIN COMPONENT (Carousel)
 ───────────────────────────────────────── */
 
 export default function RiskAlerts() {
@@ -160,6 +152,7 @@ export default function RiskAlerts() {
   const [loading, setLoading] = useState(true);
   const [dismissedIds, setDismissedIds] = useState(new Set());
   const [filter, setFilter] = useState("ALL"); // ALL | HIGH | MEDIUM
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     fetchRiskAnalysis();
@@ -169,8 +162,8 @@ export default function RiskAlerts() {
     try {
       setLoading(true);
       const res = await api.get("/ml/risk-analysis");
-      // Keep all habits but allow filtering
       setAlerts(res.data || []);
+      setActiveIndex(0);
     } catch (err) {
       console.error("Error fetching risk analysis:", err);
     } finally {
@@ -180,6 +173,7 @@ export default function RiskAlerts() {
 
   function dismissAlert(habitId) {
     setDismissedIds((prev) => new Set([...prev, habitId]));
+    setActiveIndex((i) => Math.max(0, i - 1));
   }
 
   function getRiskIcon(risk) {
@@ -212,6 +206,26 @@ export default function RiskAlerts() {
     (a) => !dismissedIds.has(a.habitId) && a.risk === "LOW",
   ).length;
 
+  // Clamp activeIndex whenever the visible list shrinks/changes
+  const safeIndex = visibleAlerts.length
+    ? Math.min(activeIndex, visibleAlerts.length - 1)
+    : 0;
+
+  function goPrev() {
+    setActiveIndex(
+      (i) => (i - 1 + visibleAlerts.length) % visibleAlerts.length,
+    );
+  }
+
+  function goNext() {
+    setActiveIndex((i) => (i + 1) % visibleAlerts.length);
+  }
+
+  function changeFilter(key) {
+    setFilter(key);
+    setActiveIndex(0);
+  }
+
   /* ── Loading ── */
   if (loading) {
     return (
@@ -235,7 +249,7 @@ export default function RiskAlerts() {
           <FaShieldAlt className={styles.titleIcon} /> AI Risk Alerts
         </h3>
         <div className={styles.noAlerts}>
-          <FaShieldAlt size={36} />
+          <FaShieldAlt size={32} />
           <p>All habits look healthy!</p>
           <span>No risks detected based on your current data.</span>
           <button className={styles.refreshBtn} onClick={fetchRiskAnalysis}>
@@ -245,6 +259,8 @@ export default function RiskAlerts() {
       </div>
     );
   }
+
+  const alert = visibleAlerts[safeIndex];
 
   return (
     <div className={styles.panel}>
@@ -268,21 +284,45 @@ export default function RiskAlerts() {
           <button
             key={key}
             className={`${styles.filterBtn} ${filter === key ? styles.filterActive : ""}`}
-            onClick={() => setFilter(key)}
+            onClick={() => changeFilter(key)}
           >
             {label}
           </button>
         ))}
       </div>
 
-      {/* ── Alerts list ── */}
-      <div className={styles.alertsList}>
-        {visibleAlerts.length === 0 ? (
-          <div className={styles.emptyFilter}>
-            No {filter.toLowerCase()} risk habits.
+      {/* ── Carousel ── */}
+      {visibleAlerts.length === 0 ? (
+        <div className={styles.emptyFilter}>
+          No {filter.toLowerCase()} risk habits.
+        </div>
+      ) : (
+        <>
+          <div className={styles.carouselNav}>
+            <button
+              className={styles.navBtn}
+              onClick={goPrev}
+              disabled={visibleAlerts.length <= 1}
+              aria-label="Previous alert"
+            >
+              <FaChevronLeft />
+            </button>
+
+            <span className={styles.carouselCounter}>
+              {safeIndex + 1} / {visibleAlerts.length}
+            </span>
+
+            <button
+              className={styles.navBtn}
+              onClick={goNext}
+              disabled={visibleAlerts.length <= 1}
+              aria-label="Next alert"
+            >
+              <FaChevronRight />
+            </button>
           </div>
-        ) : (
-          visibleAlerts.map((alert) => (
+
+          <div className={styles.carouselTrack}>
             <div
               key={alert.habitId}
               className={`${styles.alertCard} ${styles[`alert-${alert.risk.toLowerCase()}`]}`}
@@ -386,9 +426,23 @@ export default function RiskAlerts() {
               {/* Explainable AI panel */}
               <ExplainPanel alert={alert} />
             </div>
-          ))
-        )}
-      </div>
+          </div>
+
+          {/* ── Dot indicators ── */}
+          {visibleAlerts.length > 1 && (
+            <div className={styles.dotsRow}>
+              {visibleAlerts.map((a, i) => (
+                <button
+                  key={a.habitId}
+                  className={`${styles.dot} ${i === safeIndex ? styles.dotActive : ""}`}
+                  onClick={() => setActiveIndex(i)}
+                  aria-label={`Go to alert ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Footer */}
       <button className={styles.refreshBtn} onClick={fetchRiskAnalysis}>

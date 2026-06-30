@@ -1,6 +1,5 @@
 /* RiskAlerts.module.css */
 
-/* ── CSS custom properties for factor bars ── */
 :root {
   --factor-good: #10b981;
   --factor-medium: #f59e0b;
@@ -14,9 +13,12 @@
 .panel {
   background-color: var(--color-bg-secondary);
   border: 3px solid var(--color-border);
-  padding: 1.75rem;
+  padding: 1.5rem;
   transition: all var(--transition-speed) var(--transition-easing);
   box-shadow: 8px 8px 0px var(--color-accent-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .panel:hover {
@@ -28,13 +30,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.1rem;
   padding-bottom: 1rem;
   border-bottom: 3px solid var(--color-border);
 }
 
 .panelTitle {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0;
@@ -71,13 +73,13 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding: 3rem 1rem;
+  padding: 2.5rem 1rem;
   color: var(--color-text-secondary);
 }
 
 .spinner {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border: 3px solid var(--color-border);
   border-top-color: var(--color-accent-primary);
   border-radius: 50%;
@@ -94,20 +96,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 2.5rem 1rem;
+  gap: 0.65rem;
+  padding: 2rem 1rem;
   color: #10b981;
   text-align: center;
 }
 
 .noAlerts p {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
 .noAlerts span {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--color-text-secondary);
 }
 
@@ -115,7 +117,7 @@
   text-align: center;
   padding: 2rem 1rem;
   color: var(--color-text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 /* ─────────────────────────────────────────
@@ -125,15 +127,16 @@
 .filterRow {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .filterBtn {
-  padding: 0.45rem 0.9rem;
+  padding: 0.4rem 0.8rem;
   background: none;
   border: 2px solid var(--color-border);
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -154,15 +157,114 @@
 }
 
 /* ─────────────────────────────────────────
-   ALERTS LIST
+   CAROUSEL NAV (prev / counter / next)
 ───────────────────────────────────────── */
 
-.alertsList {
+.carouselNav {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
 }
+
+.navBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.navBtn:hover:not(:disabled) {
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent-primary);
+  transform: translate(-1px, -1px);
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.carouselCounter {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.3px;
+}
+
+/* ─────────────────────────────────────────
+   CAROUSEL TRACK (single card visible,
+   scrolls internally if content too tall)
+───────────────────────────────────────── */
+
+.carouselTrack {
+  flex: 1;
+  min-height: 0;
+  max-height: 480px;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+  padding-right: 2px;
+}
+
+.carouselTrack::-webkit-scrollbar {
+  width: 6px;
+}
+
+.carouselTrack::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 3px;
+}
+
+.carouselTrack::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ─────────────────────────────────────────
+   DOT INDICATORS
+───────────────────────────────────────── */
+
+.dotsRow {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.dot:hover {
+  background-color: var(--color-text-secondary);
+}
+
+.dotActive {
+  background-color: var(--color-accent-primary);
+  width: 20px;
+  border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────
+   ALERT CARD
+───────────────────────────────────────── */
 
 .alertCard {
   background-color: var(--color-bg-primary);
@@ -170,11 +272,18 @@
   padding: 1.1rem;
   transition: all var(--transition-speed) var(--transition-easing);
   box-shadow: 4px 4px 0px var(--color-border);
+  animation: cardIn 0.25s ease;
 }
 
-.alertCard:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0px var(--color-accent-primary);
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .alert-high {
@@ -204,18 +313,19 @@
   gap: 0.75rem;
   align-items: flex-start;
   flex: 1;
+  min-width: 0;
 }
 
 .iconBox {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 6px;
   background-color: rgba(255, 255, 255, 0.07);
   flex-shrink: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .iconHigh {
@@ -232,13 +342,17 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .habitName {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .habitTags {
@@ -251,7 +365,7 @@
   display: inline-block;
   padding: 0.25rem 0.55rem;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -274,7 +388,7 @@
   display: inline-block;
   padding: 0.25rem 0.55rem;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   background-color: rgba(255, 255, 255, 0.08);
   color: var(--color-text-secondary);
@@ -286,12 +400,12 @@
 .dismissBtn {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--color-text-secondary);
   cursor: pointer;
   padding: 0;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -314,7 +428,7 @@
   justify-content: space-around;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.04);
-  padding: 0.7rem 0.5rem;
+  padding: 0.65rem 0.4rem;
   border-radius: 6px;
   margin-bottom: 0.75rem;
   border: 1px solid var(--color-border);
@@ -328,11 +442,11 @@
   align-items: center;
   gap: 0.25rem;
   flex: 1;
-  min-width: 52px;
+  min-width: 48px;
 }
 
 .metricLabel {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -341,7 +455,7 @@
 }
 
 .metricValue {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-text-primary);
   display: flex;
@@ -350,7 +464,7 @@
 
 .metricSeparator {
   width: 1px;
-  height: 28px;
+  height: 26px;
   background-color: var(--color-border);
 }
 
@@ -384,7 +498,6 @@
   position: relative;
 }
 
-/* Target line at 70% */
 .completionBar::after {
   content: "";
   position: absolute;
@@ -404,7 +517,7 @@
 .completionBarLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--color-text-secondary);
   margin-bottom: 0.75rem;
 }
@@ -421,8 +534,8 @@
 
 .explainWrapper {
   border-top: 1px solid var(--color-border);
-  padding-top: 0.75rem;
-  margin-top: 0.5rem;
+  padding-top: 0.7rem;
+  margin-top: 0.4rem;
 }
 
 .explainToggle {
@@ -433,7 +546,7 @@
   border: none;
   cursor: pointer;
   color: var(--color-accent-primary);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   padding: 0;
   text-transform: uppercase;
@@ -448,19 +561,19 @@
 }
 
 .explainIcon {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .chevron {
   margin-left: auto;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .explainBody {
-  margin-top: 0.9rem;
+  margin-top: 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.9rem;
   animation: expandIn 0.25s ease;
 }
 
@@ -475,18 +588,17 @@
   }
 }
 
-/* Reasons */
 .reasonsSection,
 .factorsSection {
   background-color: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 0.85rem;
+  padding: 0.8rem;
 }
 
 .reasonsTitle {
-  margin: 0 0 0.6rem 0;
-  font-size: 0.75rem;
+  margin: 0 0 0.55rem 0;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -505,22 +617,21 @@
 .reasonItem {
   display: flex;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--color-text-primary);
   line-height: 1.4;
 }
 
 .reasonBullet {
   flex-shrink: 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
-/* Factor bars */
 .factorsList {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
 }
 
 .factorRow {
@@ -536,7 +647,7 @@
 }
 
 .factorLabel {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--color-text-primary);
 }
@@ -548,17 +659,17 @@
 }
 
 .factorWeight {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--color-text-secondary);
 }
 
 .factorPct {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
 .factorTrack {
-  height: 7px;
+  height: 6px;
   background-color: var(--color-border);
   border-radius: 4px;
   overflow: hidden;
@@ -572,19 +683,18 @@
 
 .factorDesc {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--color-text-secondary);
   line-height: 1.3;
 }
 
 .confidenceNote {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
   text-align: right;
 }
 
-/* Action suggestion box */
 .actionBox {
   background: linear-gradient(
     135deg,
@@ -593,12 +703,12 @@
   );
   border: 1px solid var(--color-accent-primary);
   border-radius: 6px;
-  padding: 0.85rem;
+  padding: 0.8rem;
 }
 
 .actionLabel {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -608,7 +718,7 @@
 
 .actionText {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   color: var(--color-text-primary);
   font-weight: 600;
   line-height: 1.4;
@@ -620,13 +730,13 @@
 
 .refreshBtn {
   width: 100%;
-  padding: 0.7rem 1rem;
+  padding: 0.65rem 1rem;
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
   border: 3px solid var(--color-accent-primary);
   border-radius: 6px;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
   text-transform: uppercase;
@@ -636,6 +746,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .refreshBtn:hover {
@@ -649,7 +761,7 @@
 }
 
 .btnIcon {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 /* ─────────────────────────────────────────
@@ -671,10 +783,14 @@
   }
 
   .metricLabel {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
   }
 
   .metricSeparator {
     display: none;
+  }
+
+  .carouselTrack {
+    max-height: none;
   }
 }
