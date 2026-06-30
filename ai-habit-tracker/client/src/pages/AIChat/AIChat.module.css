@@ -305,3 +305,44 @@
     padding: 1rem;
   }
 }
+.aiRecommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.aiRecommendationCard {
+  border: 2px solid var(--color-border);
+  padding: 18px;
+  background: var(--color-bg-secondary);
+}
+
+.aiRecommendationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.priority {
+  padding: 4px 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+.high {
+  background: #ef4444;
+  color: white;
+}
+
+.medium {
+  background: #f59e0b;
+  color: white;
+}
+
+.low {
+  background: #10b981;
+  color: white;
+}

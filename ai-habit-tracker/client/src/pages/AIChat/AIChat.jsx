@@ -71,13 +71,33 @@ export default function AIChat() {
         <h3>Actionable Recommendations</h3>
 
         {insights.recommendations?.length > 0 ? (
-          <ul className={styles.aiList}>
+          <div className={styles.aiRecommendations}>
             {insights.recommendations.map((r, i) => (
-              <li key={i}>
-                <b>Tip {i + 1}:</b> {r}
-              </li>
+              <div key={i} className={styles.aiRecommendationCard}>
+                <div className={styles.aiRecommendationHeader}>
+                  <span>Recommendation {i + 1}</span>
+
+                  <span
+                    className={`${styles.priority} ${
+                      styles[r.priority?.toLowerCase()] || ""
+                    }`}
+                  >
+                    {r.priority}
+                  </span>
+                </div>
+
+                <h4>{r.action}</h4>
+
+                <p>
+                  <strong>Why?</strong> {r.because}
+                </p>
+
+                <p>
+                  <strong>Evidence:</strong> {r.dataPoint}
+                </p>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
           <p>No recommendations available yet.</p>
         )}
