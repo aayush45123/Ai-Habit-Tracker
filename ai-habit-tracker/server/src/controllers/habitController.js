@@ -553,6 +553,15 @@ export const getAnalytics = async (req, res) => {
     // HABIT SUCCESS RANKING (LEADERBOARD)
     // ✅ FIXED: Now calculates based on days since start, not total logs
     // ----------------------------------------------------
+    // ----------------------------------------------------
+    // HABIT SUCCESS RANKING (LEADERBOARD)
+    // ✅ FIXED: startDate is a Mongo Date object, not a string.
+    // Convert it to an IST "YYYY-MM-DD" string before building
+    // a comparison Date, instead of doing `habit.startDate + "T00:00:00Z"`
+    // (which string-coerces the Date object into garbage like
+    // "Tue Jun 30 2026 00:00:00 GMT+0000 (UTC)T00:00:00Z" and parses
+    // to Invalid Date, causing daysSinceStart to be NaN).
+    // ----------------------------------------------------
     const leaderboard = [];
     const now = new Date();
     const todayIST = new Date(now.getTime() + 330 * 60000);
@@ -565,12 +574,17 @@ export const getAnalytics = async (req, res) => {
 
       const doneCount = hLogs.filter((l) => l.status === "done").length;
 
-      // Calculate days since habit started
-      const startDate = habit.startDate
-        ? new Date(habit.startDate + "T00:00:00Z")
-        : new Date(habit.createdAt);
+      // Normalize startDate (Date object OR createdAt fallback) into an
+      // IST "YYYY-MM-DD" string, then rebuild a UTC-midnight Date from that
+      // string for a clean day-diff calculation.
+      const rawStart = habit.startDate || habit.createdAt;
+      const startDateObj = new Date(rawStart);
+      const startIST = new Date(startDateObj.getTime() + 330 * 60000);
+      const startISO = startIST.toISOString().split("T")[0];
 
+      const startDate = new Date(startISO + "T00:00:00Z");
       const todayDate = new Date(todayISO + "T00:00:00Z");
+
       const daysSinceStart =
         Math.floor((todayDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
@@ -598,6 +612,14 @@ export const getAnalytics = async (req, res) => {
           hLogs.length > 0 ? Math.round((doneCount / hLogs.length) * 100) : 0;
         expectedDays = hLogs.length;
       }
+
+      console.log(
+        `Habit "${habit.title}" (_id=${habit._id}) → hLogs found: ${hLogs.length}, doneCount: ${doneCount}`,
+      );
+      console.log(
+        "All log habitIds in DB:",
+        normalizedLogs.map((l) => l.habitId?.toString()),
+      );
 
       leaderboard.push({
         habit: habit.title,
