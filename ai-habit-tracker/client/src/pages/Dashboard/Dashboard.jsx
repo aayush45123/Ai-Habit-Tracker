@@ -84,6 +84,20 @@ export default function Dashboard() {
     }
   }
 
+  async function deleteHabit(habitId) {
+    try {
+      await api.delete(`/habits/${habitId}`);
+
+      // Refresh dashboard after deletion
+      await fetchHabits();
+      await fetchAnalytics();
+      await fetchAIInsights();
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert(err.response?.data?.message || "Failed to delete habit");
+    }
+  }
+
   const total = habits.length;
   const completedToday = habits.filter(
     (h) => h.lastDate === formatDateISO() && h.lastStatus === "done",
@@ -221,6 +235,7 @@ export default function Dashboard() {
                     key={h._id}
                     habit={h}
                     onToggle={(done) => toggleHabitDone(h._id, done)}
+                    onDelete={() => deleteHabit(h._id)}
                   />
                 ))}
               </div>
