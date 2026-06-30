@@ -244,7 +244,6 @@ export default function Dashboard() {
               >
                 {weeklyData.length > 1 && (
                   <>
-                    {/* Fill area */}
                     <defs>
                       <linearGradient
                         id="chartFill"
@@ -291,7 +290,6 @@ export default function Dashboard() {
                     />
                   </>
                 )}
-                {/* 80% target line */}
                 <line
                   x1="2"
                   y1="10"
@@ -326,7 +324,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Risk Alerts — contained in sidebar */}
+          {/* Risk Alerts — now a fixed-height carousel, fills remaining space */}
           <div className={styles.riskAlertsWrapper}>
             <RiskAlerts />
           </div>
