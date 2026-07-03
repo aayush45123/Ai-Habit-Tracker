@@ -52,15 +52,15 @@ The interface follows a distinctive brutalist design language, characterized by 
 
 | Dashboard | Daily Habits |
 |---|---|
-| ![Dashboard](./ai-habit-tracker/client/src/assets/dashboard.png) | ![Daily Habits](./ai-habit-tracker/client/src/assets/21.png) |
+| ![Dashboard](./ai-habit-tracker/client/src/assets/dashboard.png) |
 
 | Analytics | AI Insights |
 |---|---|
-| ![Analytics](./ai-habit-tracker/client/src/assets/analytics.png) | ![AI Insights](./ai-habit-tracker/client/src/assets/ai-insights.png) |
+| ![Analytics](./ai-habit-tracker/client/src/assets/analytics.png) | ![AI Insights](./ai-habit-tracker/client/src/assets/ai_insights.png) |
 
 | 21-Day Challenge | Challenge Heatmap |
 |---|---|
-| ![Challenge](./ai-habit-tracker/client/src/assets/challenge.png) | ![Heatmap](./ai-habit-tracker/client/src/assets/heatmap.png) |
+| ![Challenge](./ai-habit-tracker/client/src/assets/21.png) | ![Heatmap](./ai-habit-tracker/client/src/assets/heatmap.png) |
 
 | Pomodoro / Focus Mode | Habit Templates |
 |---|---|
@@ -68,9 +68,7 @@ The interface follows a distinctive brutalist design language, characterized by 
 
 | Calorie Tracker | Workout Timetable |
 |---|---|
-| ![Calorie Tracker](./ai-habit-tracker/client/src/assets/calorie-tracker.png) | ![Timetable](./ai-habit-tracker/client/src/assets/timetable.png) |
-
-> Note: Replace the paths above with the actual filenames in `client/src/assets` if they differ.
+| ![Calorie Tracker](./ai-habit-tracker/client/src/assets/calorie.png) | ![Timetable](./ai-habit-tracker/client/src/assets/workout.png) |
 
 ---
 
