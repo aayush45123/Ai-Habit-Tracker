@@ -50,7 +50,7 @@ The interface follows a distinctive brutalist design language, characterized by 
 
 ## Screenshots
 
-| Dashboard | Daily Habits |
+| Dashboard | 
 |---|---|
 | ![Dashboard](./ai-habit-tracker/client/src/assets/dashboard.png) |
 
