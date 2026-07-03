@@ -807,17 +807,20 @@
 }
 
 /* ========================================
-   ACTION BUTTONS (Edit & Restart)
+   ACTION BUTTONS (Edit, Restart & New Challenge)
 ======================================== */
 .actionButtons {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .editBtn,
-.restartBtn {
+.restartBtn,
+.newChallengeBtn {
   flex: 1;
+  min-width: 220px;
   padding: 1rem 2rem;
   color: var(--color-text-primary);
   border: 3px solid var(--color-border);
@@ -843,17 +846,49 @@
   color: var(--color-bg-primary);
 }
 
-.editBtn:hover {
+/* Dashed border distinguishes "start something new" from "edit / restart" */
+.newChallengeBtn {
+  background-color: var(--color-bg-primary);
+  border-style: dashed;
+}
+
+.editBtn:hover,
+.restartBtn:hover,
+.newChallengeBtn:hover {
   background-color: var(--color-accent-secondary);
   color: var(--color-bg-primary);
+  border-style: solid;
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 var(--color-border);
 }
 
-.restartBtn:hover {
-  background-color: var(--color-accent-secondary);
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 0 var(--color-border);
+/* ========================================
+   NEW CHALLENGE NOTICE (inside form card)
+======================================== */
+.newChallengeNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.25rem 2rem;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.noticeIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-accent-primary);
+  stroke-width: 2.5;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.noticeText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 /* ========================================
@@ -1478,6 +1513,12 @@
   .actionButtons {
     flex-direction: column;
   }
+
+  .editBtn,
+  .restartBtn,
+  .newChallengeBtn {
+    min-width: 100%;
+  }
 }
 
 /* Mobile (max 768px) */
@@ -1526,6 +1567,10 @@
 
   .modalActions {
     flex-direction: column;
+  }
+
+  .newChallengeNotice {
+    padding: 1rem 1.25rem;
   }
 }
 
