@@ -41,20 +41,23 @@ function convert24to12(time24) {
   };
 }
 
+function blankHabits() {
+  return Array.from({ length: 6 }, () => ({
+    title: "",
+    startTime: "",
+    startPeriod: "AM",
+    endTime: "",
+    endPeriod: "AM",
+  }));
+}
+
 export default function ChallengePage() {
-  const [habits, setHabits] = useState(
-    Array.from({ length: 6 }, () => ({
-      title: "",
-      startTime: "",
-      startPeriod: "AM",
-      endTime: "",
-      endPeriod: "AM",
-    })),
-  );
+  const [habits, setHabits] = useState(blankHabits());
 
   const [existing, setExisting] = useState(null);
   const [days, setDays] = useState([]);
   const [editMode, setEditMode] = useState(false);
+  const [newChallengeMode, setNewChallengeMode] = useState(false); // ✅ NEW
   const [message, setMessage] = useState("");
   const [challengeCompleted, setChallengeCompleted] = useState(false);
   const [completionStats, setCompletionStats] = useState(null);
@@ -242,6 +245,72 @@ export default function ChallengePage() {
     }
   }
 
+  /* -----------------------------------------------------
+     ✅ NEW: Start a brand-new challenge with a fresh set
+     of habits. The current challenge is archived to
+     history (backend /challenge/restart already does
+     this) but here the form starts blank instead of
+     pre-filled, so the user picks new habits.
+  ----------------------------------------------------- */
+  function openNewChallengeForm() {
+    setHabits(blankHabits());
+    setNewChallengeMode(true);
+    setEditMode(false);
+    setMessage("");
+  }
+
+  function cancelNewChallenge() {
+    setNewChallengeMode(false);
+    setMessage("");
+    loadChallenge(); // restore current challenge's habits back into form state
+  }
+
+  async function submitNewChallenge() {
+    setMessage("");
+
+    const filledHabits = habits.filter(
+      (h) => h.title && h.startTime && h.endTime,
+    );
+
+    if (filledHabits.length < 6) {
+      setMessage("Please enter at least 6 complete habits.");
+      return;
+    }
+
+    const formatted = filledHabits.map((h) => ({
+      title: h.title,
+      startTime: `${h.startTime} ${h.startPeriod}`,
+      endTime: `${h.endTime} ${h.endPeriod}`,
+    }));
+
+    try {
+      // Reuses the restart endpoint: archives current challenge to
+      // history and creates a fresh 21-day challenge with these habits.
+      const res = await api.post("/challenge/restart", { habits: formatted });
+
+      setDays([]);
+      setExisting(null);
+      setChallengeCompleted(false);
+      setCompletionStats(null);
+
+      setExisting(res.data.challenge);
+      setNewChallengeMode(false);
+      setRefreshKey((prev) => prev + 1);
+
+      await loadHistory();
+
+      setMessage(
+        "New challenge started! Your previous challenge was moved to history.",
+      );
+      setTimeout(() => setMessage(""), 4000);
+    } catch (err) {
+      console.error(err);
+      setMessage(
+        err.response?.data?.message || "Error starting new challenge.",
+      );
+    }
+  }
+
   async function updateChallenge() {
     const filledHabits = habits.filter(
       (h) => h.title && h.startTime && h.endTime,
@@ -300,15 +369,7 @@ export default function ChallengePage() {
   }
 
   function resetForm() {
-    setHabits(
-      Array.from({ length: 6 }, () => ({
-        title: "",
-        startTime: "",
-        startPeriod: "AM",
-        endTime: "",
-        endPeriod: "AM",
-      })),
-    );
+    setHabits(blankHabits());
     setMessage("");
     setChallengeCompleted(false);
     setCompletionStats(null);
@@ -622,7 +683,7 @@ export default function ChallengePage() {
       )}
 
       {/* ACTION BUTTONS FOR ACTIVE CHALLENGE */}
-      {existing && !editMode && !challengeCompleted && (
+      {existing && !editMode && !challengeCompleted && !newChallengeMode && (
         <div className={styles.actionButtons}>
           <button className={styles.editBtn} onClick={() => setEditMode(true)}>
             <Edit className={styles.btnIcon} />
@@ -632,20 +693,39 @@ export default function ChallengePage() {
             <RefreshCw className={styles.btnIcon} />
             <span>Restart Challenge</span>
           </button>
+          <button
+            className={styles.newChallengeBtn}
+            onClick={openNewChallengeForm}
+          >
+            <Plus className={styles.btnIcon} />
+            <span>Start New Challenge</span>
+          </button>
         </div>
       )}
 
-      {/* FORM - Create/Edit Mode */}
-      {(!existing || editMode) && !challengeCompleted && (
+      {/* FORM - Create/Edit/New-Challenge Mode */}
+      {(!existing || editMode || newChallengeMode) && !challengeCompleted && (
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <Plus className={styles.cardIcon} />
             <h3 className={styles.cardTitle}>
-              {existing && editMode
-                ? "Edit Your Challenge"
-                : "Set Up Your Challenge"}
+              {newChallengeMode
+                ? "Start New Challenge — Choose New Habits"
+                : existing && editMode
+                  ? "Edit Your Challenge"
+                  : "Set Up Your Challenge"}
             </h3>
           </div>
+
+          {newChallengeMode && (
+            <div className={styles.newChallengeNotice}>
+              <AlertCircle className={styles.noticeIcon} />
+              <p className={styles.noticeText}>
+                Your current challenge will be moved to history once you start
+                this one. Pick a fresh set of habits below.
+              </p>
+            </div>
+          )}
 
           <div className={styles.formContent}>
             {habits.map((h, i) => (
@@ -732,9 +812,20 @@ export default function ChallengePage() {
           <div className={styles.formActions}>
             <button
               className={styles.submitBtn}
-              onClick={existing ? updateChallenge : startChallenge}
+              onClick={
+                newChallengeMode
+                  ? submitNewChallenge
+                  : existing
+                    ? updateChallenge
+                    : startChallenge
+              }
             >
-              {existing ? (
+              {newChallengeMode ? (
+                <>
+                  <Target className={styles.btnIcon} />
+                  <span>Start New Challenge</span>
+                </>
+              ) : existing ? (
                 <>
                   <Save className={styles.btnIcon} />
                   <span>Save Changes</span>
@@ -747,12 +838,16 @@ export default function ChallengePage() {
               )}
             </button>
 
-            {editMode && (
+            {(editMode || newChallengeMode) && (
               <button
                 className={styles.cancelBtn}
                 onClick={() => {
-                  setEditMode(false);
-                  loadChallenge();
+                  if (newChallengeMode) {
+                    cancelNewChallenge();
+                  } else {
+                    setEditMode(false);
+                    loadChallenge();
+                  }
                 }}
               >
                 <CloseIcon className={styles.btnIcon} />
@@ -771,7 +866,7 @@ export default function ChallengePage() {
       )}
 
       {/* VIEW MODE */}
-      {existing && !editMode && !challengeCompleted && (
+      {existing && !editMode && !challengeCompleted && !newChallengeMode && (
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <CheckCircle className={styles.cardIcon} />
@@ -800,7 +895,7 @@ export default function ChallengePage() {
       )}
 
       {/* PROGRESS GRID */}
-      {existing && !challengeCompleted && (
+      {existing && !challengeCompleted && !newChallengeMode && (
         <>
           <div className={styles.progressHeader}>
             <Calendar className={styles.sectionIcon} />
@@ -854,10 +949,10 @@ export default function ChallengePage() {
       )}
 
       {/* HEATMAP & TREND - ✅ FIXED: Pass refreshKey to force re-render */}
-      {(existing || challengeCompleted) && (
+      {(existing || challengeCompleted) && !newChallengeMode && (
         <ChallengeHeatmap key={`heatmap-${refreshKey}`} />
       )}
-      {(existing || challengeCompleted) && (
+      {(existing || challengeCompleted) && !newChallengeMode && (
         <ChallengeTrend key={`trend-${refreshKey}`} />
       )}
     </div>
