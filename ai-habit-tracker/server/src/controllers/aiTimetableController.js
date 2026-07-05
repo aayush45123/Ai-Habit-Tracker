@@ -4,7 +4,7 @@ function createGroqClient() {
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
-    throw new Error("GROQ_API_KEY not configured");
+    return null;
   }
 
   return new OpenAI({
@@ -37,6 +37,13 @@ export const generateAITimetable = async (req, res) => {
     } = req.body;
 
     const groq = createGroqClient();
+
+    if (!groq) {
+      return res.status(500).json({
+        message:
+          "GROQ_API_KEY not set. Add it to enable AI timetable generation.",
+      });
+    }
 
     const prompt = `
 You are an elite Strength & Conditioning Coach.
