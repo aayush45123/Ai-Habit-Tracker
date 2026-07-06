@@ -238,6 +238,25 @@
   color: var(--color-text-primary);
 }
 
+.checkpointBadge {
+  padding: 0.4rem 0.75rem;
+  border: 2px solid var(--color-border);
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.correctCheckpoint {
+  background-color: #14532d;
+  color: #f8fafc;
+}
+
+.missedCheckpoint {
+  background-color: #7f1d1d;
+  color: #f8fafc;
+}
+
 .expandIcon {
   width: 32px;
   height: 32px;
