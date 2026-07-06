@@ -471,6 +471,12 @@ export const updateWorkoutLogDraft = async (req, res) => {
         .json({ message: "Rest day logs do not require exercise updates" });
     }
 
+    if (log.checkpoint?.submitted) {
+      return res.status(409).json({
+        message: "Workout log has already been submitted for this date",
+      });
+    }
+
     const normalizedIds = [
       ...new Set(completedExerciseIds.map((id) => String(id))),
     ];
@@ -534,6 +540,12 @@ export const finalizeWorkoutLog = async (req, res) => {
 
     const logDate = toISTDateString(date || new Date());
     const log = await getOrCreateWorkoutLog(timetable, logDate);
+
+    if (log.checkpoint?.submitted) {
+      return res.status(409).json({
+        message: "Workout log has already been submitted for this date",
+      });
+    }
 
     const finalStatus = log.status === "rest" ? "rest" : status;
     const normalized = normalizeCompletionPayload(
