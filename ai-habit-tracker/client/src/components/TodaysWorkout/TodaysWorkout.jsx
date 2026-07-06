@@ -1,8 +1,7 @@
 // client/src/components/TodaysWorkout/TodaysWorkout.jsx
-import React, { useState } from "react";
+import React from "react";
 import {
   PlayCircle,
-  CheckCircle2,
   Clock,
   Flame,
   Target,
@@ -13,23 +12,18 @@ import {
 } from "lucide-react";
 import styles from "./TodaysWorkout.module.css";
 
-export default function TodaysWorkout({ workout }) {
-  const [completedExercises, setCompletedExercises] = useState([]);
-
+export default function TodaysWorkout({
+  workout,
+  completedExerciseIds = [],
+  completionPercentage = 0,
+  onToggleExercise,
+  onCompleteWorkout,
+}) {
   if (!workout) return null;
 
-  const toggleExercise = (index) => {
-    if (completedExercises.includes(index)) {
-      setCompletedExercises(completedExercises.filter((i) => i !== index));
-    } else {
-      setCompletedExercises([...completedExercises, index]);
-    }
-  };
-
-  const completionPercentage =
-    workout.exercises.length > 0
-      ? Math.round((completedExercises.length / workout.exercises.length) * 100)
-      : 0;
+  const completedCount = completedExerciseIds.length;
+  const totalCount = workout.exercises.length;
+  const normalizedCompletion = completionPercentage;
 
   return (
     <div className={styles.root}>
@@ -58,16 +52,24 @@ export default function TodaysWorkout({ workout }) {
       {!workout.isRestDay && workout.exercises.length > 0 && (
         <div className={styles.progressSection}>
           <div className={styles.progressHeader}>
-            <span className={styles.progressLabel}>Completion</span>
+            <span className={styles.progressLabel}>Exercise Completion</span>
             <span className={styles.progressValue}>
-              {completionPercentage}%
+              {normalizedCompletion}%
             </span>
           </div>
           <div className={styles.progressBar}>
             <div
               className={styles.progressFill}
-              style={{ width: `${completionPercentage}%` }}
+              style={{ width: `${normalizedCompletion}%` }}
             ></div>
+          </div>
+          <div className={styles.summaryRow}>
+            <span className={styles.summaryText}>
+              {completedCount} / {totalCount} exercises completed
+            </span>
+            <span className={styles.summaryText}>
+              {normalizedCompletion}% of today's plan
+            </span>
           </div>
         </div>
       )}
@@ -120,65 +122,91 @@ export default function TodaysWorkout({ workout }) {
           </div>
 
           <div className={styles.exercisesList}>
-            {workout.exercises.map((exercise, index) => (
-              <div
-                key={index}
-                className={`${styles.exerciseCard} ${
-                  completedExercises.includes(index) ? styles.completed : ""
-                }`}
-                onClick={() => toggleExercise(index)}
-              >
-                <div className={styles.exerciseHeader}>
-                  <div className={styles.exerciseNumber}>{index + 1}</div>
-                  <h5 className={styles.exerciseName}>{exercise.name}</h5>
-                  <div className={styles.exerciseCheck}>
-                    {completedExercises.includes(index) ? (
-                      <CheckCircle2 className={styles.checkIcon} />
-                    ) : (
-                      <div className={styles.emptyCheck}></div>
+            {workout.exercises.map((exercise, index) => {
+              const exerciseId =
+                exercise._id?.toString() || `${workout.day}-${index}`;
+              const isCompleted = completedExerciseIds.includes(exerciseId);
+
+              return (
+                <div
+                  key={exerciseId}
+                  className={`${styles.exerciseCard} ${
+                    isCompleted ? styles.completed : ""
+                  }`}
+                  onClick={() => onToggleExercise?.(exerciseId)}
+                >
+                  <div className={styles.exerciseHeader}>
+                    <div className={styles.exerciseNumber}>{index + 1}</div>
+                    <h5 className={styles.exerciseName}>{exercise.name}</h5>
+                    <div className={styles.exerciseCheck}>
+                      <button
+                        type="button"
+                        className={`${styles.exerciseCheckbox} ${
+                          isCompleted ? styles.exerciseCheckboxChecked : ""
+                        }`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onToggleExercise?.(exerciseId);
+                        }}
+                        aria-label={`Mark ${exercise.name} as ${
+                          isCompleted ? "not completed" : "completed"
+                        }`}
+                      >
+                        {isCompleted ? "☑" : "☐"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.exerciseDetails}>
+                    {exercise.sets && (
+                      <div className={styles.exerciseDetail}>
+                        <Flame className={styles.detailIcon} />
+                        <span>
+                          <strong>Sets:</strong> {exercise.sets}
+                        </span>
+                      </div>
+                    )}
+
+                    {exercise.reps && (
+                      <div className={styles.exerciseDetail}>
+                        <Target className={styles.detailIcon} />
+                        <span>
+                          <strong>Reps:</strong> {exercise.reps}
+                        </span>
+                      </div>
+                    )}
+
+                    {exercise.duration && (
+                      <div className={styles.exerciseDetail}>
+                        <Clock className={styles.detailIcon} />
+                        <span>
+                          <strong>Duration:</strong> {exercise.duration}
+                        </span>
+                      </div>
                     )}
                   </div>
-                </div>
 
-                <div className={styles.exerciseDetails}>
-                  {exercise.sets && (
-                    <div className={styles.exerciseDetail}>
-                      <Flame className={styles.detailIcon} />
+                  {exercise.notes && (
+                    <div className={styles.exerciseNotes}>
                       <span>
-                        <strong>Sets:</strong> {exercise.sets}
-                      </span>
-                    </div>
-                  )}
-
-                  {exercise.reps && (
-                    <div className={styles.exerciseDetail}>
-                      <Target className={styles.detailIcon} />
-                      <span>
-                        <strong>Reps:</strong> {exercise.reps}
-                      </span>
-                    </div>
-                  )}
-
-                  {exercise.duration && (
-                    <div className={styles.exerciseDetail}>
-                      <Clock className={styles.detailIcon} />
-                      <span>
-                        <strong>Duration:</strong> {exercise.duration}
+                        <Lightbulb className={styles.notesIcon} />{" "}
+                        {exercise.notes}
                       </span>
                     </div>
                   )}
                 </div>
+              );
+            })}
+          </div>
 
-                {exercise.notes && (
-                  <div className={styles.exerciseNotes}>
-                    <span>
-                      <Lightbulb className={styles.notesIcon} />{" "}
-                      {exercise.notes}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className={styles.actionRow}>
+            <button
+              type="button"
+              className={styles.completeButton}
+              onClick={() => onCompleteWorkout?.()}
+            >
+              Complete Workout
+            </button>
           </div>
         </div>
       )}

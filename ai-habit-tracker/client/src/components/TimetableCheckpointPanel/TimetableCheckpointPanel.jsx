@@ -1,156 +1,165 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { CalendarCheck2, CircleAlert, Save, TimerReset } from "lucide-react";
+import React from "react";
+import {
+  CheckCircle2,
+  Clock3,
+  ListChecks,
+  Save,
+  ShieldAlert,
+} from "lucide-react";
 import styles from "./TimetableCheckpointPanel.module.css";
 
-const DAYS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+const STATUS_OPTIONS = [
+  { value: "completed", label: "Complete" },
+  { value: "partial", label: "Partial" },
+  { value: "missed", label: "Missed" },
+  { value: "rest", label: "Rest Day" },
 ];
 
-function getTodayDayName() {
-  return new Date().toLocaleDateString("en-US", { weekday: "long" });
-}
-
 export default function TimetableCheckpointPanel({
-  timetable,
+  workoutLog,
+  workout,
   analytics,
   loading,
+  completedExerciseIds = [],
+  completionPercentage = 0,
+  draftStatus = "partial",
+  draftNote = "",
+  draftDuration = 0,
+  onStatusChange,
+  onNoteChange,
+  onDurationChange,
   onSubmit,
 }) {
-  const scheduleDays = timetable?.weeklySchedule?.length
-    ? timetable.weeklySchedule.map((day) => day.day)
-    : DAYS;
-
-  const defaultDay = useMemo(() => {
-    const today = getTodayDayName();
-    return scheduleDays.includes(today) ? today : scheduleDays[0];
-  }, [scheduleDays]);
-
-  const [day, setDay] = useState(defaultDay);
-  const [status, setStatus] = useState("correct");
-  const [note, setNote] = useState("");
-
-  useEffect(() => {
-    setDay(defaultDay);
-  }, [defaultDay]);
-
+  const totalExercises = workout?.exercises?.length || 0;
+  const completedCount = completedExerciseIds.length;
+  const status = workout?.isRestDay ? "rest" : draftStatus;
+  const isRestDay = workout?.isRestDay;
   const summary = analytics?.summary || {};
-  const recentCheckpoints = analytics?.recentCheckpoints || [];
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
-    const selectedDay = scheduleDays.includes(day) ? day : defaultDay;
-    const selectedSchedule = timetable?.weeklySchedule?.find(
-      (item) => item.day === selectedDay,
-    );
-
     onSubmit?.({
-      day: selectedDay,
       status,
-      note,
-      focusArea: selectedSchedule?.focusArea || "",
-      plannedExercises: (selectedSchedule?.exercises || []).map(
-        (exercise) => exercise.name,
-      ),
-      completedExercises:
-        status === "correct"
-          ? (selectedSchedule?.exercises || []).map((exercise) => exercise.name)
-          : [],
-      missedExercises:
-        status === "missed"
-          ? (selectedSchedule?.exercises || []).map((exercise) => exercise.name)
-          : [],
+      note: draftNote,
+      actualDuration: Number(draftDuration) || 0,
     });
-
-    setNote("");
   };
 
   return (
     <section className={styles.root}>
       <div className={styles.header}>
         <div className={styles.headerCopy}>
-          <span className={styles.kicker}>Checkpoint</span>
-          <h3 className={styles.title}>Workout Confirmation</h3>
+          <span className={styles.kicker}>Workout Log</span>
+          <h3 className={styles.title}>Daily Workout Checkpoint</h3>
           <p className={styles.subtitle}>
-            Mark each timetable session as correct or missed and track the
-            results over time.
+            Finalize today's workout with a stored log. Every submit updates the
+            timetable record and the analytics below.
           </p>
         </div>
 
         <div className={styles.summaryRow}>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryLabel}>Success Rate</span>
+            <span className={styles.summaryLabel}>Weekly Adherence</span>
             <strong className={styles.summaryValue}>
-              {summary.adherenceRate || 0}%
+              {summary.weeklyAdherence || 0}%
             </strong>
           </div>
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Current Streak</span>
             <strong className={styles.summaryValue}>
-              {summary.currentStreak || 0}
+              {summary.currentWorkoutStreak || 0}
             </strong>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryLabel}>Logged</span>
+            <span className={styles.summaryLabel}>Missed Workouts</span>
             <strong className={styles.summaryValue}>
-              {summary.totalCheckpoints || 0}
+              {summary.missedWorkouts || 0}
             </strong>
           </div>
         </div>
       </div>
 
-      <div className={styles.body}>
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.fieldGroup}>
-            <label className={styles.label}>Timetable Day</label>
-            <select
-              className={styles.select}
-              value={day}
-              onChange={(event) => setDay(event.target.value)}
-            >
-              {scheduleDays.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+      <form className={styles.body} onSubmit={handleSubmit}>
+        <div className={styles.form}>
+          <div className={styles.progressCard}>
+            <div className={styles.progressHeader}>
+              <div>
+                <span className={styles.progressLabel}>
+                  Exercises Completed
+                </span>
+                <h4 className={styles.progressTitle}>
+                  {completedCount} / {totalExercises}
+                </h4>
+              </div>
+              <div className={styles.percentBadge}>{completionPercentage}%</div>
+            </div>
+
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${completionPercentage}%` }}
+              />
+            </div>
           </div>
 
-          <div className={styles.fieldGroup}>
-            <label className={styles.label}>Checkpoint Status</label>
-            <div className={styles.segmentedControl}>
-              <button
-                type="button"
-                className={`${styles.segment} ${status === "correct" ? styles.segmentActive : ""}`}
-                onClick={() => setStatus("correct")}
-              >
-                <CalendarCheck2 className={styles.segmentIcon} />
-                Correct
-              </button>
-              <button
-                type="button"
-                className={`${styles.segment} ${status === "missed" ? styles.segmentMissed : ""}`}
-                onClick={() => setStatus("missed")}
-              >
-                <CircleAlert className={styles.segmentIcon} />
-                Missed
-              </button>
+          <div className={styles.statusGroup}>
+            <label className={styles.label}>Workout Status</label>
+            <div className={styles.statusGrid}>
+              {STATUS_OPTIONS.map((option) => {
+                const isActive = status === option.value;
+                const disabled = isRestDay && option.value !== "rest";
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`${styles.statusButton} ${
+                      isActive ? styles.statusButtonActive : ""
+                    } ${disabled ? styles.statusButtonDisabled : ""}`}
+                    onClick={() => onStatusChange?.(option.value)}
+                    disabled={disabled}
+                  >
+                    {option.value === "completed" && (
+                      <CheckCircle2 className={styles.statusIcon} />
+                    )}
+                    {option.value === "partial" && (
+                      <ListChecks className={styles.statusIcon} />
+                    )}
+                    {option.value === "missed" && (
+                      <ShieldAlert className={styles.statusIcon} />
+                    )}
+                    {option.value === "rest" && (
+                      <Clock3 className={styles.statusIcon} />
+                    )}
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>Note</label>
+            <label className={styles.label}>Actual Duration (minutes)</label>
+            <input
+              className={styles.input}
+              type="number"
+              min="0"
+              step="1"
+              value={draftDuration}
+              onChange={(event) =>
+                onDurationChange?.(Number(event.target.value) || 0)
+              }
+              placeholder="0"
+            />
+          </div>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Optional Note</label>
             <textarea
               className={styles.textarea}
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              placeholder="Optional context for this checkpoint"
+              value={draftNote}
+              onChange={(event) => onNoteChange?.(event.target.value)}
+              placeholder="Could not complete calves due to time"
               rows={4}
             />
           </div>
@@ -160,62 +169,47 @@ export default function TimetableCheckpointPanel({
             type="submit"
             disabled={loading}
           >
-            {loading ? (
-              <>
-                <TimerReset className={styles.submitIcon} />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className={styles.submitIcon} />
-                Save Checkpoint
-              </>
-            )}
+            <Save className={styles.submitIcon} />
+            {isRestDay ? "Save Rest Day" : "Complete Workout"}
           </button>
-        </form>
+        </div>
 
         <div className={styles.activityPanel}>
           <div className={styles.activityHeader}>
-            <h4 className={styles.activityTitle}>Recent Checkpoints</h4>
+            <h4 className={styles.activityTitle}>Current Log Snapshot</h4>
             <span className={styles.activityCount}>
-              {recentCheckpoints.length}
+              {workoutLog?.status || status}
             </span>
           </div>
 
-          {recentCheckpoints.length > 0 ? (
-            <div className={styles.activityList}>
-              {recentCheckpoints.map((checkpoint) => (
-                <div
-                  key={`${checkpoint.date}-${checkpoint.day}`}
-                  className={styles.activityItem}
-                >
-                  <div>
-                    <strong className={styles.activityDay}>
-                      {checkpoint.day}
-                    </strong>
-                    <p className={styles.activityMeta}>
-                      {checkpoint.date} · {checkpoint.focusArea || "General"}
-                    </p>
-                  </div>
-                  <span
-                    className={`${styles.statusBadge} ${
-                      checkpoint.status === "correct"
-                        ? styles.statusCorrect
-                        : styles.statusMissed
-                    }`}
-                  >
-                    {checkpoint.status}
-                  </span>
-                </div>
-              ))}
+          <div className={styles.activityList}>
+            <div className={styles.activityItem}>
+              <div>
+                <strong className={styles.activityDay}>Scheduled Day</strong>
+                <p className={styles.activityMeta}>
+                  {workout?.day || workoutLog?.scheduledDay || "Today"}
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className={styles.emptyState}>
-              No checkpoints recorded yet.
+
+            <div className={styles.activityItem}>
+              <div>
+                <strong className={styles.activityDay}>Status</strong>
+                <p className={styles.activityMeta}>
+                  {isRestDay ? "Rest day" : status.toUpperCase()}
+                </p>
+              </div>
             </div>
-          )}
+
+            <div className={styles.activityItem}>
+              <div>
+                <strong className={styles.activityDay}>Completion</strong>
+                <p className={styles.activityMeta}>{completionPercentage}%</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </form>
     </section>
   );
 }

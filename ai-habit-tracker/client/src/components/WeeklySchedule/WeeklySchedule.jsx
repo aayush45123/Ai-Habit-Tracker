@@ -106,15 +106,30 @@ export default function WeeklySchedule({
                     <span
                       className={`${styles.checkpointBadge} ${
                         checkpointStatusByDay[daySchedule.day].status ===
-                        "correct"
-                          ? styles.correctCheckpoint
-                          : styles.missedCheckpoint
+                        "completed"
+                          ? styles.completedCheckpoint
+                          : checkpointStatusByDay[daySchedule.day].status ===
+                              "partial"
+                            ? styles.partialCheckpoint
+                            : checkpointStatusByDay[daySchedule.day].status ===
+                                "rest"
+                              ? styles.restCheckpoint
+                              : styles.missedCheckpoint
                       }`}
                     >
                       {checkpointStatusByDay[daySchedule.day].status ===
-                      "correct"
-                        ? "CHECKED"
-                        : "MISSED"}
+                      "completed"
+                        ? "COMPLETED"
+                        : checkpointStatusByDay[daySchedule.day].status ===
+                            "partial"
+                          ? "PARTIAL"
+                          : checkpointStatusByDay[daySchedule.day].status ===
+                              "rest"
+                            ? "REST"
+                            : checkpointStatusByDay[daySchedule.day].status ===
+                                "pending"
+                              ? "PENDING"
+                              : "MISSED"}
                     </span>
                   )}
                   {isToday && <span className={styles.todayBadge}>TODAY</span>}

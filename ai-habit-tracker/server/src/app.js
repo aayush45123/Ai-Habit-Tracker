@@ -14,6 +14,7 @@ import focusRoutes from "./routes/focusRoutes.js";
 import aiChatRoutes from "./routes/aiChatRoutes.js";
 import calorieRoutes from "./routes/calorieRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
+import workoutLogRoutes from "./routes/workoutLogRoutes.js";
 import aiTimetableRoutes from "./routes/aiTimetableRoutes.js";
 import aiCoachRoutes from "./routes/aiCoachRoutes.js";
 import mlRoutes from "./routes/mlRoutes.js";
@@ -87,6 +88,7 @@ app.use("/api/calories", calorieRoutes); // Changed from /calorie to /calories
 // Timetable routes (support both plural and singular paths for backward compatibility)
 app.use("/api/timetables", timetableRoutes);
 app.use("/api/timetable", timetableRoutes);
+app.use("/api/workout-logs", workoutLogRoutes);
 app.use("/api/ai-timetable", aiTimetableRoutes);
 app.use("/api/coach", aiCoachRoutes);
 app.use("/api/ml", mlRoutes);

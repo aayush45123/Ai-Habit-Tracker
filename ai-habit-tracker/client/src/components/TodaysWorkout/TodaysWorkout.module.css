@@ -178,6 +178,20 @@
   );
 }
 
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.summaryText {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
 /* ===== TIME BLOCKS ===== */
 .timeBlocks {
   display: grid;
@@ -358,6 +372,25 @@
   flex-shrink: 0;
 }
 
+.exerciseCheckbox {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.exerciseCheckboxChecked {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
 .checkIcon {
   width: 28px;
   height: 28px;
@@ -403,6 +436,24 @@
 .exerciseCard.completed .exerciseNotes {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
+}
+
+.actionRow {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.completeButton {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 3px solid var(--color-border);
+  padding: 0.9rem 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  font-family: var(--font-primary);
 }
 
 /* ===== REST DAY MESSAGE ===== */

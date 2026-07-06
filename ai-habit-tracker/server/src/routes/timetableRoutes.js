@@ -8,8 +8,6 @@ import {
   deleteTimetable,
   getTimetableHistory,
   getAIImprovements,
-  createTimetableCheckpoint,
-  getTimetableAnalytics,
 } from "../controllers/timetableController.js";
 import protect from "../middleware/authMiddleware.js"; // ✅ FIXED: Removed curly braces
 
@@ -20,10 +18,6 @@ router.use(protect);
 
 // Create new timetable manually
 router.post("/create", createTimetable);
-
-// Checkpoint and analytics routes
-router.post("/:id/checkpoints", createTimetableCheckpoint);
-router.get("/:id/analytics", getTimetableAnalytics);
 
 // Get AI improvement suggestions
 router.post("/:id/ai-improve", getAIImprovements);

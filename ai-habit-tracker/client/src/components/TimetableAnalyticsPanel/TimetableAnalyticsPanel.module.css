@@ -23,8 +23,7 @@
 }
 
 .loading,
-.emptyState,
-.emptyChart {
+.emptyState {
   min-height: 180px;
   display: flex;
   align-items: center;
