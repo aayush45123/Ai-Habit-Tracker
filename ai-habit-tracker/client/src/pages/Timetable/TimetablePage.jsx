@@ -24,13 +24,18 @@ export default function TimetablePage() {
   const [todaysWorkout, setTodaysWorkout] = useState(null);
   const [showCreator, setShowCreator] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [aiAssessment, setAiAssessment] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
-  const [timetableAnalytics, setTimetableAnalytics] = useState(null);
-  const [checkpointLoading, setCheckpointLoading] = useState(false);
+  const [workoutLog, setWorkoutLog] = useState(null);
+  const [workoutAnalytics, setWorkoutAnalytics] = useState(null);
+  const [completedExerciseIds, setCompletedExerciseIds] = useState([]);
+  const [draftNote, setDraftNote] = useState("");
+  const [draftDuration, setDraftDuration] = useState(0);
+  const [draftStatus, setDraftStatus] = useState("partial");
+  const [logLoading, setLogLoading] = useState(false);
+  const [logSaving, setLogSaving] = useState(false);
 
   useEffect(() => {
     loadActiveTimetable();
@@ -51,34 +56,106 @@ export default function TimetablePage() {
           setAiSuggestions(res.data.timetable.aiImprovements || []);
         }
 
-        await loadTimetableAnalytics(res.data.timetable._id);
+        await loadWorkoutLog(res.data.timetable._id);
       } else {
         setShowCreator(true);
-        setTimetableAnalytics(null);
+        setWorkoutLog(null);
+        setWorkoutAnalytics(null);
       }
     } catch (err) {
       console.error(err);
       setShowCreator(true);
-      setTimetableAnalytics(null);
+      setWorkoutLog(null);
+      setWorkoutAnalytics(null);
     } finally {
       setLoading(false);
     }
   }
 
-  async function loadTimetableAnalytics(timetableId) {
+  async function loadWorkoutLog(timetableId) {
     if (!timetableId) return;
 
-    setAnalyticsLoading(true);
+    setLogLoading(true);
 
     try {
-      const res = await api.get(`/timetables/${timetableId}/analytics`);
-      setTimetableAnalytics(res.data.analytics || null);
+      const res = await api.get(`/workout-logs/timetable/${timetableId}/today`);
+      setWorkoutLog(res.data.workoutLog || null);
+      setWorkoutAnalytics(res.data.analytics || null);
+
+      const incomingLog = res.data.workoutLog;
+      setCompletedExerciseIds(incomingLog?.completedExerciseIds || []);
+      setDraftNote(incomingLog?.checkpoint?.note || "");
+      setDraftDuration(incomingLog?.actualDuration || 0);
+      setDraftStatus(
+        incomingLog?.status && incomingLog.status !== "pending"
+          ? incomingLog.status
+          : incomingLog?.status === "rest"
+            ? "rest"
+            : "partial",
+      );
     } catch (err) {
-      console.error("Error loading timetable analytics:", err);
-      setTimetableAnalytics(null);
+      console.error("Error loading workout log:", err);
+      setWorkoutLog(null);
+      setWorkoutAnalytics(null);
     } finally {
-      setAnalyticsLoading(false);
+      setLogLoading(false);
     }
+  }
+
+  const workoutExerciseIds =
+    todaysWorkout?.exercises?.map((exercise) => exercise._id?.toString()) || [];
+
+  const workoutCompletionPercentage =
+    todaysWorkout &&
+    !todaysWorkout.isRestDay &&
+    todaysWorkout.exercises.length > 0
+      ? Math.round(
+          (completedExerciseIds.length / todaysWorkout.exercises.length) * 100,
+        )
+      : 0;
+
+  async function persistWorkoutDraft(nextExerciseIds = completedExerciseIds) {
+    if (!activeTimetable?._id) return;
+
+    try {
+      const res = await api.patch(
+        `/workout-logs/timetable/${activeTimetable._id}/today`,
+        {
+          date: workoutLog?.date,
+          completedExerciseIds: nextExerciseIds,
+          actualDuration: draftDuration,
+          note: draftNote,
+        },
+      );
+
+      setWorkoutLog(res.data.workoutLog || null);
+      setWorkoutAnalytics(res.data.analytics || null);
+    } catch (err) {
+      console.error("Error saving workout draft:", err);
+      setMessage(
+        err.response?.data?.message || "Could not save workout progress",
+      );
+    }
+  }
+
+  async function handleToggleExercise(exerciseId) {
+    if (!exerciseId) return;
+
+    const normalizedId = String(exerciseId);
+    const nextIds = completedExerciseIds.includes(normalizedId)
+      ? completedExerciseIds.filter((id) => id !== normalizedId)
+      : [...completedExerciseIds, normalizedId];
+
+    setCompletedExerciseIds(nextIds);
+    await persistWorkoutDraft(nextIds);
+  }
+
+  async function handleCompleteWorkout() {
+    if (!todaysWorkout || todaysWorkout.isRestDay) return;
+
+    const nextIds = workoutExerciseIds.filter(Boolean);
+    setCompletedExerciseIds(nextIds);
+    await persistWorkoutDraft(nextIds);
   }
 
   async function handleSaveTimetable(timetableData) {
@@ -136,28 +213,32 @@ export default function TimetablePage() {
   async function handleSubmitCheckpoint(checkpointData) {
     if (!activeTimetable?._id) return;
 
-    setCheckpointLoading(true);
+    setLogSaving(true);
     setMessage("");
 
     try {
       const res = await api.post(
-        `/timetables/${activeTimetable._id}/checkpoints`,
-        checkpointData,
+        `/workout-logs/timetable/${activeTimetable._id}/submit`,
+        {
+          date: workoutLog?.date,
+          status: checkpointData.status,
+          note: checkpointData.note,
+          actualDuration: checkpointData.actualDuration,
+          completedExerciseIds,
+        },
       );
 
-      if (res.data.analytics) {
-        setTimetableAnalytics(res.data.analytics);
-      } else {
-        await loadTimetableAnalytics(activeTimetable._id);
-      }
+      setWorkoutLog(res.data.workoutLog || null);
+      setWorkoutAnalytics(res.data.analytics || null);
+      setDraftStatus(res.data.workoutLog?.status || checkpointData.status);
 
-      setMessage(res.data.message || "Checkpoint saved successfully!");
+      setMessage(res.data.message || "Workout log saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || "Error saving checkpoint");
     } finally {
-      setCheckpointLoading(false);
+      setLogSaving(false);
     }
   }
 
@@ -180,7 +261,12 @@ export default function TimetablePage() {
       setTodaysWorkout(null);
       setAiSuggestions(null);
       setAiAssessment(null);
-      setTimetableAnalytics(null);
+      setWorkoutLog(null);
+      setWorkoutAnalytics(null);
+      setCompletedExerciseIds([]);
+      setDraftNote("");
+      setDraftDuration(0);
+      setDraftStatus("partial");
       setShowCreator(true);
       setMessage("Timetable deleted successfully");
       setTimeout(() => setMessage(""), 3000);
@@ -355,20 +441,37 @@ export default function TimetablePage() {
             )}
 
           {/* TODAY'S WORKOUT */}
-          {todaysWorkout && <TodaysWorkout workout={todaysWorkout} />}
+          {todaysWorkout && (
+            <TodaysWorkout
+              workout={todaysWorkout}
+              completedExerciseIds={completedExerciseIds}
+              completionPercentage={workoutCompletionPercentage}
+              onToggleExercise={handleToggleExercise}
+              onCompleteWorkout={handleCompleteWorkout}
+            />
+          )}
 
           {/* CHECKPOINTS */}
           <TimetableCheckpointPanel
-            timetable={activeTimetable}
-            analytics={timetableAnalytics}
-            loading={checkpointLoading || analyticsLoading}
+            workoutLog={workoutLog}
+            workout={todaysWorkout}
+            analytics={workoutAnalytics}
+            loading={logSaving || logLoading}
+            completedExerciseIds={completedExerciseIds}
+            completionPercentage={workoutCompletionPercentage}
+            draftStatus={draftStatus}
+            draftNote={draftNote}
+            draftDuration={draftDuration}
+            onStatusChange={setDraftStatus}
+            onNoteChange={setDraftNote}
+            onDurationChange={setDraftDuration}
             onSubmit={handleSubmitCheckpoint}
           />
 
           {/* ANALYTICS */}
           <TimetableAnalyticsPanel
-            analytics={timetableAnalytics}
-            loading={analyticsLoading}
+            analytics={workoutAnalytics}
+            loading={logLoading}
           />
 
           {/* WEEKLY SCHEDULE */}
@@ -377,7 +480,7 @@ export default function TimetablePage() {
             goal={activeTimetable.goal}
             level={activeTimetable.level}
             timeAvailable={activeTimetable.timeAvailable || 60}
-            checkpointStatusByDay={timetableAnalytics?.latestStatusByDay || {}}
+            checkpointStatusByDay={workoutAnalytics?.latestStatusByDay || {}}
           />
 
           {/* CTA FOR AI IMPROVEMENT */}

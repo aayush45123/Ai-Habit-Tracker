@@ -105,6 +105,55 @@
   gap: 1rem;
 }
 
+.progressCard {
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  padding: 1rem;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.progressLabel {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.progressTitle {
+  margin: 0.25rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.percentBadge {
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-primary);
+  padding: 0.45rem 0.7rem;
+  font-weight: 900;
+}
+
+.progressBar {
+  width: 100%;
+  height: 16px;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-accent-primary);
+}
+
+.statusGroup,
 .fieldGroup {
   display: grid;
   gap: 0.5rem;
@@ -117,7 +166,43 @@
   letter-spacing: 0.08em;
 }
 
-.select,
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.statusButton {
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.statusButtonActive {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.statusButtonDisabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.statusIcon,
+.submitIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.input,
 .textarea {
   width: 100%;
   border: 2px solid var(--color-border);
@@ -126,47 +211,8 @@
   font: inherit;
 }
 
-.select:focus,
-.textarea:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
-}
-
-.segmentedControl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.segment {
-  border: 2px solid var(--color-border);
-  background: var(--color-bg-secondary);
-  padding: 0.9rem 1rem;
-  font: inherit;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.segmentActive {
-  background: #14532d;
-  color: #f8fafc;
-}
-
-.segmentMissed {
-  background: #7f1d1d;
-  color: #f8fafc;
-}
-
-.segmentIcon,
-.submitIcon {
-  width: 16px;
-  height: 16px;
+.textarea {
+  resize: vertical;
 }
 
 .submitButton {
@@ -194,6 +240,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
@@ -223,10 +270,6 @@
   border: 2px solid var(--color-border);
   background: var(--color-bg-secondary);
   padding: 0.85rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: center;
 }
 
 .activityDay {
@@ -240,34 +283,6 @@
   margin: 0.25rem 0 0;
   color: var(--color-text-secondary);
   font-size: 0.85rem;
-}
-
-.statusBadge {
-  border: 2px solid var(--color-border);
-  padding: 0.35rem 0.65rem;
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.statusCorrect {
-  background: #14532d;
-  color: #f8fafc;
-}
-
-.statusMissed {
-  background: #7f1d1d;
-  color: #f8fafc;
-}
-
-.emptyState {
-  min-height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  text-align: center;
 }
 
 @media (max-width: 980px) {
@@ -291,7 +306,7 @@
     min-width: 100%;
   }
 
-  .segmentedControl {
+  .statusGrid {
     grid-template-columns: 1fr;
   }
 }
