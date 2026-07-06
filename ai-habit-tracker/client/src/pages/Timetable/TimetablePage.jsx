@@ -32,6 +32,25 @@ export default function TimetablePage() {
     return `workout_log_history_${timetableId}`;
   }
 
+  function getWorkoutApiStatusKey(timetableId) {
+    return `workout_log_api_available_${timetableId}`;
+  }
+
+  function isWorkoutApiAvailable(timetableId) {
+    if (!timetableId) return false;
+
+    const value = localStorage.getItem(getWorkoutApiStatusKey(timetableId));
+    return value !== "false";
+  }
+
+  function setWorkoutApiAvailable(timetableId, available) {
+    if (!timetableId) return;
+    localStorage.setItem(
+      getWorkoutApiStatusKey(timetableId),
+      available ? "true" : "false",
+    );
+  }
+
   function readLocalWorkoutHistory(timetableId) {
     if (!timetableId) return {};
 
@@ -294,8 +313,17 @@ export default function TimetablePage() {
 
     setLogLoading(true);
 
+    const apiAvailable = isWorkoutApiAvailable(timetableId);
+
     try {
+      if (!apiAvailable) {
+        throw Object.assign(new Error("Workout log API unavailable"), {
+          response: { status: 404 },
+        });
+      }
+
       const res = await api.get(`/timetables/${timetableId}/workout-log/today`);
+      setWorkoutApiAvailable(timetableId, true);
       setWorkoutLog(res.data.workoutLog || null);
       setWorkoutAnalytics(res.data.analytics || null);
       writeLocalWorkoutHistory(
@@ -316,7 +344,11 @@ export default function TimetablePage() {
             : "partial",
       );
     } catch (err) {
-      console.error("Error loading workout log:", err);
+      if (err.response?.status !== 404) {
+        console.error("Error loading workout log:", err);
+      } else {
+        setWorkoutApiAvailable(timetableId, false);
+      }
 
       const cachedHistory = readLocalWorkoutHistory(timetableId);
       const cachedToday = cachedHistory[getTodayDateString()];
@@ -414,6 +446,12 @@ export default function TimetablePage() {
     writeLocalWorkoutHistory(activeTimetable._id, currentDate, cachedLog);
 
     try {
+      if (!isWorkoutApiAvailable(activeTimetable._id)) {
+        throw Object.assign(new Error("Workout log API unavailable"), {
+          response: { status: 404 },
+        });
+      }
+
       const res = await api.patch(
         `/timetables/${activeTimetable._id}/workout-log/today`,
         {
@@ -426,16 +464,78 @@ export default function TimetablePage() {
 
       setWorkoutLog(res.data.workoutLog || null);
       setWorkoutAnalytics(res.data.analytics || null);
+      setWorkoutApiAvailable(activeTimetable._id, true);
       writeLocalWorkoutHistory(
         activeTimetable._id,
         res.data.workoutLog?.date || currentDate,
         res.data.workoutLog,
       );
+      return;
     } catch (err) {
-      console.error("Error saving workout draft:", err);
-      setMessage(
-        err.response?.data?.message || "Could not save workout progress",
+      if (err.response?.status !== 404) {
+        console.error("Error saving workout draft:", err);
+      } else {
+        setWorkoutApiAvailable(activeTimetable._id, false);
+      }
+
+      const fallbackLog = {
+        ...(workoutLog || {}),
+        date: currentDate,
+        scheduledDay: workoutLog?.scheduledDay || todaysWorkout?.day || "Today",
+        focusArea: workoutLog?.focusArea || todaysWorkout?.focusArea || "",
+        status:
+          workoutLog?.status || (todaysWorkout?.isRestDay ? "rest" : "pending"),
+        totalExercises:
+          todaysWorkout?.exercises?.length || workoutLog?.totalExercises || 0,
+        completedExercises: nextExerciseIds.length,
+        completionPercentage:
+          todaysWorkout?.exercises?.length > 0
+            ? Math.round(
+                (nextExerciseIds.length / todaysWorkout.exercises.length) * 100,
+              )
+            : workoutLog?.completionPercentage || 0,
+        scheduledDuration: workoutLog?.scheduledDuration || 0,
+        actualDuration: draftDuration,
+        completedExerciseIds: nextExerciseIds,
+        checkpoint: {
+          ...(workoutLog?.checkpoint || {}),
+          submitted: workoutLog?.checkpoint?.submitted || false,
+          note: draftNote,
+        },
+        exerciseEntries:
+          workoutLog?.exerciseEntries ||
+          (todaysWorkout?.exercises || []).map((exercise, index) => ({
+            exerciseId:
+              exercise._id?.toString() ||
+              `${todaysWorkout?.day || "today"}-${index}`,
+            name: exercise.name,
+            sets: exercise.sets || "",
+            reps: exercise.reps || "",
+            duration: exercise.duration || "",
+            restBetweenSets: exercise.restBetweenSets || "",
+            notes: exercise.notes || "",
+            completed: nextExerciseIds.includes(
+              exercise._id?.toString() ||
+                `${todaysWorkout?.day || "today"}-${index}`,
+            ),
+            completedAt: nextExerciseIds.includes(
+              exercise._id?.toString() ||
+                `${todaysWorkout?.day || "today"}-${index}`,
+            )
+              ? new Date().toISOString()
+              : null,
+          })),
+      };
+
+      setWorkoutLog(fallbackLog);
+      setWorkoutAnalytics(
+        buildLocalAnalytics(activeTimetable, {
+          ...readLocalWorkoutHistory(activeTimetable._id),
+          [currentDate]: fallbackLog,
+        }),
       );
+      writeLocalWorkoutHistory(activeTimetable._id, currentDate, fallbackLog);
+      return;
     }
   }
 
@@ -518,6 +618,12 @@ export default function TimetablePage() {
     setMessage("");
 
     try {
+      if (!isWorkoutApiAvailable(activeTimetable._id)) {
+        throw Object.assign(new Error("Workout log API unavailable"), {
+          response: { status: 404 },
+        });
+      }
+
       const res = await api.post(
         `/timetables/${activeTimetable._id}/workout-log/submit`,
         {
@@ -532,6 +638,7 @@ export default function TimetablePage() {
       setWorkoutLog(res.data.workoutLog || null);
       setWorkoutAnalytics(res.data.analytics || null);
       setDraftStatus(res.data.workoutLog?.status || checkpointData.status);
+      setWorkoutApiAvailable(activeTimetable._id, true);
       writeLocalWorkoutHistory(
         activeTimetable._id,
         res.data.workoutLog?.date || getTodayDateString(),
@@ -541,20 +648,59 @@ export default function TimetablePage() {
       setMessage(res.data.message || "Workout log saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
-      console.error(err);
-      setMessage(err.response?.data?.message || "Error saving checkpoint");
+      if (err.response?.status !== 404) {
+        console.error(err);
+        setMessage(err.response?.data?.message || "Error saving checkpoint");
+      } else {
+        setWorkoutApiAvailable(activeTimetable._id, false);
+      }
+
       const fallbackDate = workoutLog?.date || getTodayDateString();
       const fallbackLog = {
         ...(workoutLog || {}),
         date: fallbackDate,
+        scheduledDay: workoutLog?.scheduledDay || todaysWorkout?.day || "Today",
+        focusArea: workoutLog?.focusArea || todaysWorkout?.focusArea || "",
         status: checkpointData.status,
         actualDuration: checkpointData.actualDuration,
         completedExerciseIds,
+        completedExercises: completedExerciseIds.length,
+        completionPercentage:
+          todaysWorkout?.exercises?.length > 0
+            ? Math.round(
+                (completedExerciseIds.length / todaysWorkout.exercises.length) *
+                  100,
+              )
+            : 0,
+        totalExercises: todaysWorkout?.exercises?.length || 0,
         checkpoint: {
           submitted: true,
           note: checkpointData.note,
           submittedAt: new Date().toISOString(),
         },
+        exerciseEntries:
+          workoutLog?.exerciseEntries ||
+          (todaysWorkout?.exercises || []).map((exercise, index) => ({
+            exerciseId:
+              exercise._id?.toString() ||
+              `${todaysWorkout?.day || "today"}-${index}`,
+            name: exercise.name,
+            sets: exercise.sets || "",
+            reps: exercise.reps || "",
+            duration: exercise.duration || "",
+            restBetweenSets: exercise.restBetweenSets || "",
+            notes: exercise.notes || "",
+            completed: completedExerciseIds.includes(
+              exercise._id?.toString() ||
+                `${todaysWorkout?.day || "today"}-${index}`,
+            ),
+            completedAt: completedExerciseIds.includes(
+              exercise._id?.toString() ||
+                `${todaysWorkout?.day || "today"}-${index}`,
+            )
+              ? new Date().toISOString()
+              : null,
+          })),
       };
       writeLocalWorkoutHistory(activeTimetable._id, fallbackDate, fallbackLog);
       setWorkoutLog(fallbackLog);

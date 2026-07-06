@@ -190,6 +190,7 @@ STRICT VALIDATION
       return {
         day,
         focusArea: current.focusArea || "",
+        
         isRestDay: current.isRestDay || false,
         startTime: current.startTime || "",
         endTime: current.endTime || "",
