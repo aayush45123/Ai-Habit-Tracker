@@ -20,6 +20,223 @@ import TimetableCheckpointPanel from "../../components/TimetableCheckpointPanel/
 import TimetableAnalyticsPanel from "../../components/TimetableAnalyticsPanel/TimetableAnalyticsPanel";
 
 export default function TimetablePage() {
+  function getTodayDateString() {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  function getWorkoutCacheKey(timetableId, date = getTodayDateString()) {
+    return `workout_log_cache_${timetableId}_${date}`;
+  }
+
+  function getWorkoutHistoryKey(timetableId) {
+    return `workout_log_history_${timetableId}`;
+  }
+
+  function readLocalWorkoutHistory(timetableId) {
+    if (!timetableId) return {};
+
+    try {
+      return (
+        JSON.parse(localStorage.getItem(getWorkoutHistoryKey(timetableId))) ||
+        {}
+      );
+    } catch {
+      return {};
+    }
+  }
+
+  function writeLocalWorkoutHistory(timetableId, date, workoutLogData) {
+    if (!timetableId || !date || !workoutLogData) return;
+
+    const history = readLocalWorkoutHistory(timetableId);
+    history[date] = workoutLogData;
+    localStorage.setItem(
+      getWorkoutHistoryKey(timetableId),
+      JSON.stringify(history),
+    );
+    localStorage.setItem(
+      getWorkoutCacheKey(timetableId, date),
+      JSON.stringify(workoutLogData),
+    );
+  }
+
+  function buildLocalAnalytics(timetable, history) {
+    const weeklySchedule = timetable?.weeklySchedule || [];
+    const historyEntries = Object.entries(history)
+      .map(([date, value]) => ({ date, ...value }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    const today = getTodayDateString();
+
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    const last7Days = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - index));
+      const iso = date.toISOString().split("T")[0];
+      const weekday = daysOfWeek[date.getDay()];
+      const schedule = weeklySchedule.find((day) => day.day === weekday);
+      const log = history[iso];
+
+      return {
+        date: iso,
+        day: weekday,
+        status: schedule?.isRestDay
+          ? "rest"
+          : log?.status || (iso < today ? "missed" : "pending"),
+        isRestDay: !!schedule?.isRestDay,
+        completionPercentage: log?.completionPercentage || 0,
+        completedExercises: log?.completedExercises || 0,
+        totalExercises: schedule?.exercises?.length || 0,
+      };
+    });
+
+    const scheduledDays = last7Days.filter((day) => !day.isRestDay);
+    const completedWorkoutDays = scheduledDays.filter(
+      (day) => day.status === "completed",
+    ).length;
+    const weeklyAdherence =
+      scheduledDays.length > 0
+        ? Math.round((completedWorkoutDays / scheduledDays.length) * 100)
+        : 0;
+
+    const totalAssignedExercises = scheduledDays.reduce(
+      (sum, day) => sum + (day.totalExercises || 0),
+      0,
+    );
+    const totalCompletedExercises = scheduledDays.reduce(
+      (sum, day) => sum + (day.completedExercises || 0),
+      0,
+    );
+    const exerciseCompletionRate =
+      totalAssignedExercises > 0
+        ? Math.round((totalCompletedExercises / totalAssignedExercises) * 100)
+        : 0;
+
+    let currentWorkoutStreak = 0;
+    for (let offset = 0; offset < 56; offset += 1) {
+      const date = new Date();
+      date.setDate(date.getDate() - offset);
+      const iso = date.toISOString().split("T")[0];
+      const weekday = daysOfWeek[date.getDay()];
+      const schedule = weeklySchedule.find((day) => day.day === weekday);
+      if (!schedule || schedule.isRestDay) continue;
+      const log = history[iso];
+      if (log?.status === "completed") {
+        currentWorkoutStreak += 1;
+      } else {
+        break;
+      }
+    }
+
+    const missedWorkouts = scheduledDays.filter(
+      (day) => day.date < today && day.status === "missed",
+    ).length;
+
+    const weekSeries = last7Days.map((day) => ({
+      label: day.day.slice(0, 3).toUpperCase(),
+      status: day.status,
+      percentage: day.isRestDay ? 0 : day.completionPercentage,
+      completedExercises: day.completedExercises,
+      totalExercises: day.totalExercises,
+    }));
+
+    const last8WeeksAdherenceTrend = Array.from({ length: 8 }, (_, index) => {
+      const weekStart = 55 - index * 7;
+      let scheduled = 0;
+      let completed = 0;
+
+      for (let offset = weekStart; offset > weekStart - 7; offset -= 1) {
+        const date = new Date();
+        date.setDate(date.getDate() - offset);
+        const iso = date.toISOString().split("T")[0];
+        const weekday = daysOfWeek[date.getDay()];
+        const schedule = weeklySchedule.find((day) => day.day === weekday);
+        if (!schedule || schedule.isRestDay) continue;
+        scheduled += 1;
+        if (history[iso]?.status === "completed") completed += 1;
+      }
+
+      return {
+        week: `W${index + 1}`,
+        adherence:
+          scheduled > 0 ? Math.round((completed / scheduled) * 100) : 0,
+        scheduledDays: scheduled,
+        completedDays: completed,
+      };
+    });
+
+    const latestStatusByDay = {};
+    historyEntries.forEach((entry) => {
+      if (!latestStatusByDay[entry.scheduledDay]) {
+        latestStatusByDay[entry.scheduledDay] = {
+          status: entry.status,
+          date: entry.date,
+          completionPercentage: entry.completionPercentage || 0,
+        };
+      }
+    });
+
+    return {
+      summary: {
+        weeklyAdherence,
+        exerciseCompletionRate,
+        currentWorkoutStreak,
+        missedWorkouts,
+        workoutVolume: historyEntries.reduce(
+          (sum, entry) => sum + (entry.actualDuration || 0),
+          0,
+        ),
+        totalAssignedExercises,
+        totalCompletedExercises,
+      },
+      weeklyCompletionSeries: weekSeries,
+      last8WeeksAdherenceTrend,
+      focusDistribution: weeklySchedule.reduce(
+        (acc, day) => {
+          if (day.isRestDay) return acc;
+          const focus = day.focusArea || "Mixed";
+          const bucket = focus.toLowerCase().includes("leg")
+            ? "Legs"
+            : focus.toLowerCase().includes("push")
+              ? "Push"
+              : focus.toLowerCase().includes("pull")
+                ? "Pull"
+                : focus.toLowerCase().includes("core")
+                  ? "Core"
+                  : focus.toLowerCase().includes("cardio") ||
+                      focus.toLowerCase().includes("conditioning")
+                    ? "Conditioning"
+                    : focus.toLowerCase().includes("mobility") ||
+                        focus.toLowerCase().includes("stretch")
+                      ? "Mobility"
+                      : "Mixed";
+          acc[bucket] = (acc[bucket] || 0) + 1;
+          return acc;
+        },
+        {
+          Push: 0,
+          Pull: 0,
+          Legs: 0,
+          Core: 0,
+          Conditioning: 0,
+          Mobility: 0,
+          Mixed: 0,
+        },
+      ),
+      recentLogs: historyEntries.slice(-10).reverse(),
+      latestStatusByDay,
+    };
+  }
+
   const [activeTimetable, setActiveTimetable] = useState(null);
   const [todaysWorkout, setTodaysWorkout] = useState(null);
   const [showCreator, setShowCreator] = useState(false);
@@ -78,9 +295,14 @@ export default function TimetablePage() {
     setLogLoading(true);
 
     try {
-      const res = await api.get(`/workout-logs/timetable/${timetableId}/today`);
+      const res = await api.get(`/timetables/${timetableId}/workout-log/today`);
       setWorkoutLog(res.data.workoutLog || null);
       setWorkoutAnalytics(res.data.analytics || null);
+      writeLocalWorkoutHistory(
+        timetableId,
+        res.data.workoutLog?.date || getTodayDateString(),
+        res.data.workoutLog,
+      );
 
       const incomingLog = res.data.workoutLog;
       setCompletedExerciseIds(incomingLog?.completedExerciseIds || []);
@@ -95,8 +317,60 @@ export default function TimetablePage() {
       );
     } catch (err) {
       console.error("Error loading workout log:", err);
-      setWorkoutLog(null);
-      setWorkoutAnalytics(null);
+
+      const cachedHistory = readLocalWorkoutHistory(timetableId);
+      const cachedToday = cachedHistory[getTodayDateString()];
+
+      if (cachedToday) {
+        setWorkoutLog(cachedToday);
+        setCompletedExerciseIds(cachedToday.completedExerciseIds || []);
+        setDraftNote(cachedToday?.checkpoint?.note || "");
+        setDraftDuration(cachedToday?.actualDuration || 0);
+        setDraftStatus(cachedToday?.status || "partial");
+        setWorkoutAnalytics(
+          buildLocalAnalytics(activeTimetable, cachedHistory),
+        );
+      } else {
+        const fallbackLog = {
+          date: getTodayDateString(),
+          scheduledDay: todaysWorkout?.day || "Today",
+          focusArea: todaysWorkout?.focusArea || "",
+          status: todaysWorkout?.isRestDay ? "rest" : "pending",
+          totalExercises: todaysWorkout?.exercises?.length || 0,
+          completedExercises: 0,
+          completionPercentage: 0,
+          scheduledDuration: 0,
+          actualDuration: 0,
+          completedExerciseIds: [],
+          checkpoint: {
+            submitted: !!todaysWorkout?.isRestDay,
+            note: "",
+            submittedAt: null,
+          },
+          exerciseEntries: (todaysWorkout?.exercises || []).map(
+            (exercise, index) => ({
+              exerciseId:
+                exercise._id?.toString() ||
+                `${todaysWorkout?.day || "today"}-${index}`,
+              name: exercise.name,
+              sets: exercise.sets || "",
+              reps: exercise.reps || "",
+              duration: exercise.duration || "",
+              restBetweenSets: exercise.restBetweenSets || "",
+              notes: exercise.notes || "",
+              completed: false,
+              completedAt: null,
+            }),
+          ),
+        };
+
+        setWorkoutLog(fallbackLog);
+        setCompletedExerciseIds([]);
+        setDraftNote("");
+        setDraftDuration(0);
+        setDraftStatus(todaysWorkout?.isRestDay ? "rest" : "partial");
+        setWorkoutAnalytics(buildLocalAnalytics(activeTimetable, {}));
+      }
     } finally {
       setLogLoading(false);
     }
@@ -117,11 +391,33 @@ export default function TimetablePage() {
   async function persistWorkoutDraft(nextExerciseIds = completedExerciseIds) {
     if (!activeTimetable?._id) return;
 
+    const currentDate = workoutLog?.date || getTodayDateString();
+    const cachedLog = {
+      ...(workoutLog || {}),
+      date: currentDate,
+      completedExerciseIds: nextExerciseIds,
+      completedExercises: nextExerciseIds.length,
+      completionPercentage:
+        todaysWorkout?.exercises?.length > 0
+          ? Math.round(
+              (nextExerciseIds.length / todaysWorkout.exercises.length) * 100,
+            )
+          : 0,
+      actualDuration: draftDuration,
+      checkpoint: {
+        ...(workoutLog?.checkpoint || {}),
+        submitted: workoutLog?.checkpoint?.submitted || false,
+        note: draftNote,
+      },
+    };
+
+    writeLocalWorkoutHistory(activeTimetable._id, currentDate, cachedLog);
+
     try {
       const res = await api.patch(
-        `/workout-logs/timetable/${activeTimetable._id}/today`,
+        `/timetables/${activeTimetable._id}/workout-log/today`,
         {
-          date: workoutLog?.date,
+          date: currentDate,
           completedExerciseIds: nextExerciseIds,
           actualDuration: draftDuration,
           note: draftNote,
@@ -130,6 +426,11 @@ export default function TimetablePage() {
 
       setWorkoutLog(res.data.workoutLog || null);
       setWorkoutAnalytics(res.data.analytics || null);
+      writeLocalWorkoutHistory(
+        activeTimetable._id,
+        res.data.workoutLog?.date || currentDate,
+        res.data.workoutLog,
+      );
     } catch (err) {
       console.error("Error saving workout draft:", err);
       setMessage(
@@ -218,9 +519,9 @@ export default function TimetablePage() {
 
     try {
       const res = await api.post(
-        `/workout-logs/timetable/${activeTimetable._id}/submit`,
+        `/timetables/${activeTimetable._id}/workout-log/submit`,
         {
-          date: workoutLog?.date,
+          date: workoutLog?.date || getTodayDateString(),
           status: checkpointData.status,
           note: checkpointData.note,
           actualDuration: checkpointData.actualDuration,
@@ -231,12 +532,38 @@ export default function TimetablePage() {
       setWorkoutLog(res.data.workoutLog || null);
       setWorkoutAnalytics(res.data.analytics || null);
       setDraftStatus(res.data.workoutLog?.status || checkpointData.status);
+      writeLocalWorkoutHistory(
+        activeTimetable._id,
+        res.data.workoutLog?.date || getTodayDateString(),
+        res.data.workoutLog,
+      );
 
       setMessage(res.data.message || "Workout log saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || "Error saving checkpoint");
+      const fallbackDate = workoutLog?.date || getTodayDateString();
+      const fallbackLog = {
+        ...(workoutLog || {}),
+        date: fallbackDate,
+        status: checkpointData.status,
+        actualDuration: checkpointData.actualDuration,
+        completedExerciseIds,
+        checkpoint: {
+          submitted: true,
+          note: checkpointData.note,
+          submittedAt: new Date().toISOString(),
+        },
+      };
+      writeLocalWorkoutHistory(activeTimetable._id, fallbackDate, fallbackLog);
+      setWorkoutLog(fallbackLog);
+      setWorkoutAnalytics(
+        buildLocalAnalytics(
+          activeTimetable,
+          readLocalWorkoutHistory(activeTimetable._id),
+        ),
+      );
     } finally {
       setLogSaving(false);
     }

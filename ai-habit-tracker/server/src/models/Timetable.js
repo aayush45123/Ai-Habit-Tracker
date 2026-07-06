@@ -24,7 +24,7 @@ const dayScheduleSchema = new mongoose.Schema({
       "Sunday",
     ],
   },
-  focusArea: { type: String }, // e.g., "Legs + Core", "Rest Day"
+  focusArea: { type: String },
   exercises: [exerciseSchema],
   timeBlock: {
     morning: { type: String },
@@ -33,8 +33,8 @@ const dayScheduleSchema = new mongoose.Schema({
     night: { type: String },
   },
   isRestDay: { type: Boolean, default: false },
-  startTime: { type: String }, // e.g., "06:00 AM"
-  endTime: { type: String }, // e.g., "08:00 AM"
+  startTime: { type: String },
+  endTime: { type: String },
 });
 
 const improvementSuggestionSchema = new mongoose.Schema({
@@ -52,14 +52,14 @@ const improvementSuggestionSchema = new mongoose.Schema({
       "general",
     ],
   },
-
-  const checkpointSchema = new mongoose.Schema(
-    {
-      date: { type: String, required: true },
-      day: {
-        type: String,
-        required: true,
-        enum: [
+  suggestion: { type: String, required: true },
+  reason: { type: String },
+  priority: {
+    type: String,
+    enum: ["high", "medium", "low"],
+    default: "medium",
+  },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const timetableSchema = new mongoose.Schema(
@@ -139,7 +139,6 @@ const timetableSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Ensure only one active timetable per user
 timetableSchema.index({ userId: 1, isActive: 1 });
 
 export default mongoose.model("Timetable", timetableSchema);

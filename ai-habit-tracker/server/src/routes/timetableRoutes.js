@@ -9,6 +9,13 @@ import {
   getTimetableHistory,
   getAIImprovements,
 } from "../controllers/timetableController.js";
+import {
+  finalizeWorkoutLog,
+  getTodayWorkoutLog,
+  getWorkoutLogAnalytics,
+  getWorkoutLogHistory,
+  updateWorkoutLogDraft,
+} from "../controllers/workoutLogController.js";
 import protect from "../middleware/authMiddleware.js"; // ✅ FIXED: Removed curly braces
 
 const router = express.Router();
@@ -27,6 +34,13 @@ router.get("/active", getActiveTimetable);
 
 // Get today's workout specifically
 router.get("/today", getTodaysWorkoutPlan);
+
+// Workout log routes kept on the timetable router for compatibility
+router.get("/:id/workout-log/today", getTodayWorkoutLog);
+router.patch("/:id/workout-log/today", updateWorkoutLogDraft);
+router.post("/:id/workout-log/submit", finalizeWorkoutLog);
+router.get("/:id/workout-log/analytics", getWorkoutLogAnalytics);
+router.get("/:id/workout-log/history", getWorkoutLogHistory);
 
 // Get timetable history
 router.get("/history", getTimetableHistory);
