@@ -16,6 +16,7 @@ export default function WeeklySchedule({
   goal,
   level,
   timeAvailable,
+  checkpointStatusByDay = {},
 }) {
   const [expandedDays, setExpandedDays] = useState([]);
 
@@ -101,6 +102,21 @@ export default function WeeklySchedule({
                 </div>
 
                 <div className={styles.dayHeaderRight}>
+                  {checkpointStatusByDay[daySchedule.day] && (
+                    <span
+                      className={`${styles.checkpointBadge} ${
+                        checkpointStatusByDay[daySchedule.day].status ===
+                        "correct"
+                          ? styles.correctCheckpoint
+                          : styles.missedCheckpoint
+                      }`}
+                    >
+                      {checkpointStatusByDay[daySchedule.day].status ===
+                      "correct"
+                        ? "CHECKED"
+                        : "MISSED"}
+                    </span>
+                  )}
                   {isToday && <span className={styles.todayBadge}>TODAY</span>}
                   {daySchedule.isRestDay && (
                     <span className={styles.restBadge}>REST</span>

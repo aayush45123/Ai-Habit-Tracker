@@ -16,16 +16,21 @@ import WeeklySchedule from "../../components/WeeklySchedule/WeeklySchedule";
 import TimetableCreator from "../../components/TimetableCreator/TimetableCreator";
 import AIImprovements from "../../components/AIImprovements/AIImprovements";
 import AITimetableGenerator from "../../components/AITimetableGenerator/AITimetableGenerator";
+import TimetableCheckpointPanel from "../../components/TimetableCheckpointPanel/TimetableCheckpointPanel";
+import TimetableAnalyticsPanel from "../../components/TimetableAnalyticsPanel/TimetableAnalyticsPanel";
 
 export default function TimetablePage() {
   const [activeTimetable, setActiveTimetable] = useState(null);
   const [todaysWorkout, setTodaysWorkout] = useState(null);
   const [showCreator, setShowCreator] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [aiAssessment, setAiAssessment] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [timetableAnalytics, setTimetableAnalytics] = useState(null);
+  const [checkpointLoading, setCheckpointLoading] = useState(false);
 
   useEffect(() => {
     loadActiveTimetable();
@@ -45,14 +50,34 @@ export default function TimetablePage() {
         if (res.data.timetable.hasRequestedAI) {
           setAiSuggestions(res.data.timetable.aiImprovements || []);
         }
+
+        await loadTimetableAnalytics(res.data.timetable._id);
       } else {
         setShowCreator(true);
+        setTimetableAnalytics(null);
       }
     } catch (err) {
       console.error(err);
       setShowCreator(true);
+      setTimetableAnalytics(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadTimetableAnalytics(timetableId) {
+    if (!timetableId) return;
+
+    setAnalyticsLoading(true);
+
+    try {
+      const res = await api.get(`/timetables/${timetableId}/analytics`);
+      setTimetableAnalytics(res.data.analytics || null);
+    } catch (err) {
+      console.error("Error loading timetable analytics:", err);
+      setTimetableAnalytics(null);
+    } finally {
+      setAnalyticsLoading(false);
     }
   }
 
@@ -64,7 +89,7 @@ export default function TimetablePage() {
       setActiveTimetable(res.data.timetable);
       setShowCreator(false);
       setMessage("Timetable created successfully!");
-      loadActiveTimetable();
+      await loadActiveTimetable();
 
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -95,7 +120,7 @@ export default function TimetablePage() {
       );
 
       // Refresh to get updated timetable with hasRequestedAI flag
-      loadActiveTimetable();
+      await loadActiveTimetable();
 
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -105,6 +130,34 @@ export default function TimetablePage() {
       );
     } finally {
       setLoadingAI(false);
+    }
+  }
+
+  async function handleSubmitCheckpoint(checkpointData) {
+    if (!activeTimetable?._id) return;
+
+    setCheckpointLoading(true);
+    setMessage("");
+
+    try {
+      const res = await api.post(
+        `/timetables/${activeTimetable._id}/checkpoints`,
+        checkpointData,
+      );
+
+      if (res.data.analytics) {
+        setTimetableAnalytics(res.data.analytics);
+      } else {
+        await loadTimetableAnalytics(activeTimetable._id);
+      }
+
+      setMessage(res.data.message || "Checkpoint saved successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setMessage(err.response?.data?.message || "Error saving checkpoint");
+    } finally {
+      setCheckpointLoading(false);
     }
   }
 
@@ -127,6 +180,7 @@ export default function TimetablePage() {
       setTodaysWorkout(null);
       setAiSuggestions(null);
       setAiAssessment(null);
+      setTimetableAnalytics(null);
       setShowCreator(true);
       setMessage("Timetable deleted successfully");
       setTimeout(() => setMessage(""), 3000);
@@ -303,12 +357,27 @@ export default function TimetablePage() {
           {/* TODAY'S WORKOUT */}
           {todaysWorkout && <TodaysWorkout workout={todaysWorkout} />}
 
+          {/* CHECKPOINTS */}
+          <TimetableCheckpointPanel
+            timetable={activeTimetable}
+            analytics={timetableAnalytics}
+            loading={checkpointLoading || analyticsLoading}
+            onSubmit={handleSubmitCheckpoint}
+          />
+
+          {/* ANALYTICS */}
+          <TimetableAnalyticsPanel
+            analytics={timetableAnalytics}
+            loading={analyticsLoading}
+          />
+
           {/* WEEKLY SCHEDULE */}
           <WeeklySchedule
             schedule={activeTimetable.weeklySchedule}
             goal={activeTimetable.goal}
             level={activeTimetable.level}
             timeAvailable={activeTimetable.timeAvailable || 60}
+            checkpointStatusByDay={timetableAnalytics?.latestStatusByDay || {}}
           />
 
           {/* CTA FOR AI IMPROVEMENT */}

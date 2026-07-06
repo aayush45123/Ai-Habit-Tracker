@@ -52,6 +52,37 @@ const improvementSuggestionSchema = new mongoose.Schema({
       "general",
     ],
   },
+
+  const checkpointSchema = new mongoose.Schema(
+    {
+      date: { type: String, required: true },
+      day: {
+        type: String,
+        required: true,
+        enum: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ],
+      },
+      status: {
+        type: String,
+        required: true,
+        enum: ["correct", "missed"],
+      },
+      focusArea: { type: String },
+      plannedExercises: [{ type: String }],
+      completedExercises: [{ type: String }],
+      missedExercises: [{ type: String }],
+      note: { type: String },
+      recordedAt: { type: Date, default: Date.now },
+    },
+    { _id: true },
+  );
   suggestion: { type: String, required: true },
   reason: { type: String },
   priority: {
@@ -134,6 +165,10 @@ const timetableSchema = new mongoose.Schema(
     },
     lastImprovedAt: {
       type: Date,
+    },
+    checkpoints: {
+      type: [checkpointSchema],
+      default: [],
     },
   },
   { timestamps: true },
