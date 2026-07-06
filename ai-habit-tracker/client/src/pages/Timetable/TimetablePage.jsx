@@ -273,6 +273,8 @@ export default function TimetablePage() {
   const [logLoading, setLogLoading] = useState(false);
   const [logSaving, setLogSaving] = useState(false);
 
+  const isWorkoutSubmitted = !!workoutLog?.checkpoint?.submitted;
+
   useEffect(() => {
     loadActiveTimetable();
   }, []);
@@ -541,6 +543,7 @@ export default function TimetablePage() {
 
   async function handleToggleExercise(exerciseId) {
     if (!exerciseId) return;
+    if (isWorkoutSubmitted) return;
 
     const normalizedId = String(exerciseId);
     const nextIds = completedExerciseIds.includes(normalizedId)
@@ -553,6 +556,7 @@ export default function TimetablePage() {
 
   async function handleCompleteWorkout() {
     if (!todaysWorkout || todaysWorkout.isRestDay) return;
+    if (isWorkoutSubmitted) return;
 
     const nextIds = workoutExerciseIds.filter(Boolean);
     setCompletedExerciseIds(nextIds);
@@ -613,6 +617,11 @@ export default function TimetablePage() {
 
   async function handleSubmitCheckpoint(checkpointData) {
     if (!activeTimetable?._id) return;
+    if (isWorkoutSubmitted) {
+      setMessage("Workout log already submitted for this date.");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
 
     setLogSaving(true);
     setMessage("");
@@ -653,6 +662,14 @@ export default function TimetablePage() {
         setMessage(err.response?.data?.message || "Error saving checkpoint");
       } else {
         setWorkoutApiAvailable(activeTimetable._id, false);
+      }
+
+      if (err.response?.status === 409) {
+        setMessage(
+          err.response?.data?.message || "Workout log already submitted",
+        );
+        setTimeout(() => setMessage(""), 3000);
+        return;
       }
 
       const fallbackDate = workoutLog?.date || getTodayDateString();
@@ -930,6 +947,7 @@ export default function TimetablePage() {
             workout={todaysWorkout}
             analytics={workoutAnalytics}
             loading={logSaving || logLoading}
+            submitted={isWorkoutSubmitted}
             completedExerciseIds={completedExerciseIds}
             completionPercentage={workoutCompletionPercentage}
             draftStatus={draftStatus}

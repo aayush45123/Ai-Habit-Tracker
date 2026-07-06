@@ -20,6 +20,7 @@ export default function TimetableCheckpointPanel({
   workout,
   analytics,
   loading,
+  submitted = false,
   completedExerciseIds = [],
   completionPercentage = 0,
   draftStatus = "partial",
@@ -34,6 +35,7 @@ export default function TimetableCheckpointPanel({
   const completedCount = completedExerciseIds.length;
   const status = workout?.isRestDay ? "rest" : draftStatus;
   const isRestDay = workout?.isRestDay;
+  const isFinalized = submitted || !!workoutLog?.checkpoint?.submitted;
   const summary = analytics?.summary || {};
 
   const handleSubmit = (event) => {
@@ -167,10 +169,14 @@ export default function TimetableCheckpointPanel({
           <button
             className={styles.submitButton}
             type="submit"
-            disabled={loading}
+            disabled={loading || isFinalized}
           >
             <Save className={styles.submitIcon} />
-            {isRestDay ? "Save Rest Day" : "Complete Workout"}
+            {isFinalized
+              ? "Workout Submitted"
+              : isRestDay
+                ? "Save Rest Day"
+                : "Complete Workout"}
           </button>
         </div>
 
