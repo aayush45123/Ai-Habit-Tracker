@@ -2,6 +2,7 @@
 import OpenAI from "openai";
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
+import CalorieProfile from "../models/CalorieProfile.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
 
 /* ─────────────────────────────────────────
@@ -102,6 +103,12 @@ export const getAIInsights = async (req, res) => {
       habitId: { $in: habitIds },
     }).sort({ date: 1 });
 
+    const profile = await CalorieProfile.findOne({ userId });
+    let profileContext = "";
+    if (profile) {
+      profileContext = `\nUser Profile context:\n- Age: ${profile.age}\n- Height: ${profile.height} cm\n- Weight: ${profile.weight} kg\n- Gender: ${profile.gender}\n- Activity Level: ${profile.activityLevel}\n- Fitness Goal: ${profile.goal}`;
+    }
+
     if (!logs.length) {
       return res.json({
         ai: {
@@ -181,7 +188,7 @@ Required JSON schema:
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: `Analyze these habits:\n${JSON.stringify(habitSummary, null, 2)}`,
+            content: `Analyze these habits:\n${JSON.stringify(habitSummary, null, 2)}${profileContext ? `\n\nAlso consider the user's profile details when formulating habit recommendations:\n${profileContext}` : ""}`,
           },
         ],
       });

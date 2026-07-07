@@ -2,9 +2,11 @@ import { useState } from "react";
 import api from "../../../utils/api";
 import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({
     email: "",
@@ -27,7 +29,7 @@ function Login() {
       const res = await api.post("/auth/login", form);
 
       if (res.status === 200) {
-        localStorage.setItem("token", res.data.token);
+        login(res.data.token);
         navigate("/dashboard"); // Changed from "/" to "/dashboard"
       }
     } catch (err) {

@@ -1,6 +1,7 @@
 // server/src/routes/focusRoutes.js
 import express from "express";
 import auth from "../middleware/authMiddleware.js";
+import requireProfileCompleted from "../middleware/requireProfileCompleted.js";
 import {
   logFocus,
   getTodayCount,
@@ -9,8 +10,11 @@ import {
 
 const router = express.Router();
 
-router.post("/log", auth, logFocus); // log a completed or skipped session
-router.get("/today", auth, getTodayCount); // get today's count / minutes / skipped
-router.get("/stats", auth, getStats); // aggregated stats (days query param)
+router.use(auth);
+router.use(requireProfileCompleted);
+
+router.post("/log", logFocus); // log a completed or skipped session
+router.get("/today", getTodayCount); // get today's count / minutes / skipped
+router.get("/stats", getStats); // aggregated stats (days query param)
 
 export default router;

@@ -111,6 +111,27 @@
   font-weight: 700;
 }
 
+.navLink.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.navLink.locked:hover {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border-left-color: transparent;
+}
+
+.lockBadge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background-color: var(--color-border);
+  color: var(--color-bg-primary);
+  padding: 0.25rem 0.5rem;
+  letter-spacing: 0.5px;
+}
+
 .navIcon {
   width: 20px;
   height: 20px;

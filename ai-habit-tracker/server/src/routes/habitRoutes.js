@@ -1,5 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
+import requireProfileCompleted from "../middleware/requireProfileCompleted.js";
 import {
   addHabit,
   getAllHabits,
@@ -13,15 +14,18 @@ import {
 
 const router = express.Router();
 
-router.post("/add", authMiddleware, addHabit);
-router.get("/all", authMiddleware, getAllHabits);
-router.get("/:id", authMiddleware, getHabitById);
-router.get("/:id/logs", authMiddleware, getHabitLogs); // NEW
-router.patch("/:id", authMiddleware, updateHabit);
-router.delete("/:id", authMiddleware, deleteHabit);
+router.use(authMiddleware);
+router.use(requireProfileCompleted);
 
-router.get("/analytics/all", authMiddleware, getAnalytics);
+router.post("/add", addHabit);
+router.get("/all", getAllHabits);
+router.get("/:id", getHabitById);
+router.get("/:id/logs", getHabitLogs); // NEW
+router.patch("/:id", updateHabit);
+router.delete("/:id", deleteHabit);
 
-router.post("/:id/log", authMiddleware, logHabit); // mark done or missed
+router.get("/analytics/all", getAnalytics);
+
+router.post("/:id/log", logHabit); // mark done or missed
 
 export default router;

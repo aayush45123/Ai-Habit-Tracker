@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext.jsx";
 import {
   FiZap,
   FiGrid,
@@ -15,19 +16,50 @@ import {
   FiMenu,
   FiX,
   FiClock,
+  FiUser,
+  FiLock,
 } from "react-icons/fi";
 import styles from "./SideBar.module.css";
 
 function Sidebar() {
+  const { isProfileCompleted, user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/";
-  };
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const closeSidebar = () => setIsOpen(false);
+
+  const handleLogoutClick = () => {
+    logout();
+    window.location.href = "/";
+  };
+
+  const renderNavLink = (to, Icon, label) => {
+    const isAboutOrProfile = to === "/about" || to === "/profile";
+    const isLocked = !isProfileCompleted && !isAboutOrProfile;
+    const IconComponent = isLocked ? FiLock : Icon;
+
+    return (
+      <NavLink
+        to={isLocked ? "#" : to}
+        onClick={(e) => {
+          if (isLocked) {
+            e.preventDefault();
+            alert(`Please complete your profile details to unlock the ${label} section!`);
+          } else {
+            closeSidebar();
+          }
+        }}
+        className={({ isActive }) => {
+          if (isLocked) return `${styles.navLink} ${styles.locked}`;
+          return isActive ? `${styles.navLink} ${styles.active}` : styles.navLink;
+        }}
+      >
+        <IconComponent className={styles.navIcon} />
+        <span>{label}</span>
+        {isLocked && <span className={styles.lockBadge}>LOCKED</span>}
+      </NavLink>
+    );
+  };
 
   return (
     <>
@@ -55,130 +87,35 @@ function Sidebar() {
 
         {/* Navigation */}
         <nav className={styles.nav}>
-          <NavLink
-            to="/dashboard"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiGrid className={styles.navIcon} />
-            <span>Dashboard</span>
-          </NavLink>
-
-          <NavLink
-            to="/add"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiPlusCircle className={styles.navIcon} />
-            <span>Add Habit</span>
-          </NavLink>
-
-          <NavLink
-            to="/analytics"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiTrendingUp className={styles.navIcon} />
-            <span>Analytics</span>
-          </NavLink>
-
-          <NavLink
-            to="/ai"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiCpu className={styles.navIcon} />
-            <span>AI Insights</span>
-          </NavLink>
-
-          <NavLink
-            to="/challenge"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiCalendar className={styles.navIcon} />
-            <span>21-Day Challenge</span>
-          </NavLink>
-
-          <NavLink
-            to="/templates"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiCopy className={styles.navIcon} />
-            <span>Habit Templates</span>
-          </NavLink>
-
-          <NavLink
-            to="/focus"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiTarget className={styles.navIcon} />
-            <span>Focus</span>
-          </NavLink>
-
-          <NavLink
-            to="/calories"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiActivity className={styles.navIcon} />
-            <span>Calorie Tracker</span>
-          </NavLink>
-
-          <NavLink
-            to="/timetable"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiClock className={styles.navIcon} />
-            <span>Timetable Section</span>
-          </NavLink>
-
-          {/* ABOUT US – LAST */}
-          <NavLink
-            to="/about"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-            }
-          >
-            <FiInfo className={styles.navIcon} />
-            <span>About Us</span>
-          </NavLink>
+          {renderNavLink("/dashboard", FiGrid, "Dashboard")}
+          {renderNavLink("/add", FiPlusCircle, "Add Habit")}
+          {renderNavLink("/analytics", FiTrendingUp, "Analytics")}
+          {renderNavLink("/ai", FiCpu, "AI Insights")}
+          {renderNavLink("/challenge", FiCalendar, "21-Day Challenge")}
+          {renderNavLink("/templates", FiCopy, "Habit Templates")}
+          {renderNavLink("/focus", FiTarget, "Focus")}
+          {renderNavLink("/calories", FiActivity, "Calorie Tracker")}
+          {renderNavLink("/timetable", FiClock, "Timetable Section")}
+          {renderNavLink("/profile", FiUser, "Profile Settings")}
+          {renderNavLink("/about", FiInfo, "About Us")}
         </nav>
 
         {/* Footer */}
         <div className={styles.footer}>
-          <button className={styles.logoutBtn} onClick={logout}>
+          <button className={styles.logoutBtn} onClick={handleLogoutClick}>
             <FiLogOut />
             Logout
           </button>
 
           <div className={styles.footerContent}>
-            <div className={styles.userAvatar}>AI</div>
+            <div className={styles.userAvatar}>
+              {user?.name ? user.name.slice(0, 2).toUpperCase() : "AI"}
+            </div>
             <div className={styles.footerText}>
-              <p className={styles.userName}>Your Assistant</p>
-              <p className={styles.userStatus}>Always Learning</p>
+              <p className={styles.userName}>{user?.name || "Your Assistant"}</p>
+              <p className={styles.userStatus}>
+                {isProfileCompleted ? "Profile Active" : "Setup Incomplete"}
+              </p>
             </div>
           </div>
         </div>

@@ -20,6 +20,7 @@ import aiCoachRoutes from "./routes/aiCoachRoutes.js";
 import mlRoutes from "./routes/mlRoutes.js";
 import datasetRoutes from "./routes/datasetRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 
 // Import streak reset function
 import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
@@ -77,6 +78,7 @@ app.options(/.*/, cors());
 ======================= */
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/habits", habitRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/challenge", challengeRoutes);

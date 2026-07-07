@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Edit2, Check, X } from "lucide-react";
 import api from "../../utils/api";
+import { useAuth } from "../../context/AuthContext.jsx";
 import CalorieSummary from "../../components/CalorieSummary/CalorieSummary";
 import NutritionRecommendation from "../../components/NutritionRecommendation/NutritionRecommendation";
 import CalorieAnalytics from "../../components/CalorieAnalytics/CalorieAnalytics";
@@ -8,10 +10,10 @@ import WeeklyCheckIn from "../../components/WeeklyCheckIn/WeeklyCheckIn";
 import styles from "./Calories.module.css";
 
 export default function Calories() {
+  const navigate = useNavigate();
+  const { profile, refreshProfile } = useAuth();
   const [food, setFood] = useState("");
   const [status, setStatus] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [showProfileForm, setShowProfileForm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [refreshSummary, setRefreshSummary] = useState(0);
   const [showWeeklyCheckIn, setShowWeeklyCheckIn] = useState(false);
@@ -20,50 +22,23 @@ export default function Calories() {
     dailyGoal: 2000,
     proteinGoal: 100,
   });
-  const [profileData, setProfileData] = useState({
-    age: "",
-    height: "",
-    weight: "",
-    gender: "male",
-    activityLevel: "moderate",
-    goal: "maintain",
-    dailyGoal: 2000,
-    proteinGoal: 100,
-  });
 
   useEffect(() => {
     loadData();
     checkWeeklyCheckIn();
-  }, []);
+  }, [profile]);
 
   async function loadData() {
     try {
-      const profileRes = await api.get("/calories/profile").catch(() => null);
-
-      if (profileRes && profileRes.data) {
-        setProfile(profileRes.data);
-        // Populate form with existing data
-        setProfileData({
-          age: profileRes.data.age || "",
-          height: profileRes.data.height || "",
-          weight: profileRes.data.weight || "",
-          gender: profileRes.data.gender || "male",
-          activityLevel: profileRes.data.activityLevel || "moderate",
-          goal: profileRes.data.goal || "maintain",
-          dailyGoal: profileRes.data.dailyGoal || 2000,
-          proteinGoal: profileRes.data.proteinGoal || 100,
-        });
+      if (profile) {
         setGoalData({
-          dailyGoal: profileRes.data.dailyGoal || 2000,
-          proteinGoal: profileRes.data.proteinGoal || 100,
+          dailyGoal: profile.dailyGoal || 2000,
+          proteinGoal: profile.proteinGoal || 100,
         });
         loadStatus();
-      } else {
-        setShowProfileForm(true);
       }
     } catch (err) {
       console.error("Error loading data:", err);
-      setShowProfileForm(true);
     }
   }
 
@@ -87,42 +62,14 @@ export default function Calories() {
     }
   }
 
-  async function saveProfile(e) {
-    e.preventDefault();
-    try {
-      const res = await api.post("/calories/profile", {
-        age: parseInt(profileData.age),
-        height: parseInt(profileData.height),
-        weight: parseInt(profileData.weight),
-        gender: profileData.gender,
-        activityLevel: profileData.activityLevel,
-        goal: profileData.goal,
-        dailyGoal: parseInt(profileData.dailyGoal),
-        proteinGoal: parseInt(profileData.proteinGoal),
-      });
-
-      setProfile(res.data);
-      setShowProfileForm(false);
-      loadStatus();
-    } catch (err) {
-      console.error("Error saving profile:", err);
-      alert("Failed to save profile. Please try again.");
-    }
-  }
-
   async function saveGoals() {
     try {
-      const res = await api.post("/calories/profile", {
-        ...profile,
+      const res = await api.post("/profile", {
         dailyGoal: parseInt(goalData.dailyGoal),
         proteinGoal: parseInt(goalData.proteinGoal),
       });
 
-      setProfile(res.data);
-      setGoalData({
-        dailyGoal: res.data.dailyGoal,
-        proteinGoal: res.data.proteinGoal,
-      });
+      await refreshProfile();
       setEditingGoals(false);
       loadStatus();
       alert("Goals updated successfully!");
@@ -134,8 +81,8 @@ export default function Calories() {
 
   function cancelEditGoals() {
     setGoalData({
-      dailyGoal: profile.dailyGoal || 2000,
-      proteinGoal: profile.proteinGoal || 100,
+      dailyGoal: profile?.dailyGoal || 2000,
+      proteinGoal: profile?.proteinGoal || 100,
     });
     setEditingGoals(false);
   }
@@ -192,9 +139,9 @@ export default function Calories() {
               </button>
               <button
                 className={styles.btnSecondary}
-                onClick={() => setShowProfileForm(!showProfileForm)}
+                onClick={() => navigate("/profile")}
               >
-                {showProfileForm ? "Close Profile" : "Edit Profile"}
+                Edit Profile Details
               </button>
             </>
           )}
@@ -205,156 +152,7 @@ export default function Calories() {
         <WeeklyCheckIn onComplete={handleWeeklyCheckInComplete} />
       )}
 
-      {showProfileForm && (
-        <form onSubmit={saveProfile} className={styles.profileForm}>
-          <h3 className={styles.formTitle}>
-            {profile ? "Update Profile" : "Set Up Your Profile"}
-          </h3>
-          <p className={styles.formSubtitle}>
-            Get personalized calorie and protein recommendations
-          </p>
-
-          <div className={styles.formGrid}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Age</label>
-              <input
-                type="number"
-                required
-                min="1"
-                max="120"
-                className={styles.input}
-                value={profileData.age}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, age: e.target.value })
-                }
-                placeholder="25"
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Height (cm)</label>
-              <input
-                type="number"
-                required
-                min="50"
-                max="300"
-                className={styles.input}
-                value={profileData.height}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, height: e.target.value })
-                }
-                placeholder="170"
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Weight (kg)</label>
-              <input
-                type="number"
-                required
-                min="20"
-                max="500"
-                className={styles.input}
-                value={profileData.weight}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, weight: e.target.value })
-                }
-                placeholder="70"
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Gender</label>
-              <select
-                className={styles.select}
-                value={profileData.gender}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, gender: e.target.value })
-                }
-              >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Activity Level</label>
-              <select
-                className={styles.select}
-                value={profileData.activityLevel}
-                onChange={(e) =>
-                  setProfileData({
-                    ...profileData,
-                    activityLevel: e.target.value,
-                  })
-                }
-              >
-                <option value="sedentary">Sedentary (0-1 days/week)</option>
-                <option value="light">Light (1-3 days/week)</option>
-                <option value="moderate">Moderate (3-5 days/week)</option>
-                <option value="active">Active (6-7 days/week)</option>
-                <option value="very_active">Very Active (2x per day)</option>
-              </select>
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Goal</label>
-              <select
-                className={styles.select}
-                value={profileData.goal}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, goal: e.target.value })
-                }
-              >
-                <option value="lose">Lose Weight</option>
-                <option value="maintain">Maintain Weight</option>
-                <option value="gain">Gain Weight</option>
-              </select>
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Daily Calorie Goal</label>
-              <input
-                type="number"
-                required
-                min="500"
-                max="10000"
-                className={styles.input}
-                value={profileData.dailyGoal}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, dailyGoal: e.target.value })
-                }
-                placeholder="2000"
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Daily Protein Goal (g)</label>
-              <input
-                type="number"
-                required
-                min="20"
-                max="500"
-                className={styles.input}
-                value={profileData.proteinGoal}
-                onChange={(e) =>
-                  setProfileData({
-                    ...profileData,
-                    proteinGoal: e.target.value,
-                  })
-                }
-                placeholder="100"
-              />
-            </div>
-          </div>
-
-          <button type="submit" className={styles.btnPrimary}>
-            Save Profile & Get Recommendations
-          </button>
-        </form>
-      )}
-
-      {profile && !showProfileForm && !showAnalytics && (
+      {profile && !showAnalytics && (
         <>
           <NutritionRecommendation profile={profile} />
 

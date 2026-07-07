@@ -1,6 +1,7 @@
 // server/src/routes/workoutLogRoutes.js
 import express from "express";
 import protect from "../middleware/authMiddleware.js";
+import requireProfileCompleted from "../middleware/requireProfileCompleted.js";
 import {
   finalizeWorkoutLog,
   getTodayWorkoutLog,
@@ -12,6 +13,7 @@ import {
 const router = express.Router();
 
 router.use(protect);
+router.use(requireProfileCompleted);
 
 router.get("/timetable/:timetableId/today", getTodayWorkoutLog);
 router.patch("/timetable/:timetableId/today", updateWorkoutLogDraft);
