@@ -16,6 +16,7 @@ import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "./utils/protectedRoute";
 import PublicRoute from "./utils/PublicRoute"; // NEW
 import ProtectedAdminRoute from "./utils/ProtectedAdminRoute";
+import ProfileRequiredRoute from "./utils/ProfileRequiredRoute";
 
 import ChallengePage from "./pages/Challenge/ChallengePage";
 import HabitTemplates from "./pages/HabitTemplates/HabitTemplates";
@@ -24,6 +25,7 @@ import Pomodoro from "./pages/Focus/Pomodoro";
 import About from "./pages/About/About";
 import Calories from "./pages/Calories/Calories";
 import TimetablePage from "./pages/Timetable/TimetablePage";
+import Profile from "./pages/Profile/Profile";
 
 function App() {
   return (
@@ -60,27 +62,33 @@ function App() {
         {/* Protected Routes - Require authentication */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/add" element={<AddHabit />} />
-            <Route path="/habit/:id" element={<HabitDetail />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/ai" element={<AIChat />} />
-            <Route path="/challenge" element={<ChallengePage />} />
-            <Route path="/templates" element={<HabitTemplates />} />
-            <Route path="/focus" element={<Pomodoro />} />
-            <Route path="/calories" element={<Calories />} />
-            <Route path="/timetable" element={<TimetablePage />} />
+            {/* Directly accessible protected routes (no profile gate required) */}
+            <Route path="/profile" element={<Profile />} />
             <Route path="/about" element={<About />} />
 
-            {/* ADMIN ONLY */}
-            <Route
-              path="/admin/templates"
-              element={
-                <ProtectedAdminRoute>
-                  <AdminTemplates />
-                </ProtectedAdminRoute>
-              }
-            />
+            {/* Locked routes - Require profile completion */}
+            <Route element={<ProfileRequiredRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/add" element={<AddHabit />} />
+              <Route path="/habit/:id" element={<HabitDetail />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/ai" element={<AIChat />} />
+              <Route path="/challenge" element={<ChallengePage />} />
+              <Route path="/templates" element={<HabitTemplates />} />
+              <Route path="/focus" element={<Pomodoro />} />
+              <Route path="/calories" element={<Calories />} />
+              <Route path="/timetable" element={<TimetablePage />} />
+
+              {/* ADMIN ONLY */}
+              <Route
+                path="/admin/templates"
+                element={
+                  <ProtectedAdminRoute>
+                    <AdminTemplates />
+                  </ProtectedAdminRoute>
+                }
+              />
+            </Route>
           </Route>
         </Route>
       </Routes>

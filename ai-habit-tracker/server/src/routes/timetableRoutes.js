@@ -17,11 +17,13 @@ import {
   updateWorkoutLogDraft,
 } from "../controllers/workoutLogController.js";
 import protect from "../middleware/authMiddleware.js"; // ✅ FIXED: Removed curly braces
+import requireProfileCompleted from "../middleware/requireProfileCompleted.js";
 
 const router = express.Router();
 
 // All routes are protected
 router.use(protect);
+router.use(requireProfileCompleted);
 
 // Create new timetable manually
 router.post("/create", createTimetable);

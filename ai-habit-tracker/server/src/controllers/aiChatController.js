@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import AIChat from "../models/aiChat.js";
+import CalorieProfile from "../models/CalorieProfile.js";
 
 /* ---------------------------
    CREATE GROQ CLIENT
@@ -54,6 +55,13 @@ export const sendMessage = async (req, res) => {
       message,
     });
 
+    // Fetch profile context
+    const profile = await CalorieProfile.findOne({ userId });
+    let profileContext = "";
+    if (profile) {
+      profileContext = `\nUser Profile context:\n- Age: ${profile.age}\n- Height: ${profile.height} cm\n- Weight: ${profile.weight} kg\n- Gender: ${profile.gender}\n- Activity Level: ${profile.activityLevel}\n- Fitness Goal: ${profile.goal}\nTailor your coaching advice to align with these details when appropriate.`;
+    }
+
     // Get last 10 messages for context
     const history = await AIChat.find({ userId })
       .sort({ createdAt: -1 })
@@ -71,7 +79,8 @@ export const sendMessage = async (req, res) => {
         {
           role: "system",
           content:
-            "You are a habit coach. Give concise, actionable, motivating answers.",
+            "You are a habit coach. Give concise, actionable, motivating answers." +
+            profileContext,
         },
         ...messages,
       ],

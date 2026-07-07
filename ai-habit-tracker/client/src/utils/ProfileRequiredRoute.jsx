@@ -1,8 +1,9 @@
+import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
-function ProtectedRoute() {
-  const { token, loading } = useAuth();
+const ProfileRequiredRoute = () => {
+  const { isProfileCompleted, loading } = useAuth();
 
   if (loading) {
     return (
@@ -26,13 +27,17 @@ function ProtectedRoute() {
             boxShadow: "6px 6px 0 0 var(--color-border)",
           }}
         >
-          Loading Session...
+          Loading Profile Status...
         </div>
       </div>
     );
   }
 
-  return token ? <Outlet /> : <Navigate to="/login" replace />;
-}
+  return isProfileCompleted ? (
+    <Outlet />
+  ) : (
+    <Navigate to="/profile" replace state={{ forceComplete: true }} />
+  );
+};
 
-export default ProtectedRoute;
+export default ProfileRequiredRoute;

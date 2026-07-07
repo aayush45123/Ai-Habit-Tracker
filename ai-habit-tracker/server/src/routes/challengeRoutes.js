@@ -11,16 +11,20 @@ import {
   deleteChallenge,
 } from "../controllers/challengeController.js";
 import auth from "../middleware/authMiddleware.js";
+import requireProfileCompleted from "../middleware/requireProfileCompleted.js";
 
 const router = express.Router();
 
-router.post("/start", auth, startChallenge);
-router.post("/restart", auth, restartChallenge); // ✅ NEW: Restart challenge
-router.get("/current", auth, getCurrentChallenge);
-router.put("/update/:id", auth, updateChallenge);
-router.post("/done/:id/:index", auth, markHabitDone);
-router.get("/heatmap", auth, getChallengeHeatmap);
-router.get("/history", auth, getChallengeHistory);
-router.delete("/:id", auth, deleteChallenge);
+router.use(auth);
+router.use(requireProfileCompleted);
+
+router.post("/start", startChallenge);
+router.post("/restart", restartChallenge); // ✅ NEW: Restart challenge
+router.get("/current", getCurrentChallenge);
+router.put("/update/:id", updateChallenge);
+router.post("/done/:id/:index", markHabitDone);
+router.get("/heatmap", getChallengeHeatmap);
+router.get("/history", getChallengeHistory);
+router.delete("/:id", deleteChallenge);
 
 export default router;
