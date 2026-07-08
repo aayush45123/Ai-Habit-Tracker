@@ -18,6 +18,7 @@ import {
   FiClock,
   FiUser,
   FiLock,
+  FiFileText,
 } from "react-icons/fi";
 import styles from "./SideBar.module.css";
 
@@ -90,6 +91,7 @@ function Sidebar() {
           {renderNavLink("/dashboard", FiGrid, "Dashboard")}
           {renderNavLink("/add", FiPlusCircle, "Add Habit")}
           {renderNavLink("/analytics", FiTrendingUp, "Analytics")}
+          {renderNavLink("/dashboard/reports", FiFileText, "Reports")}
           {renderNavLink("/ai", FiCpu, "AI Insights")}
           {renderNavLink("/challenge", FiCalendar, "21-Day Challenge")}
           {renderNavLink("/templates", FiCopy, "Habit Templates")}
