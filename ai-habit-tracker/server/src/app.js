@@ -21,6 +21,7 @@ import mlRoutes from "./routes/mlRoutes.js";
 import datasetRoutes from "./routes/datasetRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
 
 // Import streak reset function
 import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
@@ -96,6 +97,7 @@ app.use("/api/coach", aiCoachRoutes);
 app.use("/api/ml", mlRoutes);
 app.use("/api/dataset", datasetRoutes); // Use dataset routes
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/reports", reportRoutes);
 
 /* =======================
    AUTOMATIC STREAK RESET - DAILY CRON JOB
