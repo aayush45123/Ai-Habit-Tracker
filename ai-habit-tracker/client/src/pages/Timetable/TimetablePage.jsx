@@ -18,6 +18,7 @@ import AIImprovements from "../../components/AIImprovements/AIImprovements";
 import AITimetableGenerator from "../../components/AITimetableGenerator/AITimetableGenerator";
 import TimetableCheckpointPanel from "../../components/TimetableCheckpointPanel/TimetableCheckpointPanel";
 import TimetableAnalyticsPanel from "../../components/TimetableAnalyticsPanel/TimetableAnalyticsPanel";
+import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 export default function TimetablePage() {
   function getTodayDateString() {
@@ -772,9 +773,50 @@ export default function TimetablePage() {
 
   if (loading && !activeTimetable) {
     return (
-      <div className={styles.loading}>
-        <div className={styles.spinner}></div>
-        <p>Loading your workout schedule...</p>
+      <div className={styles.root}>
+        {/* Header skeleton */}
+        <div className={styles.header}>
+          <div className={styles.headerContent}>
+            <Skeleton height="64px" width="64px" variant="rect" />
+            <div className={styles.skeletonHeaderText}>
+              <Skeleton height="32px" width="260px" variant="rect" />
+              <Skeleton height="18px" width="200px" variant="rounded" />
+            </div>
+          </div>
+          <div className={styles.skeletonHeaderActions}>
+            <Skeleton height="44px" width="160px" variant="rect" />
+            <Skeleton height="44px" width="140px" variant="rect" />
+          </div>
+        </div>
+
+        {/* Day cards grid skeleton */}
+        <div className={styles.skeletonDayGrid}>
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className={styles.skeletonDayCard}>
+              <Skeleton height="22px" width="70%" variant="rect" />
+              <div className={styles.skeletonExerciseList}>
+                {Array.from({ length: 3 }).map((_, j) => (
+                  <div key={j} className={styles.skeletonExerciseItem}>
+                    <Skeleton height="16px" width="65%" variant="rounded" />
+                    <Skeleton height="16px" width="40px" variant="rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Analytics panel skeleton */}
+        <div className={styles.skeletonAnalyticsSection}>
+          <div className={styles.skeletonMetricsRow}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={styles.skeletonMetricCard}>
+                <Skeleton height="14px" width="80%" variant="rounded" />
+                <Skeleton height="36px" width="60%" variant="rect" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

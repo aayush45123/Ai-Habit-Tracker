@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./HabitTemplates.module.css";
+import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 // Category icons mapping
 const categoryIcons = {
@@ -195,9 +196,38 @@ export default function HabitTemplates() {
 
       {/* TEMPLATES GRID */}
       {loading ? (
-        <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
-          <p className={styles.loadingText}>Loading templates...</p>
+        <div className={styles.templatesGrid}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className={styles.skeletonCard}>
+              {/* Category + difficulty row */}
+              <div className={styles.skeletonCardHeader}>
+                <div className={styles.skeletonCardHeaderLeft}>
+                  <Skeleton height="20px" width="20px" variant="circle" />
+                  <Skeleton height="18px" width="80px" variant="rounded" />
+                </div>
+                <div className={styles.skeletonCardHeaderLeft}>
+                  <Skeleton height="20px" width="20px" variant="circle" />
+                  <Skeleton height="18px" width="60px" variant="rounded" />
+                </div>
+              </div>
+
+              {/* Title + description */}
+              <div className={styles.skeletonCardContent}>
+                <Skeleton height="22px" width="70%" variant="rect" />
+                <Skeleton height="14px" width="100%" variant="rounded" />
+                <Skeleton height="14px" width="85%" variant="rounded" />
+              </div>
+
+              {/* Footer */}
+              <div className={styles.skeletonCardFooter}>
+                <div className={styles.skeletonCardHeaderLeft}>
+                  <Skeleton height="18px" width="18px" variant="circle" />
+                  <Skeleton height="16px" width="70px" variant="rounded" />
+                </div>
+                <Skeleton height="38px" width="110px" variant="rect" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className={styles.templatesGrid}>

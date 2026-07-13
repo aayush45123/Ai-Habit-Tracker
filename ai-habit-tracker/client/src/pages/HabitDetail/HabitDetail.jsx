@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import styles from "./HabitDetail.module.css";
+import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 export default function HabitDetail() {
   const { id } = useParams();
@@ -79,7 +80,41 @@ export default function HabitDetail() {
     }
   }
 
-  if (loading) return <div className={styles.hdRoot}>Loading…</div>;
+  if (loading) {
+    return (
+      <div className={styles.hdRoot}>
+        {/* Header panel skeleton */}
+        <div className={`${styles.panel} ${styles.headerPanel}`}>
+          <Skeleton height="36px" width="60%" variant="rect" />
+          <Skeleton height="18px" width="80%" variant="rounded" style={{ marginTop: "0.75rem" }} />
+          <Skeleton height="18px" width="45%" variant="rounded" style={{ marginTop: "0.5rem" }} />
+          <div className={styles.skeletonActions}>
+            <Skeleton height="42px" width="100px" variant="rect" />
+            <Skeleton height="42px" width="80px" variant="rect" />
+          </div>
+        </div>
+
+        {/* Logs panel skeleton */}
+        <div className={`${styles.panel} ${styles.logsPanel}`}>
+          <div className={styles.skeletonLogsHeader}>
+            <Skeleton height="28px" width="120px" variant="rect" />
+            <div className={styles.skeletonActions}>
+              <Skeleton height="42px" width="160px" variant="rect" />
+              <Skeleton height="42px" width="160px" variant="rect" />
+            </div>
+          </div>
+          <div className={styles.skeletonLogsList}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className={styles.skeletonLogItem}>
+                <Skeleton height="18px" width="120px" variant="rect" />
+                <Skeleton height="28px" width="80px" variant="rect" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (!habit) return <div className={styles.hdRoot}>Habit not found</div>;
 
   return (
