@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import styles from "./Analytics.module.css";
+import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 import { Line, Pie } from "react-chartjs-2";
 
@@ -54,7 +55,37 @@ export default function Analytics() {
     }
   }
 
-  if (loading) return <div className={styles.root}>Loading analytics…</div>;
+  if (loading) {
+    return (
+      <div className={styles.root}>
+        {/* Header skeleton */}
+        <div className={styles.skeletonHeader}>
+          <Skeleton height="36px" width="200px" variant="rect" />
+          <Skeleton height="20px" width="260px" variant="rounded" />
+        </div>
+
+        {/* Chart grid skeleton */}
+        <div className={styles.chartsGrid}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={styles.skeletonCard}>
+              {/* Card header row */}
+              <div className={styles.skeletonCardHeader}>
+                <Skeleton height="22px" width="55%" variant="rect" />
+                <Skeleton height="22px" width="80px" variant="rect" />
+              </div>
+              {/* Chart body placeholder */}
+              <Skeleton height="100%" width="100%" variant="rect" style={{ flex: 1 }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Highlight bar skeleton */}
+        <div className={styles.skeletonHighlight}>
+          <Skeleton height="28px" width="320px" variant="rect" />
+        </div>
+      </div>
+    );
+  }
 
   // WEEKLY CHART
   const weeklyLabels = Object.keys(weekly).map((d) =>

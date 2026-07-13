@@ -494,3 +494,41 @@
     box-shadow: 5px 5px 0px var(--color-error);
   }
 }
+
+/* ======================================================
+   HabitDetail Skeleton Styles
+   ====================================================== */
+.skeletonActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.skeletonLogsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid var(--color-border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.skeletonLogsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeletonLogItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  box-shadow: 4px 4px 0px var(--color-border);
+}
+

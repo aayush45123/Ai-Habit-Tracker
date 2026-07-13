@@ -1,35 +1,12 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { AppShellSkeleton } from "../components/Skeleton/Skeleton.jsx";
 
 function ProtectedRoute() {
   const { token, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          backgroundColor: "var(--color-bg-primary)",
-        }}
-      >
-        <div
-          style={{
-            padding: "2rem",
-            border: "3px solid var(--color-border)",
-            fontWeight: "bold",
-            fontSize: "1.2rem",
-            fontFamily: "var(--font-primary)",
-            textTransform: "uppercase",
-            boxShadow: "6px 6px 0 0 var(--color-border)",
-          }}
-        >
-          Loading Session...
-        </div>
-      </div>
-    );
+    return <AppShellSkeleton />;
   }
 
   return token ? <Outlet /> : <Navigate to="/login" replace />;

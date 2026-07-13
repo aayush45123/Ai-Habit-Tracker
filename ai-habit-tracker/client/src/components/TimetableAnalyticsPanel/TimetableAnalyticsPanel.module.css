@@ -147,3 +147,13 @@
     height: 280px;
   }
 }
+
+/* ======================================================
+   TimetableAnalyticsPanel Skeleton Styles
+   ====================================================== */
+.skeletonHeaderStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+

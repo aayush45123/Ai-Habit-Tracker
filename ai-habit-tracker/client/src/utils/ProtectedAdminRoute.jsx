@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import api from "./api";
+import { AppShellSkeleton } from "../components/Skeleton/Skeleton.jsx";
 
 export default function ProtectedAdminRoute({ children }) {
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,7 @@ export default function ProtectedAdminRoute({ children }) {
     setLoading(false);
   }
 
-  if (loading) return <div>Checking admin access…</div>;
+  if (loading) return <AppShellSkeleton />;
   if (!allowed) return <Navigate to="/404" replace />;
 
   return children;

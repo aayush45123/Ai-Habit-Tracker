@@ -12,6 +12,7 @@ import {
   Tooltip,
 } from "chart.js";
 import styles from "./TimetableAnalyticsPanel.module.css";
+import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 ChartJS.register(
   ArcElement,
@@ -31,7 +32,41 @@ export default function TimetableAnalyticsPanel({ analytics, loading }) {
   const focusDistribution = analytics?.focusDistribution || {};
 
   if (loading && !analytics) {
-    return <div className={styles.loading}>Loading workout analytics...</div>;
+    return (
+      <section className={styles.root}>
+        {/* Header skeleton */}
+        <div className={styles.header}>
+          <div className={styles.skeletonHeaderStack}>
+            <Skeleton height="14px" width="140px" variant="rounded" />
+            <Skeleton height="26px" width="260px" variant="rect" />
+            <Skeleton height="14px" width="340px" variant="rounded" />
+          </div>
+        </div>
+
+        {/* Metric cards skeleton */}
+        <div className={styles.metricsGrid}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={styles.metricCard}>
+              <Skeleton height="14px" width="70%" variant="rounded" />
+              <Skeleton height="32px" width="50%" variant="rect" />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts skeleton */}
+        <div className={styles.chartsGrid}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <article key={i} className={styles.chartCard}>
+              <div className={styles.chartHeader}>
+                <Skeleton height="20px" width="55%" variant="rect" />
+                <Skeleton height="20px" width="60px" variant="rect" />
+              </div>
+              <Skeleton height="220px" width="100%" variant="rect" />
+            </article>
+          ))}
+        </div>
+      </section>
+    );
   }
 
   if (!analytics) {
