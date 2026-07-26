@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 
 import Landing from "./pages/Landing/Landing";
@@ -31,6 +32,7 @@ import Reports from "./pages/Reports/Reports";
 function App() {
   return (
     <>
+      <Analytics />
       <SpeedInsights />
 
       <Routes>
