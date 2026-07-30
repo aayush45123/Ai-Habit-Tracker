@@ -1,4 +1,8 @@
 import Redis from "ioredis";
+import dotenv from "dotenv";
+
+// Ensure environment variables are loaded before evaluating process.env
+dotenv.config();
 
 let redisClient = null;
 let isRedisConnected = false;
