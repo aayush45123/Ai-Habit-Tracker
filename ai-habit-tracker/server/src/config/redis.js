@@ -1,15 +1,42 @@
 import Redis from "ioredis";
+import { Redis as UpstashRedis } from "@upstash/redis";
 import dotenv from "dotenv";
 
-// Ensure environment variables are loaded before evaluating process.env
 dotenv.config();
 
 let redisClient = null;
 let isRedisConnected = false;
+let isUpstashRest = false;
 
+const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 const redisUrl = process.env.REDIS_URL;
 
-if (redisUrl) {
+if (upstashUrl && upstashToken) {
+  try {
+    redisClient = new UpstashRedis({
+      url: upstashUrl,
+      token: upstashToken,
+    });
+    isUpstashRest = true;
+
+    redisClient
+      .ping()
+      .then((pong) => {
+        isRedisConnected = true;
+        console.log("Redis (Upstash REST):", pong);
+      })
+      .catch((err) => {
+        isRedisConnected = false;
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Redis Error:", err.message);
+        }
+      });
+  } catch (err) {
+    console.warn("⚠️ Upstash Redis initialization error. Bypassing Redis cache.");
+    isRedisConnected = false;
+  }
+} else if (redisUrl) {
   try {
     redisClient = new Redis(redisUrl, {
       maxRetriesPerRequest: 1,
@@ -21,14 +48,14 @@ if (redisUrl) {
         }
         return Math.min(times * 200, 1000);
       },
-      tls: {},
+      tls: redisUrl.startsWith("rediss://") ? {} : undefined,
     });
 
     redisClient.on("ready", async () => {
       isRedisConnected = true;
       try {
         const pong = await redisClient.ping();
-        console.log("Redis:", pong);
+        console.log("Redis (TCP):", pong);
       } catch (err) {
         console.warn("⚠️ Redis Ping failed:", err.message);
       }
@@ -45,8 +72,8 @@ if (redisUrl) {
     isRedisConnected = false;
   }
 } else {
-  console.warn("⚠️ REDIS_URL is not set. Operating in cache-bypass mode.");
+  console.warn("⚠️ REDIS_URL or UPSTASH_REDIS_REST_URL not configured. Operating in cache-bypass mode.");
 }
 
-export { redisClient, isRedisConnected };
+export { redisClient, isRedisConnected, isUpstashRest };
 export default redisClient;
