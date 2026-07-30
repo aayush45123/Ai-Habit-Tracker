@@ -15,7 +15,7 @@ import AIChat from "./pages/AIChat/AIChat";
 
 import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "./utils/protectedRoute";
-import PublicRoute from "./utils/PublicRoute"; // NEW
+import PublicRoute from "./utils/PublicRoute"; 
 import ProtectedAdminRoute from "./utils/ProtectedAdminRoute";
 import ProfileRequiredRoute from "./utils/ProfileRequiredRoute";
 

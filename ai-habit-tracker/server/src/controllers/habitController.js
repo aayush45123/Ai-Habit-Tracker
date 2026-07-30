@@ -1,6 +1,7 @@
 // server/src/controllers/habitController.js
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
+import { deletePattern } from "../services/redis.service.js";
 import {
   getTodayIST,
   normalizeDateIST,
@@ -9,6 +10,13 @@ import {
   areConsecutiveDays,
 } from "../utils/getTodayIST.js";
 import { generateProfile } from "../ai/profileGenerator.js";
+
+const purgeUserDashboardCache = (user) => {
+  if (!user) return;
+  const uid = user._id ? user._id.toString() : user.toString();
+  deletePattern(`dashboard:${uid}:*`).catch(() => {});
+  deletePattern(`analytics:${uid}:*`).catch(() => {});
+};
 
 // ----------------------------------------------------
 // RECALCULATE STREAKS (FIXED VERSION)
@@ -240,6 +248,8 @@ export const addHabit = async (req, res) => {
       startDate: getTodayIST(),
     });
 
+    purgeUserDashboardCache(req.user);
+
     res.status(201).json({ message: "Habit added", habit });
   } catch (error) {
     res
@@ -311,6 +321,8 @@ export const updateHabit = async (req, res) => {
 
     if (!habit) return res.status(404).json({ message: "Habit not found" });
 
+    purgeUserDashboardCache(req.user);
+
     res.json({ message: "Habit updated", habit });
   } catch (error) {
     res
@@ -332,6 +344,8 @@ export const deleteHabit = async (req, res) => {
     if (!habit) return res.status(404).json({ message: "Habit not found" });
 
     await HabitLog.deleteMany({ habitId: req.params.id });
+
+    purgeUserDashboardCache(req.user);
 
     res.json({ message: "Habit deleted" });
   } catch (error) {
@@ -387,6 +401,8 @@ export const logHabit = async (req, res) => {
       streak: currentStreak,
       longestStreak: longestStreak,
     });
+
+    purgeUserDashboardCache(req.user);
 
     res.json({
       message: "Habit logged",
