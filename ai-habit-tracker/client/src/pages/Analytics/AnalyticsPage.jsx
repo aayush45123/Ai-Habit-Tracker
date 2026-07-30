@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api.js";
-import styles from "./Analytics.module.css";
+import styles from "./AnalyticsPage.module.css";
 import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 import { Line, Pie } from "react-chartjs-2";
