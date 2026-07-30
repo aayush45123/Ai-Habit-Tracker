@@ -5,24 +5,46 @@ import jwt from "jsonwebtoken";
 // ---------------- SIGNUP ----------------
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const assignedRole = role === "admin" ? "admin" : "user";
+    const isAdmin = assignedRole === "admin";
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      isAdmin: false,
+      role: assignedRole,
+      isAdmin,
+      profileImage: "",
+      isActive: true,
     });
 
-    res.status(201).json({ message: "User created", user });
+    const token = jwt.sign(
+      { userId: user._id, role: user.role, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      message: "User created",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isAdmin: user.isAdmin,
+        profileImage: user.profileImage,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -34,7 +56,10 @@ export const me = async (req, res) => {
     id: user._id,
     name: user.name,
     email: user.email,
-    isAdmin: user.isAdmin === true || user.isAdmin === "true",
+    role: user.role || (user.isAdmin ? "admin" : "user"),
+    isAdmin: user.isAdmin === true || user.role === "admin",
+    profileImage: user.profileImage || "",
+    isActive: user.isActive !== false,
   });
 };
 
@@ -47,13 +72,21 @@ export const login = async (req, res) => {
     if (!user)
       return res.status(400).json({ message: "Invalid email or password" });
 
+    if (user.isActive === false) {
+      return res.status(403).json({ message: "Account is disabled. Please contact administrator." });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid email or password" });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const userRole = user.role || (user.isAdmin ? "admin" : "user");
+
+    const token = jwt.sign(
+      { userId: user._id, role: userRole, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({
       message: "Login successful",
@@ -62,10 +95,12 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin,
+        role: userRole,
+        isAdmin: user.isAdmin === true || userRole === "admin",
+        profileImage: user.profileImage || "",
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
