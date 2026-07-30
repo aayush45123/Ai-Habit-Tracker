@@ -1,4 +1,4 @@
-import { redisClient, isRedisConnected } from "../config/redis.js";
+import { redisClient, isRedisConnected, isUpstashRest } from "../config/redis.js";
 
 /**
  * Get value from Redis cache
@@ -7,7 +7,8 @@ export const getCache = async (key) => {
   if (!redisClient || !isRedisConnected) return null;
   try {
     const data = await redisClient.get(key);
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    return typeof data === "object" ? data : JSON.parse(data);
   } catch (error) {
     console.error(`Redis Get Error [${key}]:`, error.message);
     return null;
@@ -20,11 +21,19 @@ export const getCache = async (key) => {
 export const setCache = async (key, value, ttlSeconds = 300) => {
   if (!redisClient || !isRedisConnected) return false;
   try {
-    const serialized = JSON.stringify(value);
-    if (ttlSeconds > 0) {
-      await redisClient.setex(key, ttlSeconds, serialized);
+    const serialized = typeof value === "string" ? value : JSON.stringify(value);
+    if (isUpstashRest) {
+      if (ttlSeconds > 0) {
+        await redisClient.set(key, serialized, { ex: ttlSeconds });
+      } else {
+        await redisClient.set(key, serialized);
+      }
     } else {
-      await redisClient.set(key, serialized);
+      if (ttlSeconds > 0) {
+        await redisClient.setex(key, ttlSeconds, serialized);
+      } else {
+        await redisClient.set(key, serialized);
+      }
     }
     return true;
   } catch (error) {
