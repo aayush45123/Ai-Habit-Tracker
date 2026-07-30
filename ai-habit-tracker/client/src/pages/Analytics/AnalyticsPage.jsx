@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../../utils/api";
+import api from "../../utils/api.js";
 import styles from "./Analytics.module.css";
 import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
@@ -23,10 +23,10 @@ ChartJS.register(
   PointElement,
   ArcElement,
   Tooltip,
-  Legend
+  Legend,
 );
 
-export default function Analytics() {
+export default function AnalyticsPage() {
   const [weekly, setWeekly] = useState({});
   const [bestDay, setBestDay] = useState("");
   const [dayCount, setDayCount] = useState({});
@@ -74,7 +74,12 @@ export default function Analytics() {
                 <Skeleton height="22px" width="80px" variant="rect" />
               </div>
               {/* Chart body placeholder */}
-              <Skeleton height="100%" width="100%" variant="rect" style={{ flex: 1 }} />
+              <Skeleton
+                height="100%"
+                width="100%"
+                variant="rect"
+                style={{ flex: 1 }}
+              />
             </div>
           ))}
         </div>
@@ -89,7 +94,7 @@ export default function Analytics() {
 
   // WEEKLY CHART
   const weeklyLabels = Object.keys(weekly).map((d) =>
-    new Date(d).toLocaleDateString("en-IN", { month: "short", day: "numeric" })
+    new Date(d).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
   );
   const weeklyValues = Object.values(weekly);
 
@@ -154,7 +159,7 @@ export default function Analytics() {
   // Add all days of the month
   for (let d = 1; d <= lastDay; d++) {
     const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(
-      d
+      d,
     ).padStart(2, "0")}`;
     let status = "empty";
 

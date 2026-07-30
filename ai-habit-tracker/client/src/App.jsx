@@ -10,7 +10,7 @@ import Signup from "./pages/Auth/Signup/Signup";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import AddHabit from "./pages/AddHabit/AddHabit";
 import HabitDetail from "./pages/HabitDetail/HabitDetail";
-import Analytics from "./pages/Analytics/Analytics";
+import AnalyticsPage from "./pages/Analytics/AnalyticsPage";
 import AIChat from "./pages/AIChat/AIChat";
 
 import MainLayout from "./layout/MainLayout";
@@ -74,7 +74,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/add" element={<AddHabit />} />
               <Route path="/habit/:id" element={<HabitDetail />} />
-              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/ai" element={<AIChat />} />
               <Route path="/challenge" element={<ChallengePage />} />
               <Route path="/templates" element={<HabitTemplates />} />
