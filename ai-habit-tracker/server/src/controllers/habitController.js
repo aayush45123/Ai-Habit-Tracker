@@ -362,7 +362,11 @@ export const deleteHabit = async (req, res) => {
 export const logHabit = async (req, res) => {
   try {
     const habitId = req.params.id;
-    const { status } = req.body;
+    let { status } = req.body;
+
+    if (status === "completed") {
+      status = "done";
+    }
 
     if (!["done", "missed"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });

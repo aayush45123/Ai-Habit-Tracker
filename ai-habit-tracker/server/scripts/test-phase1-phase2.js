@@ -172,7 +172,45 @@ async function runTests() {
     );
 
     // ----------------------------------------------------
-    // TEST 7: USER DASHBOARD & REDIS CACHE INTERCEPT
+    // TEST 7: CREATE HABIT & LOG HABIT ("done" status)
+    // ----------------------------------------------------
+    const createHabitRes = await fetch(`${BASE_URL}/api/habits/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({
+        title: "Morning Exercise",
+        frequency: "daily",
+      }),
+    });
+    const createHabitData = await createHabitRes.json();
+    assert(
+      createHabitRes.status === 201,
+      `Habit creation succeeds (Status: ${createHabitRes.status})`
+    );
+
+    const habitId = createHabitData.habit._id;
+    const logHabitRes = await fetch(`${BASE_URL}/api/habits/${habitId}/log`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({
+        status: "done",
+        date: new Date().toISOString().split("T")[0],
+      }),
+    });
+    const logHabitData = await logHabitRes.json();
+    assert(
+      logHabitRes.status === 200,
+      `Logging habit with status 'done' succeeds (Status: ${logHabitRes.status})`
+    );
+
+    // ----------------------------------------------------
+    // TEST 8: USER DASHBOARD & REDIS CACHE INTERCEPT
     // ----------------------------------------------------
     const dashboardRes1 = await fetch(`${BASE_URL}/api/dashboard`, {
       headers: { Authorization: `Bearer ${userToken}` },
