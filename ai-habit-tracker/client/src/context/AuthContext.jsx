@@ -58,6 +58,16 @@ export const AuthProvider = ({ children }) => {
     setProfile(null);
   };
 
+  const refreshUser = async () => {
+    if (!token) return;
+    try {
+      const userRes = await api.get("/auth/me");
+      setUser(userRes.data);
+    } catch (err) {
+      console.error("Error refreshing user details:", err);
+    }
+  };
+
   const refreshProfile = async () => {
     if (!token) return;
     try {
@@ -93,7 +103,9 @@ export const AuthProvider = ({ children }) => {
         isProfileCompleted,
         login,
         logout,
+        refreshUser,
         refreshProfile,
+        setUser,
         setProfile,
       }}
     >

@@ -208,6 +208,13 @@
   flex-shrink: 0;
   border: 2px solid var(--color-border);
   box-shadow: 3px 3px 0px var(--color-border);
+  overflow: hidden;
+}
+
+.userAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .footerText {
