@@ -10,8 +10,8 @@ export const createHabitSchema = z.object({
       message: "Title cannot be numeric",
     }),
   description: z.string().optional(),
-  frequency: z.enum(["daily", "weekly", "monthly"], {
-    errorMap: () => ({ message: "Frequency must be daily, weekly, or monthly" }),
+  frequency: z.enum(["daily", "weekly", "monthly", "custom"], {
+    errorMap: () => ({ message: "Frequency must be daily, weekly, monthly, or custom" }),
   }),
   category: z.string().optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
@@ -28,15 +28,15 @@ export const updateHabitSchema = z.object({
     })
     .optional(),
   description: z.string().optional(),
-  frequency: z.enum(["daily", "weekly", "monthly"]).optional(),
+  frequency: z.enum(["daily", "weekly", "monthly", "custom"]).optional(),
   category: z.string().optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
   status: z.enum(["active", "archived", "completed"]).optional(),
 });
 
 export const logHabitSchema = z.object({
-  status: z.enum(["completed", "missed"], {
-    errorMap: () => ({ message: "Status must be 'completed' or 'missed'" }),
+  status: z.enum(["done", "completed", "missed"], {
+    errorMap: () => ({ message: "Status must be 'done', 'completed', or 'missed'" }),
   }),
   date: z.string().optional(),
   notes: z.string().optional(),
