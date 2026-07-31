@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Streak Ended — HabitAI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f0f; font-family: 'Segoe UI', Arial, sans-serif; color: #e0e0e0; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; overflow: hidden; }
+    .header { background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 40px 30px; text-align: center; }
+    .header h1 { color: #fff; font-size: 26px; font-weight: 800; }
+    .icon { font-size: 42px; display: block; margin-bottom: 12px; }
+    .body { padding: 36px 30px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .habit-box { background: #242424; border-left: 4px solid #dc2626; padding: 16px 20px; border-radius: 6px; margin-bottom: 24px; }
+    .habit-box p { font-size: 15px; color: #c0c0c0; }
+    .habit-box strong { color: #fca5a5; }
+    .encouragement { background: linear-gradient(135deg, rgba(220,38,38,0.1), rgba(185,28,28,0.1)); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px; padding: 20px; margin-bottom: 24px; font-size: 15px; color: #d0d0d0; line-height: 1.7; }
+    .cta-btn { display: block; width: fit-content; margin: 0 auto 24px; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; text-decoration: none; padding: 14px 36px; border-radius: 8px; font-weight: 700; font-size: 16px; }
+    .footer { background: #111; padding: 20px 30px; text-align: center; font-size: 13px; color: #666; }
+    .footer a { color: #dc2626; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <span class="icon">💔</span>
+      <h1>Your Streak Ended</h1>
+    </div>
+    <div class="body">
+      <p class="greeting">Hi {{USER_NAME}},</p>
+
+      <div class="habit-box">
+        <p>Your streak for <strong>{{HABIT_TITLE}}</strong> has ended. It happens to everyone — what matters is getting back up.</p>
+      </div>
+
+      <div class="encouragement">
+        <strong style="color:#fca5a5;">Remember:</strong> Every champion has fallen before. The difference is they got back up.
+        A broken streak is not failure — it's a data point. Start fresh today and build an even bigger streak! 💪
+      </div>
+
+      <a href="https://ai-habit-tracker-eb72.vercel.app/dashboard" class="cta-btn">Start a New Streak →</a>
+    </div>
+    <div class="footer">
+      <p>© {{YEAR}} HabitAI — Building better lives, one habit at a time.</p>
+      <p style="margin-top:6px;"><a href="https://ai-habit-tracker-eb72.vercel.app/profile">Manage reminder preferences</a></p>
+    </div>
+  </div>
+</body>
+</html>

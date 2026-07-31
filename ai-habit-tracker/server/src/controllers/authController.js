@@ -60,6 +60,9 @@ export const me = async (req, res) => {
     isAdmin: user.isAdmin === true || user.role === "admin",
     profileImage: user.profileImage || "",
     isActive: user.isActive !== false,
+    emailNotifications: user.emailNotifications ?? true,
+    isReminderEnabled: user.isReminderEnabled ?? true,
+    dailyReminderTime: user.dailyReminderTime || "20:00",
   });
 };
 
@@ -102,5 +105,34 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ---------------- UPDATE REMINDER PREFERENCES ----------------
+export const updateReminderPreferences = async (req, res) => {
+  try {
+    const { emailNotifications, isReminderEnabled, dailyReminderTime } = req.body;
+
+    const updates = {};
+    if (typeof emailNotifications === "boolean")
+      updates.emailNotifications = emailNotifications;
+    if (typeof isReminderEnabled === "boolean")
+      updates.isReminderEnabled = isReminderEnabled;
+    if (dailyReminderTime && /^([01]\d|2[0-3]):[0-5]\d$/.test(dailyReminderTime))
+      updates.dailyReminderTime = dailyReminderTime;
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ message: "No valid fields provided" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: updates },
+      { new: true }
+    ).select("-password");
+
+    res.json({ message: "Reminder preferences updated", user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };

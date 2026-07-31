@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weekly Summary — HabitAI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f0f; font-family: 'Segoe UI', Arial, sans-serif; color: #e0e0e0; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; overflow: hidden; }
+    .header { background: linear-gradient(135deg, #059669, #0d9488); padding: 40px 30px; text-align: center; }
+    .header h1 { color: #fff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .header p { color: rgba(255,255,255,0.8); margin-top: 8px; font-size: 15px; }
+    .icon { font-size: 42px; display: block; margin-bottom: 12px; }
+    .body { padding: 36px 30px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 20px; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .stat-card { background: #242424; border-radius: 8px; padding: 16px; text-align: center; border-top: 3px solid; }
+    .stat-card:nth-child(1) { border-color: #f59e0b; }
+    .stat-card:nth-child(2) { border-color: #10b981; }
+    .stat-card:nth-child(3) { border-color: #6366f1; }
+    .stat-card:nth-child(4) { border-color: #ec4899; }
+    .stat-value { font-size: 28px; font-weight: 800; color: #fff; }
+    .stat-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+    .ai-box { background: linear-gradient(135deg, rgba(5,150,105,0.1), rgba(13,148,136,0.1)); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+    .ai-box-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #10b981; font-weight: 700; margin-bottom: 10px; }
+    .ai-box p { font-size: 14px; color: #c0c0c0; line-height: 1.6; }
+    .cta-btn { display: block; width: fit-content; margin: 0 auto 24px; background: linear-gradient(135deg, #059669, #0d9488); color: #fff; text-decoration: none; padding: 14px 36px; border-radius: 8px; font-weight: 700; font-size: 16px; }
+    .footer { background: #111; padding: 20px 30px; text-align: center; font-size: 13px; color: #666; }
+    .footer a { color: #10b981; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <span class="icon">📊</span>
+      <h1>Your Weekly Progress Report</h1>
+      <p>Here's how you performed this week, {{USER_NAME}}</p>
+    </div>
+
+    <div class="body">
+      <p class="greeting">Hi {{USER_NAME}},</p>
+      <p style="color:#c0c0c0;font-size:15px;margin-bottom:24px;">Here's a snapshot of your habit performance over the last 7 days. Keep up the momentum!</p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">🔥 {{STREAK}}</div>
+          <div class="stat-label">Current Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{COMPLETION_RATE}}%</div>
+          <div class="stat-label">Completion Rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{BEST_DAY}}</div>
+          <div class="stat-label">Best Day</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{WORST_DAY}}</div>
+          <div class="stat-label">Needs Work</div>
+        </div>
+      </div>
+
+      <div class="ai-box">
+        <div class="ai-box-title">🤖 AI Recommendation</div>
+        <p>{{AI_RECOMMENDATION}}</p>
+      </div>
+
+      <a href="https://ai-habit-tracker-eb72.vercel.app/analytics" class="cta-btn">View Full Analytics →</a>
+
+      <p style="color:#888;font-size:14px;">Every week is a fresh start. You've got this! 🌟</p>
+    </div>
+
+    <div class="footer">
+      <p>© {{YEAR}} HabitAI — Building better lives, one habit at a time.</p>
+      <p style="margin-top:6px;"><a href="https://ai-habit-tracker-eb72.vercel.app/profile">Manage reminder preferences</a></p>
+    </div>
+  </div>
+</body>
+</html>

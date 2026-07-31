@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import api from "../../utils/api";
 import HabitCard from "../../components/HabitCard/HabitCard";
 import RiskAlerts from "../../components/RiskAlerts/RiskAlerts";
 import Recommendations from "../../components/Recommendations/Recommendations";
 import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
-import { FaRobot } from "react-icons/fa";
+import { FaRobot, FaWifi } from "react-icons/fa";
+import { useSocket } from "../../context/SocketContext";
 import styles from "./Dashboard.module.css";
 
 function formatDateISO(d = new Date()) {
@@ -26,13 +27,10 @@ export default function Dashboard() {
   // Floating AI Chat
   const [chatOpen, setChatOpen] = useState(false);
 
-  useEffect(() => {
-    fetchHabits();
-    fetchAnalytics();
-    fetchAIInsights();
-  }, []);
+  // Socket
+  const { subscribe, isConnected } = useSocket();
 
-  async function fetchHabits() {
+  const fetchHabits = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get("/habits/all");
@@ -42,7 +40,27 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchHabits();
+    fetchAnalytics();
+    fetchAIInsights();
+  }, [fetchHabits]);
+
+  // Real-time dashboard refresh via Socket.IO
+  useEffect(() => {
+    const unsubscribe = subscribe("dashboard:update", (data) => {
+      console.log("⚡ dashboard:update received:", data);
+      // Refresh habits list when any habit change event arrives
+      fetchHabits();
+      if (data?.type !== "habit:logged") {
+        // Only refresh analytics for add/delete (not every log click)
+        fetchAnalytics();
+      }
+    });
+    return unsubscribe;
+  }, [subscribe, fetchHabits]);
 
   async function fetchAnalytics() {
     try {
@@ -112,7 +130,38 @@ export default function Dashboard() {
       {/* ── PAGE HEADER ── */}
       <header className={styles.dashHeader}>
         <div className={styles.headerLeft}>
-          <h1 className={styles.headerTitle}>Dashboard</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h1 className={styles.headerTitle}>Dashboard</h1>
+            <span
+              title={isConnected ? "Live updates active" : "Connecting..."}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                fontSize: "11px",
+                fontWeight: 600,
+                padding: "3px 9px",
+                borderRadius: "20px",
+                background: isConnected
+                  ? "rgba(16,185,129,0.15)"
+                  : "rgba(156,163,175,0.15)",
+                color: isConnected ? "#10b981" : "#9ca3af",
+                border: `1px solid ${isConnected ? "rgba(16,185,129,0.3)" : "rgba(156,163,175,0.2)"}`,
+                transition: "all 0.3s",
+              }}
+            >
+              <span
+                style={{
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "50%",
+                  background: isConnected ? "#10b981" : "#9ca3af",
+                  animation: isConnected ? "pulse 2s infinite" : "none",
+                }}
+              />
+              {isConnected ? "Live" : "Offline"}
+            </span>
+          </div>
           <p className={styles.headerSub}>
             Track your daily habits, build powerful streaks, and transform your
             life one day at a time.

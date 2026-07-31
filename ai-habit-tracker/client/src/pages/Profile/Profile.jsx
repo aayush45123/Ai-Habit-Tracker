@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import api from "../../utils/api";
-import { FiUser, FiActivity, FiTarget, FiAlertCircle, FiCheckCircle, FiCamera, FiUploadCloud } from "react-icons/fi";
+import { FiUser, FiActivity, FiTarget, FiAlertCircle, FiCheckCircle, FiCamera, FiUploadCloud, FiBell, FiMail, FiClock } from "react-icons/fi";
 import styles from "./Profile.module.css";
 
 const Profile = () => {
@@ -24,6 +24,15 @@ const Profile = () => {
 
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Email reminder preferences state
+  const [reminderPrefs, setReminderPrefs] = useState({
+    emailNotifications: true,
+    isReminderEnabled: true,
+    dailyReminderTime: "20:00",
+  });
+  const [isSavingPrefs, setIsSavingPrefs] = useState(false);
+  const [prefsMessage, setPrefsMessage] = useState({ type: "", text: "" });
 
   // Avatar upload states
   const [selectedFile, setSelectedFile] = useState(null);
@@ -76,6 +85,17 @@ const Profile = () => {
       setIsUploadingAvatar(false);
     }
   };
+
+  // Prepopulate reminder prefs from user document
+  useEffect(() => {
+    if (user) {
+      setReminderPrefs({
+        emailNotifications: user.emailNotifications ?? true,
+        isReminderEnabled: user.isReminderEnabled ?? true,
+        dailyReminderTime: user.dailyReminderTime || "20:00",
+      });
+    }
+  }, [user]);
 
   // Prepopulate form if profile details already exist
   useEffect(() => {
@@ -135,6 +155,24 @@ const Profile = () => {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveReminderPrefs = async () => {
+    setIsSavingPrefs(true);
+    setPrefsMessage({ type: "", text: "" });
+    try {
+      await api.patch("/auth/reminder-preferences", reminderPrefs);
+      if (refreshUser) await refreshUser();
+      setPrefsMessage({ type: "success", text: "Reminder preferences saved!" });
+      setTimeout(() => setPrefsMessage({ type: "", text: "" }), 3000);
+    } catch (err) {
+      setPrefsMessage({
+        type: "error",
+        text: err.response?.data?.message || "Failed to save preferences.",
+      });
+    } finally {
+      setIsSavingPrefs(false);
     }
   };
 
@@ -357,6 +395,135 @@ const Profile = () => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* ── EMAIL REMINDER PREFERENCES SECTION ── */}
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>
+              <FiBell size={16} /> Email Reminder Preferences
+            </h3>
+            <p style={{ color: "#888", fontSize: "13px", marginBottom: "18px" }}>
+              HabitAI will send you personalized daily reminders for incomplete habits every evening.
+            </p>
+
+            {/* Enable Notifications Toggle */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "14px 18px", marginBottom: "14px", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <FiMail size={18} color="#7c3aed" />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "14px", color: "#e0e0e0" }}>Email Notifications</div>
+                  <div style={{ fontSize: "12px", color: "#888" }}>Receive all habit-related email alerts</div>
+                </div>
+              </div>
+              <label style={{ position: "relative", display: "inline-block", width: "44px", height: "24px", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={reminderPrefs.emailNotifications}
+                  onChange={(e) => setReminderPrefs((p) => ({ ...p, emailNotifications: e.target.checked }))}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                  background: reminderPrefs.emailNotifications ? "#7c3aed" : "#444",
+                  borderRadius: "24px", transition: "0.3s"
+                }} />
+                <span style={{
+                  position: "absolute", top: "3px",
+                  left: reminderPrefs.emailNotifications ? "23px" : "3px",
+                  width: "18px", height: "18px",
+                  background: "#fff", borderRadius: "50%", transition: "0.3s"
+                }} />
+              </label>
+            </div>
+
+            {/* Daily Reminder Toggle */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "14px 18px", marginBottom: "14px", border: "1px solid rgba(255,255,255,0.08)", opacity: reminderPrefs.emailNotifications ? 1 : 0.5 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={{ fontSize: "18px" }}>🔥</span>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "14px", color: "#e0e0e0" }}>Daily Habit Reminders</div>
+                  <div style={{ fontSize: "12px", color: "#888" }}>Remind me to complete pending habits</div>
+                </div>
+              </div>
+              <label style={{ position: "relative", display: "inline-block", width: "44px", height: "24px", cursor: reminderPrefs.emailNotifications ? "pointer" : "not-allowed" }}>
+                <input
+                  type="checkbox"
+                  checked={reminderPrefs.isReminderEnabled}
+                  disabled={!reminderPrefs.emailNotifications}
+                  onChange={(e) => setReminderPrefs((p) => ({ ...p, isReminderEnabled: e.target.checked }))}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                  background: reminderPrefs.isReminderEnabled && reminderPrefs.emailNotifications ? "#7c3aed" : "#444",
+                  borderRadius: "24px", transition: "0.3s"
+                }} />
+                <span style={{
+                  position: "absolute", top: "3px",
+                  left: reminderPrefs.isReminderEnabled && reminderPrefs.emailNotifications ? "23px" : "3px",
+                  width: "18px", height: "18px",
+                  background: "#fff", borderRadius: "50%", transition: "0.3s"
+                }} />
+              </label>
+            </div>
+
+            {/* Reminder Time Picker */}
+            {reminderPrefs.emailNotifications && reminderPrefs.isReminderEnabled && (
+              <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "14px 18px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                  <FiClock size={16} color="#7c3aed" />
+                  <div style={{ fontWeight: 600, fontSize: "14px", color: "#e0e0e0" }}>Preferred Reminder Time (IST)</div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+                  {["08:00", "12:00", "18:00", "20:00", "21:00", "22:00"].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setReminderPrefs((p) => ({ ...p, dailyReminderTime: t }))}
+                      style={{
+                        padding: "8px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.2s",
+                        background: reminderPrefs.dailyReminderTime === t ? "rgba(124,58,237,0.3)" : "rgba(255,255,255,0.05)",
+                        border: reminderPrefs.dailyReminderTime === t ? "1px solid #7c3aed" : "1px solid rgba(255,255,255,0.08)",
+                        color: reminderPrefs.dailyReminderTime === t ? "#a78bfa" : "#ccc",
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <p style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}>Current: {reminderPrefs.dailyReminderTime} IST — you'll get an email around this time if you have incomplete habits.</p>
+              </div>
+            )}
+
+            {/* Prefs message */}
+            {prefsMessage.text && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px",
+                borderRadius: "8px", fontSize: "13px", marginBottom: "10px",
+                background: prefsMessage.type === "success" ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
+                color: prefsMessage.type === "success" ? "#10b981" : "#ef4444",
+                border: `1px solid ${prefsMessage.type === "success" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`
+              }}>
+                {prefsMessage.type === "success" ? <FiCheckCircle size={15} /> : <FiAlertCircle size={15} />}
+                {prefsMessage.text}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSaveReminderPrefs}
+              disabled={isSavingPrefs}
+              style={{
+                width: "100%", padding: "12px", borderRadius: "10px", fontWeight: 700,
+                fontSize: "14px", cursor: isSavingPrefs ? "not-allowed" : "pointer",
+                background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
+                color: "#fff", border: "none",
+                opacity: isSavingPrefs ? 0.7 : 1, transition: "all 0.2s",
+              }}
+            >
+              {isSavingPrefs ? "Saving..." : "Save Reminder Preferences"}
+            </button>
           </div>
 
           <button

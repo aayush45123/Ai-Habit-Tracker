@@ -1,5 +1,5 @@
 import express from "express";
-import { signup, login, me } from "../controllers/authController.js";
+import { signup, login, me, updateReminderPreferences } from "../controllers/authController.js";
 import auth from "../middleware/authMiddleware.js";
 import validate from "../middleware/validate.middleware.js";
 import { signupSchema, loginSchema } from "../validators/auth.validator.js";
@@ -15,5 +15,8 @@ router.get("/test", (req, res) => {
 
 // Logged-in user info
 router.get("/me", auth, me);
+
+// Update email reminder preferences
+router.patch("/reminder-preferences", auth, updateReminderPreferences);
 
 export default router;
