@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import api from "../../utils/api";
-import { FiUser, FiActivity, FiTarget, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
+import { FiUser, FiActivity, FiTarget, FiAlertCircle, FiCheckCircle, FiCamera, FiUploadCloud } from "react-icons/fi";
 import styles from "./Profile.module.css";
 
 const Profile = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, refreshUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const forceComplete = location.state?.forceComplete;
@@ -24,6 +24,58 @@ const Profile = () => {
 
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Avatar upload states
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        setMessage({ type: "error", text: "Please select a valid image file." });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ type: "error", text: "Image file size must be less than 5MB." });
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setMessage({ type: "", text: "" });
+    }
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!selectedFile) return;
+    setIsUploadingAvatar(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const data = new FormData();
+      data.append("image", selectedFile);
+
+      const res = await api.post("/profile/upload-avatar", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.data?.profileImage) {
+        setMessage({ type: "success", text: "Profile picture uploaded successfully!" });
+        if (refreshUser) await refreshUser();
+        setSelectedFile(null);
+        setPreviewUrl("");
+      }
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Failed to upload avatar. Please try again.",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   // Prepopulate form if profile details already exist
   useEffect(() => {
@@ -97,12 +149,47 @@ const Profile = () => {
 
       <div className={styles.profileCard}>
         <div className={styles.profileHeader}>
-          <div className={styles.avatarSymbol}>
-            <FiUser size={40} />
+          {/* Avatar Upload Container */}
+          <div className={styles.avatarContainer}>
+            <div className={styles.avatarWrapper}>
+              {previewUrl ? (
+                <img src={previewUrl} alt="Preview" className={styles.avatarImg} />
+              ) : user?.profileImage ? (
+                <img src={user.profileImage} alt={user.name} className={styles.avatarImg} />
+              ) : (
+                <div className={styles.avatarFallback}>
+                  {user?.name ? user.name.slice(0, 2).toUpperCase() : <FiUser size={40} />}
+                </div>
+              )}
+
+              <label htmlFor="avatarInput" className={styles.cameraBtn} title="Upload Profile Picture">
+                <FiCamera size={18} />
+              </label>
+              <input
+                id="avatarInput"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className={styles.hiddenInput}
+              />
+            </div>
+
+            {selectedFile && (
+              <button
+                type="button"
+                onClick={handleAvatarUpload}
+                disabled={isUploadingAvatar}
+                className={styles.uploadAvatarBtn}
+              >
+                <FiUploadCloud size={16} />
+                {isUploadingAvatar ? "Uploading to Cloudinary..." : "Save New Photo"}
+              </button>
+            )}
           </div>
+
           <h2 className={styles.title}>User Profile Settings</h2>
           <p className={styles.subtitle}>
-            Enter your physical details to configure automated AI goals and recommendations.
+            Manage your account details, upload profile picture, and configure physical attributes for AI insights.
           </p>
         </div>
 

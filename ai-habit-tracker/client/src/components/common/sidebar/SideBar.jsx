@@ -111,7 +111,13 @@ function Sidebar() {
 
           <div className={styles.footerContent}>
             <div className={styles.userAvatar}>
-              {user?.name ? user.name.slice(0, 2).toUpperCase() : "AI"}
+              {user?.profileImage ? (
+                <img src={user.profileImage} alt={user.name} className={styles.userAvatarImg} />
+              ) : user?.name ? (
+                user.name.slice(0, 2).toUpperCase()
+              ) : (
+                "AI"
+              )}
             </div>
             <div className={styles.footerText}>
               <p className={styles.userName}>{user?.name || "Your Assistant"}</p>
