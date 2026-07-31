@@ -32,7 +32,6 @@ import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
 /* =======================
    ENV & DB
 ======================= */
-dotenv.config();
 connectDB();
 
 const app = express();
