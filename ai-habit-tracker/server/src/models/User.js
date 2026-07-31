@@ -32,6 +32,23 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Email reminder preferences
+    emailNotifications: {
+      type: Boolean,
+      default: true,
+    },
+    isReminderEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    dailyReminderTime: {
+      type: String,
+      default: "20:00", // 8 PM IST
+    },
+    timezone: {
+      type: String,
+      default: "Asia/Kolkata",
+    },
   },
   { timestamps: true }
 );

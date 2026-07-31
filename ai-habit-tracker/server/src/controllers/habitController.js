@@ -10,6 +10,12 @@ import {
   areConsecutiveDays,
 } from "../utils/getTodayIST.js";
 import { generateProfile } from "../ai/profileGenerator.js";
+import {
+  emitDashboardUpdate,
+  emitHabitUpdate,
+  emitStreakUpdate,
+  emitNotification,
+} from "../services/socket.service.js";
 
 const purgeUserDashboardCache = (user) => {
   if (!user) return;
@@ -250,6 +256,15 @@ export const addHabit = async (req, res) => {
 
     purgeUserDashboardCache(req.user);
 
+    // Emit real-time event
+    const userId = req.user._id ? req.user._id.toString() : req.user.toString();
+    emitDashboardUpdate(userId, { type: "habit:added", habit });
+    emitNotification(userId, {
+      type: "success",
+      title: "Habit Created",
+      message: `"${habit.title}" has been added to your habits!`,
+    });
+
     res.status(201).json({ message: "Habit added", habit });
   } catch (error) {
     res
@@ -347,6 +362,10 @@ export const deleteHabit = async (req, res) => {
 
     purgeUserDashboardCache(req.user);
 
+    // Emit real-time event
+    const userId = req.user._id ? req.user._id.toString() : req.user.toString();
+    emitDashboardUpdate(userId, { type: "habit:deleted", habitId: req.params.id });
+
     res.json({ message: "Habit deleted" });
   } catch (error) {
     res
@@ -407,6 +426,20 @@ export const logHabit = async (req, res) => {
     });
 
     purgeUserDashboardCache(req.user);
+
+    // Emit real-time socket events
+    const userId = req.user._id ? req.user._id.toString() : req.user.toString();
+    emitDashboardUpdate(userId, { type: "habit:logged", habitId, status, currentStreak, longestStreak });
+    emitStreakUpdate(userId, { habitId, currentStreak, longestStreak });
+
+    // Milestone notification — every 7-day streak multiple
+    if (status === "done" && currentStreak > 0 && currentStreak % 7 === 0) {
+      emitNotification(userId, {
+        type: "milestone",
+        title: `🔥 ${currentStreak}-Day Streak!`,
+        message: `Amazing! You've maintained a ${currentStreak}-day streak!`,
+      });
+    }
 
     res.json({
       message: "Habit logged",

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Achievement Unlocked — HabitAI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f0f; font-family: 'Segoe UI', Arial, sans-serif; color: #e0e0e0; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; overflow: hidden; }
+    .header { background: linear-gradient(135deg, #f59e0b, #d97706); padding: 40px 30px; text-align: center; }
+    .header h1 { color: #fff; font-size: 28px; font-weight: 800; }
+    .icon { font-size: 52px; display: block; margin-bottom: 12px; }
+    .body { padding: 36px 30px; }
+    .greeting { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .milestone-box { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.15)); border: 2px solid rgba(245,158,11,0.4); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 28px; }
+    .milestone-box .trophy { font-size: 48px; margin-bottom: 12px; display: block; }
+    .milestone-box h2 { color: #fbbf24; font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .milestone-box p { color: #d0d0d0; font-size: 15px; }
+    .congrats-text { font-size: 15px; color: #c0c0c0; line-height: 1.7; margin-bottom: 28px; }
+    .cta-btn { display: block; width: fit-content; margin: 0 auto 24px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; text-decoration: none; padding: 14px 36px; border-radius: 8px; font-weight: 700; font-size: 16px; }
+    .footer { background: #111; padding: 20px 30px; text-align: center; font-size: 13px; color: #666; }
+    .footer a { color: #f59e0b; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <span class="icon">🏆</span>
+      <h1>Achievement Unlocked!</h1>
+    </div>
+    <div class="body">
+      <p class="greeting">Congratulations, {{USER_NAME}}! 🎉</p>
+
+      <div class="milestone-box">
+        <span class="trophy">🥇</span>
+        <h2>{{MILESTONE}}</h2>
+        <p>You've reached an incredible milestone on your habit journey!</p>
+      </div>
+
+      <p class="congrats-text">
+        This achievement is proof of your dedication and consistency. You set a goal, built a habit, and followed through — and that's something to be genuinely proud of. 
+        <br/><br/>
+        Keep pushing forward. Your next milestone is closer than you think! 🚀
+      </p>
+
+      <a href="https://ai-habit-tracker-eb72.vercel.app/analytics" class="cta-btn">View Your Progress →</a>
+    </div>
+    <div class="footer">
+      <p>© {{YEAR}} HabitAI — Building better lives, one habit at a time.</p>
+      <p style="margin-top:6px;"><a href="https://ai-habit-tracker-eb72.vercel.app/profile">Manage reminder preferences</a></p>
+    </div>
+  </div>
+</body>
+</html>

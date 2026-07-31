@@ -26,6 +26,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 // Import streak reset function
+import { scheduleDailyReminderCron, scheduleWeeklySummaryCron } from "./cron/emailReminder.cron.js";
 import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
 
 /* =======================
@@ -135,6 +136,12 @@ cron.schedule(
 );
 
 console.log("Streak reset cron job scheduled (runs daily at 00:01 IST)");
+
+/* =======================
+   EMAIL REMINDER CRON JOBS
+======================= */
+scheduleDailyReminderCron();
+scheduleWeeklySummaryCron();
 
 /* =======================
    HEALTH CHECK
