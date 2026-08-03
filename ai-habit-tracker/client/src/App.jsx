@@ -68,7 +68,7 @@ function App() {
             {/* Directly accessible protected routes (no profile gate required) */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/about" element={<About />} />
-
+            
             {/* Locked routes - Require profile completion */}
             <Route element={<ProfileRequiredRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
