@@ -19,6 +19,7 @@ import {
   FiUser,
   FiLock,
   FiFileText,
+  FiBookOpen,
 } from "react-icons/fi";
 import styles from "./SideBar.module.css";
 
@@ -95,6 +96,7 @@ function Sidebar() {
           {renderNavLink("/ai", FiCpu, "AI Insights")}
           {renderNavLink("/challenge", FiCalendar, "21-Day Challenge")}
           {renderNavLink("/templates", FiCopy, "Habit Templates")}
+          {renderNavLink("/journal", FiBookOpen, "Growth Journal")}
           {renderNavLink("/focus", FiTarget, "Focus")}
           {renderNavLink("/calories", FiActivity, "Calorie Tracker")}
           {renderNavLink("/timetable", FiClock, "Timetable Section")}

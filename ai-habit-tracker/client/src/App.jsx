@@ -28,6 +28,7 @@ import Calories from "./pages/Calories/Calories";
 import TimetablePage from "./pages/Timetable/TimetablePage";
 import Profile from "./pages/Profile/Profile";
 import Reports from "./pages/Reports/Reports";
+import JournalPage from "./pages/Journal/JournalPage";
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
               <Route path="/ai" element={<AIChat />} />
               <Route path="/challenge" element={<ChallengePage />} />
               <Route path="/templates" element={<HabitTemplates />} />
+              <Route path="/journal" element={<JournalPage />} />
               <Route path="/focus" element={<Pomodoro />} />
               <Route path="/calories" element={<Calories />} />
               <Route path="/timetable" element={<TimetablePage />} />
