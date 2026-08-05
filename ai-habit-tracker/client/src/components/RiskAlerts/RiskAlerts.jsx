@@ -1,5 +1,5 @@
 // client/src/components/RiskAlerts/RiskAlerts.jsx
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import api from "../../utils/api";
 import {
   FaExclamationTriangle,
@@ -147,7 +147,7 @@ function ExplainPanel({ alert }) {
    MAIN COMPONENT (Carousel)
 ───────────────────────────────────────── */
 
-export default function RiskAlerts() {
+function RiskAlerts() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dismissedIds, setDismissedIds] = useState(new Set());
@@ -451,3 +451,5 @@ export default function RiskAlerts() {
     </div>
   );
 }
+
+export default memo(RiskAlerts);

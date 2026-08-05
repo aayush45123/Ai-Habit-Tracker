@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import api from "../../utils/api";
 import {
   FaLightbulb,
@@ -13,7 +13,7 @@ import {
 } from "react-icons/fa";
 import styles from "./Recommendations.module.css";
 
-export default function Recommendations() {
+function Recommendations() {
   const [recommendations, setRecommendations] = useState([]);
   const [insights, setInsights] = useState([]);
   const [challenges, setChallenges] = useState([]);
@@ -214,3 +214,5 @@ export default function Recommendations() {
     </div>
   );
 }
+
+export default memo(Recommendations);

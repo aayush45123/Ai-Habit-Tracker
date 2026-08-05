@@ -106,6 +106,8 @@
   flex: 1;
   padding: 1.25rem 1rem;
   text-align: center;
+  /* CLS: reserve height so stat bar doesn't jump when numbers load */
+  min-height: 90px;
 }
 
 .statNum {
@@ -244,6 +246,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
+  /* CLS: reserve space so panel doesn't collapse while habits load */
+  min-height: 200px;
 }
 
 /* Empty state */
@@ -304,7 +308,6 @@
   letter-spacing: 0.3px;
 }
 
-/* AI Insights box */
 .shortAIBox {
   padding: 1.1rem;
   background-color: var(--color-bg-primary);
@@ -316,6 +319,8 @@
   color: var(--color-text-primary);
   box-shadow: 5px 5px 0px var(--color-accent-primary);
   transition: all var(--transition-speed) var(--transition-easing);
+  /* CLS: reserve space for AI text while it loads */
+  min-height: 80px;
 }
 
 .shortAIBox:hover {
@@ -328,6 +333,13 @@
 ───────────────────────────────────────── */
 .recommendationsSection {
   width: 100%;
+  /* CLS: reserve vertical space so footer doesn't jump up while loading */
+  min-height: 300px;
+}
+
+/* Risk Alerts wrapper — reserves height to prevent CLS in sidebar */
+.riskAlertsWrapper {
+  min-height: 280px;
 }
 
 /* ─────────────────────────────────────────
