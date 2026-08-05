@@ -340,6 +340,24 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
                           else handleCustomFieldChange(f.key, e.target.value);
                         }}
                       />
+                    ) : f.type === "rating" ? (
+                      <div className={styles.sliderGroup}>
+                        <input
+                          type="range"
+                          min="1"
+                          max="5"
+                          className={styles.rangeInput}
+                          value={form[f.key] !== undefined ? form[f.key] : form.customFieldsData[f.key] || 3}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            if (form[f.key] !== undefined) handleInputChange(f.key, val);
+                            else handleCustomFieldChange(f.key, val);
+                          }}
+                        />
+                        <span style={{ fontWeight: 800, minWidth: "30px" }}>
+                          {form[f.key] !== undefined ? form[f.key] : form.customFieldsData[f.key] || 3} / 5
+                        </span>
+                      </div>
                     ) : (
                       <input
                         type={f.type === "number" ? "number" : "text"}
