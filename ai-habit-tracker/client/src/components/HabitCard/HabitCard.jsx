@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Flame, Check, Circle, Trash2, Loader2 } from "lucide-react";
 import styles from "./HabitCard.module.css";
@@ -10,7 +10,7 @@ import styles from "./HabitCard.module.css";
  *  - onDelete()
  */
 
-export default function HabitCard({ habit, onToggle, onDelete }) {
+function HabitCard({ habit, onToggle, onDelete }) {
   const [isToggling, setIsToggling] = useState(false);
 
   const doneToday =
@@ -109,3 +109,5 @@ export default function HabitCard({ habit, onToggle, onDelete }) {
     </div>
   );
 }
+
+export default memo(HabitCard);

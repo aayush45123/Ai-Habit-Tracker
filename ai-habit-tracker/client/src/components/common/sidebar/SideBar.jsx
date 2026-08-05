@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import {
@@ -114,7 +114,13 @@ function Sidebar() {
           <div className={styles.footerContent}>
             <div className={styles.userAvatar}>
               {user?.profileImage ? (
-                <img src={user.profileImage} alt={user.name} className={styles.userAvatarImg} />
+                <img
+                src={user.profileImage}
+                alt={user.name}
+                className={styles.userAvatarImg}
+                width={32}
+                height={32}
+              />
               ) : user?.name ? (
                 user.name.slice(0, 2).toUpperCase()
               ) : (
@@ -134,4 +140,4 @@ function Sidebar() {
   );
 }
 
-export default Sidebar;
+export default memo(Sidebar);

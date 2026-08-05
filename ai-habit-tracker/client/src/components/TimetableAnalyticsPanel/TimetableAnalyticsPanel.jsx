@@ -1,29 +1,13 @@
-import React from "react";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
-import {
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LineElement,
-  LinearScale,
-  PointElement,
-  Tooltip,
-} from "chart.js";
+import React, { lazy, Suspense } from "react";
 import styles from "./TimetableAnalyticsPanel.module.css";
 import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
-ChartJS.register(
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  Legend,
-  LineElement,
-  LinearScale,
-  PointElement,
-  Tooltip,
-);
+// ── chart.js is HUGE — lazy-load it so Timetable page stays fast ─────────────
+const TimetableCharts = lazy(() => import("./TimetableCharts.jsx"));
+
+function ChartSkeleton() {
+  return <Skeleton height="220px" width="100%" variant="rect" />;
+}
 
 export default function TimetableAnalyticsPanel({ analytics, loading }) {
   const summary = analytics?.summary || {};
@@ -182,21 +166,9 @@ export default function TimetableAnalyticsPanel({ analytics, loading }) {
             <span className={styles.chartBadge}>7 DAYS</span>
           </div>
           <div className={styles.chartWrap}>
-            <Bar
-              data={weeklyCompletionData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: { callback: (value) => `${value}%` },
-                  },
-                },
-              }}
-            />
+            <Suspense fallback={<ChartSkeleton />}>
+              <TimetableCharts type="bar" data={weeklyCompletionData} />
+            </Suspense>
           </div>
         </article>
 
@@ -206,21 +178,9 @@ export default function TimetableAnalyticsPanel({ analytics, loading }) {
             <span className={styles.chartBadge}>TREND</span>
           </div>
           <div className={styles.chartWrap}>
-            <Line
-              data={eightWeekTrendData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: { callback: (value) => `${value}%` },
-                  },
-                },
-              }}
-            />
+            <Suspense fallback={<ChartSkeleton />}>
+              <TimetableCharts type="line" data={eightWeekTrendData} />
+            </Suspense>
           </div>
         </article>
 
@@ -230,14 +190,9 @@ export default function TimetableAnalyticsPanel({ analytics, loading }) {
             <span className={styles.chartBadge}>PLAN</span>
           </div>
           <div className={styles.chartWrap}>
-            <Doughnut
-              data={focusDistributionData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: "bottom" } },
-              }}
-            />
+            <Suspense fallback={<ChartSkeleton />}>
+              <TimetableCharts type="doughnut" data={focusDistributionData} />
+            </Suspense>
           </div>
         </article>
       </div>

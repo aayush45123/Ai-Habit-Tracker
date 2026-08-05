@@ -1,30 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import api from "../../utils/api.js";
 import styles from "./AnalyticsPage.module.css";
 import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
-import { Line, Pie } from "react-chartjs-2";
+// ── chart.js is HUGE — only download it when Analytics is actually visited ───
+const AnalyticsCharts = lazy(() => import("./AnalyticsCharts.jsx"));
 
-import {
-  Chart as ChartJS,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-ChartJS.register(
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-);
+// Thin inline skeleton used while chart.js bundle downloads
+function ChartSkeleton() {
+  return <Skeleton height="100%" width="100%" variant="rect" style={{ flex: 1 }} />;
+}
 
 export default function AnalyticsPage() {
   const [weekly, setWeekly] = useState({});
@@ -204,27 +189,13 @@ export default function AnalyticsPage() {
           </div>
 
           <div className={styles.chartWrapper}>
-            <Line
-              data={{
-                labels: weeklyLabels,
-                datasets: [
-                  {
-                    label: "Completed",
-                    data: weeklyValues,
-                    borderColor: "#8b5cf6",
-                    backgroundColor: "rgba(139, 92, 246, 0.1)",
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 5,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-              }}
-            />
+            <Suspense fallback={<ChartSkeleton />}>
+              <AnalyticsCharts
+                type="line"
+                labels={weeklyLabels}
+                values={weeklyValues}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -236,7 +207,9 @@ export default function AnalyticsPage() {
           </div>
 
           <div className={styles.chartWrapper}>
-            <Pie data={pieData} options={pieOptions} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <AnalyticsCharts type="pie" pieData={pieData} pieOptions={pieOptions} />
+            </Suspense>
           </div>
         </div>
 
