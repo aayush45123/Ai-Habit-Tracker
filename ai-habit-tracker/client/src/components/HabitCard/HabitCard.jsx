@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Flame, Check, Circle, Trash2 } from "lucide-react";
+import { Flame, Check, Circle, Trash2, Loader2 } from "lucide-react";
 import styles from "./HabitCard.module.css";
 
 /**
@@ -11,6 +11,8 @@ import styles from "./HabitCard.module.css";
  */
 
 export default function HabitCard({ habit, onToggle, onDelete }) {
+  const [isToggling, setIsToggling] = useState(false);
+
   const doneToday =
     habit.lastDate === new Date().toISOString().split("T")[0] &&
     habit.lastStatus === "done";
@@ -19,6 +21,20 @@ export default function HabitCard({ habit, onToggle, onDelete }) {
     if (!habit.frequency) return "Daily";
     return habit.frequency.charAt(0).toUpperCase() + habit.frequency.slice(1);
   }, [habit.frequency]);
+
+  async function handleToggleClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isToggling) return;
+    try {
+      setIsToggling(true);
+      if (onToggle) {
+        await onToggle(!doneToday);
+      }
+    } finally {
+      setIsToggling(false);
+    }
+  }
 
   function handleDelete(e) {
     e.preventDefault();
@@ -55,11 +71,14 @@ export default function HabitCard({ habit, onToggle, onDelete }) {
       {/* RIGHT */}
       <div className={styles.hcRight}>
         <button
-          className={`${styles.toggle} ${doneToday ? styles.on : ""}`}
-          onClick={() => onToggle(!doneToday)}
+          className={`${styles.toggle} ${doneToday ? styles.on : ""} ${isToggling ? styles.loading : ""}`}
+          onClick={handleToggleClick}
+          disabled={isToggling}
           title={doneToday ? "Mark as missed" : "Mark as done"}
         >
-          {doneToday ? (
+          {isToggling ? (
+            <Loader2 size={16} className={styles.spin} />
+          ) : doneToday ? (
             <>
               <Check size={16} strokeWidth={3} />
               <span>Done</span>

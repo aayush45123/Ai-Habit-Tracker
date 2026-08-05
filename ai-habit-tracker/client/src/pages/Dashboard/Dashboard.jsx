@@ -30,20 +30,20 @@ export default function Dashboard() {
   // Socket
   const { subscribe, isConnected } = useSocket();
 
-  const fetchHabits = useCallback(async () => {
+  const fetchHabits = useCallback(async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) setLoading(true);
       const res = await api.get("/habits/all");
       setHabits(res.data?.habits || []);
     } catch (err) {
       setError("Failed to fetch habits");
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchHabits();
+    fetchHabits(true);
     fetchAnalytics();
     fetchAIInsights();
   }, [fetchHabits]);
@@ -52,10 +52,9 @@ export default function Dashboard() {
   useEffect(() => {
     const unsubscribe = subscribe("dashboard:update", (data) => {
       console.log("⚡ dashboard:update received:", data);
-      // Refresh habits list when any habit change event arrives
-      fetchHabits();
+      // Perform silent refresh of habits list without triggering full component reload
+      fetchHabits(false);
       if (data?.type !== "habit:logged") {
-        // Only refresh analytics for add/delete (not every log click)
         fetchAnalytics();
       }
     });
@@ -88,30 +87,81 @@ export default function Dashboard() {
   }
 
   async function toggleHabitDone(habitId, done) {
+    const todayISO = formatDateISO(new Date());
+    const newStatus = done ? "done" : "missed";
+    let previousHabits;
+
+    // Optimistically update the specific habit in state immediately
+    setHabits((prev) => {
+      previousHabits = prev;
+      return prev.map((h) => {
+        if (h._id !== habitId) return h;
+
+        let newStreak = h.streak || 0;
+        if (done) {
+          if (h.lastStatus !== "done" || h.lastDate !== todayISO) {
+            newStreak += 1;
+          }
+        } else {
+          newStreak = Math.max(0, newStreak - 1);
+        }
+
+        return {
+          ...h,
+          lastDate: todayISO,
+          lastStatus: newStatus,
+          streak: newStreak,
+          longestStreak: Math.max(h.longestStreak || 0, newStreak),
+        };
+      });
+    });
+
     try {
       const payload = {
-        date: formatDateISO(new Date()),
-        status: done ? "done" : "missed",
+        date: todayISO,
+        status: newStatus,
       };
-      await api.post(`/habits/${habitId}/log`, payload);
-      await fetchHabits();
-      await fetchAnalytics();
-      await fetchAIInsights();
+      const res = await api.post(`/habits/${habitId}/log`, payload);
+
+      // Reconcile with exact server streak counts if returned
+      if (res.data && typeof res.data.currentStreak === "number") {
+        setHabits((prev) =>
+          prev.map((h) => {
+            if (h._id !== habitId) return h;
+            return {
+              ...h,
+              streak: res.data.currentStreak,
+              longestStreak: res.data.longestStreak ?? h.longestStreak,
+            };
+          })
+        );
+      }
+
+      // Refresh analytics in background silently
+      fetchAnalytics();
     } catch (err) {
       console.error("Toggle failed", err);
+      // Revert if request failed
+      if (previousHabits) {
+        setHabits(previousHabits);
+      }
     }
   }
 
   async function deleteHabit(habitId) {
+    let previousHabits;
+    setHabits((prev) => {
+      previousHabits = prev;
+      return prev.filter((h) => h._id !== habitId);
+    });
+
     try {
       await api.delete(`/habits/${habitId}`);
-
-      // Refresh dashboard after deletion
-      await fetchHabits();
-      await fetchAnalytics();
-      await fetchAIInsights();
+      fetchAnalytics();
+      fetchAIInsights();
     } catch (err) {
       console.error("Delete failed", err);
+      if (previousHabits) setHabits(previousHabits);
       alert(err.response?.data?.message || "Failed to delete habit");
     }
   }
