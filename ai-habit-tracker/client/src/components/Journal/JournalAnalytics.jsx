@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
-import { FiTrendingUp, FiCpu, FiCheckCircle, FiActivity, FiZap, FiTarget } from "react-icons/fi";
+import { FiTrendingUp, FiCpu, FiCheckCircle, FiActivity, FiZap, FiTarget, FiBook, FiDroplet, FiSmile } from "react-icons/fi";
 
 export default function JournalAnalytics() {
   const [data, setData] = useState(null);
@@ -30,7 +30,7 @@ export default function JournalAnalytics() {
   if (!data || data.summary.totalEntries === 0) {
     return (
       <div className={styles.formCard} style={{ textAlign: "center" }}>
-        <h2>🧠 Journal Intelligence Engine</h2>
+        <h2 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}><FiCpu /> Journal Intelligence Engine</h2>
         <p className={styles.subtitle}>Log a few daily entries to unlock correlations between your sleep, workouts, study hours, and habits!</p>
       </div>
     );
@@ -88,11 +88,11 @@ export default function JournalAnalytics() {
         )}
       </div>
 
-      {/* ⚡ Performance Breakdown Grid */}
+      {/* Performance Breakdown Grid */}
       <div className={styles.sectionGrid}>
         {/* Productivity Analytics */}
         <div className={styles.statCard}>
-          <h3 style={{ margin: 0, textTransform: "uppercase" }}>⚡ Productivity</h3>
+          <h3 style={{ margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "0.4rem" }}><FiZap size={16} /> Productivity</h3>
           <div style={{ fontSize: "1.75rem", fontWeight: 800 }}>{productivity.avgHours} hrs/day</div>
           <div style={{ fontSize: "0.9rem" }}>
             Peak Focus Day: <strong>{productivity.mostProductiveDay}</strong>
@@ -104,7 +104,7 @@ export default function JournalAnalytics() {
 
         {/* Learning Analytics */}
         <div className={styles.statCard}>
-          <h3 style={{ margin: 0, textTransform: "uppercase" }}>📚 Learning & Study</h3>
+          <h3 style={{ margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "0.4rem" }}><FiBook size={16} /> Learning & Study</h3>
           <div style={{ fontSize: "1.75rem", fontWeight: 800 }}>{learning.totalHours} Total Hours</div>
           <div style={{ fontSize: "0.9rem" }}>
             Active Learning Days: <strong>{learning.activeDays} days</strong>
@@ -116,7 +116,7 @@ export default function JournalAnalytics() {
 
         {/* Wellness & Fitness */}
         <div className={styles.statCard}>
-          <h3 style={{ margin: 0, textTransform: "uppercase" }}>💧 Fitness & Hydration</h3>
+          <h3 style={{ margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "0.4rem" }}><FiDroplet size={16} /> Fitness & Hydration</h3>
           <div style={{ fontSize: "1.75rem", fontWeight: 800 }}>{fitness.avgWater} L / day</div>
           <div style={{ fontSize: "0.9rem" }}>
             Avg Calories Burned: <strong>{fitness.avgCalories} kcal</strong>
@@ -128,7 +128,7 @@ export default function JournalAnalytics() {
 
         {/* Mood Distribution */}
         <div className={styles.statCard}>
-          <h3 style={{ margin: 0, textTransform: "uppercase" }}>🙂 Mood & Stress</h3>
+          <h3 style={{ margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "0.4rem" }}><FiSmile size={16} /> Mood & Stress</h3>
           <div style={{ fontSize: "1.75rem", fontWeight: 800 }}>{mood.averageScore} / 5 Avg Mood</div>
           <div style={{ fontSize: "0.9rem" }}>
             High Stress Days: <strong>{mood.stressFrequency} days</strong>

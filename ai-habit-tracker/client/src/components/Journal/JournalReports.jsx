@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
-import { FiFileText, FiAward, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
+import { FiFileText, FiAward, FiAlertCircle, FiCheckCircle, FiCalendar, FiTrendingUp } from "react-icons/fi";
 
 export default function JournalReports() {
   const [weekly, setWeekly] = useState(null);
@@ -43,13 +43,13 @@ export default function JournalReports() {
           className={`${styles.tabBtn} ${activeReport === "weekly" ? styles.tabActive : ""}`}
           onClick={() => setActiveReport("weekly")}
         >
-          📅 Weekly Performance Report
+          <FiCalendar size={15} /> Weekly Performance Report
         </button>
         <button
           className={`${styles.tabBtn} ${activeReport === "monthly" ? styles.tabActive : ""}`}
           onClick={() => setActiveReport("monthly")}
         >
-          📆 Monthly Growth Summary
+          <FiTrendingUp size={15} /> Monthly Growth Summary
         </button>
       </div>
 
