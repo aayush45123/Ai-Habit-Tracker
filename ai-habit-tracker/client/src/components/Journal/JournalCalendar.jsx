@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
-import { FiChevronLeft, FiChevronRight, FiCalendar } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiCalendar, FiSmile, FiMeh, FiThumbsUp, FiThumbsDown, FiAlertCircle, FiFileText, FiZap } from "react-icons/fi";
 
-const MOOD_EMOJIS = {
-  great: "😄",
-  good: "🙂",
-  neutral: "😐",
-  bad: "🙁",
-  terrible: "😫",
+const MOOD_ICONS = {
+  great: <FiThumbsUp size={14} color="#10b981" />,
+  good: <FiSmile size={14} color="#3b82f6" />,
+  neutral: <FiMeh size={14} color="#f59e0b" />,
+  bad: <FiThumbsDown size={14} color="#ef4444" />,
+  terrible: <FiAlertCircle size={14} color="#991b1b" />,
 };
 
 export default function JournalCalendar({ onSelectDate }) {
@@ -131,7 +131,7 @@ export default function JournalCalendar({ onSelectDate }) {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontWeight: 800, fontSize: "0.9rem" }}>{cell.day}</span>
-                    {entry && <span style={{ fontSize: "1.2rem" }}>{MOOD_EMOJIS[entry.mood] || "📝"}</span>}
+                    {entry && <span style={{ fontSize: "1rem", display: "flex", alignItems: "center" }}>{MOOD_ICONS[entry.mood] || <FiFileText size={14} />}</span>}
                   </div>
 
                   {entry ? (
@@ -139,7 +139,7 @@ export default function JournalCalendar({ onSelectDate }) {
                       <span style={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {entry.title || "Logged"}
                       </span>
-                      <span>⚡ {entry.productivityHours}h prod</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "2px" }}><FiZap size={10} /> {entry.productivityHours}h prod</span>
                     </div>
                   ) : (
                     <span style={{ fontSize: "0.7rem", color: "var(--color-text-secondary)" }}>+ Add</span>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
-import { FiSearch, FiTrash2, FiDownload, FiEdit3, FiSmile, FiZap, FiBookOpen } from "react-icons/fi";
+import { FiSearch, FiTrash2, FiDownload, FiEdit3, FiZap, FiBook, FiMoon, FiDroplet, FiAward, FiBookOpen, FiActivity } from "react-icons/fi";
 
 export default function JournalFeed({ onSelectEdit }) {
   const [entries, setEntries] = useState([]);
@@ -147,13 +147,13 @@ ${e.lessonsLearned ? `**Lessons Learned:** ${e.lessonsLearned}\n` : ""}
               </div>
 
               {/* Metrics Summary Strip */}
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.85rem", fontWeight: 700 }}>
-                <span>⚡ Productivity: {e.productivityHours || 0}h</span>
-                <span>📚 Study: {e.learningHours || 0}h</span>
-                <span>😴 Sleep: {e.sleepHours || 0}h</span>
-                <span>💧 Water: {e.waterIntake || 0}L</span>
-                {e.weight > 0 && <span>⚖️ Weight: {e.weight}kg</span>}
-                {e.steps > 0 && <span>👟 Steps: {e.steps}</span>}
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.85rem", fontWeight: 700, alignItems: "center" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiZap size={13} /> Productivity: {e.productivityHours || 0}h</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiBook size={13} /> Study: {e.learningHours || 0}h</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiMoon size={13} /> Sleep: {e.sleepHours || 0}h</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiDroplet size={13} /> Water: {e.waterIntake || 0}L</span>
+                {e.weight > 0 && <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiActivity size={13} /> Weight: {e.weight}kg</span>}
+                {e.steps > 0 && <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiActivity size={13} /> Steps: {e.steps}</span>}
               </div>
 
               {/* Text content preview */}
@@ -167,22 +167,22 @@ ${e.lessonsLearned ? `**Lessons Learned:** ${e.lessonsLearned}\n` : ""}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem", fontSize: "0.85rem" }}>
                 {e.biggestAchievement && (
                   <div>
-                    <strong>🏆 Achievement:</strong> {e.biggestAchievement}
+                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiAward size={13} /> Achievement:</strong> {e.biggestAchievement}
                   </div>
                 )}
                 {e.learningLog && (
                   <div>
-                    <strong>💡 Learning:</strong> {e.learningLog}
+                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiBook size={13} /> Learning:</strong> {e.learningLog}
                   </div>
                 )}
                 {e.workoutSummary && (
                   <div>
-                    <strong>🏋️ Workout:</strong> {e.workoutSummary}
+                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiActivity size={13} /> Workout:</strong> {e.workoutSummary}
                   </div>
                 )}
                 {e.lessonsLearned && (
                   <div>
-                    <strong>📖 Lesson:</strong> {e.lessonsLearned}
+                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiBookOpen size={13} /> Lesson:</strong> {e.lessonsLearned}
                   </div>
                 )}
               </div>

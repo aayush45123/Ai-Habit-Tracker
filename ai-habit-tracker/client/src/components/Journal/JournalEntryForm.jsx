@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
-import { FiCheck, FiSave, FiCalendar, FiSmile, FiZap, FiTarget } from "react-icons/fi";
+import { FiCheck, FiSave, FiCalendar, FiSmile, FiZap, FiTarget, FiThumbsUp, FiMeh, FiThumbsDown, FiAlertCircle, FiStar } from "react-icons/fi";
 
 const MOODS = [
-  { id: "great", label: "😄 Great", score: 5 },
-  { id: "good", label: "🙂 Good", score: 4 },
-  { id: "neutral", label: "😐 Neutral", score: 3 },
-  { id: "bad", label: "🙁 Bad", score: 2 },
-  { id: "terrible", label: "😫 Terrible", score: 1 },
+  { id: "great", label: "Great", score: 5 },
+  { id: "good", label: "Good", score: 4 },
+  { id: "neutral", label: "Neutral", score: 3 },
+  { id: "bad", label: "Bad", score: 2 },
+  { id: "terrible", label: "Terrible", score: 1 },
 ];
 
 export default function JournalEntryForm({ initialDate, onSaved }) {
@@ -137,11 +137,11 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
       };
 
       await api.post("/journal/entries", payload);
-      setMessage("✓ Journal entry saved successfully!");
+      setMessage("Journal entry saved successfully!");
       if (onSaved) onSaved();
     } catch (err) {
       console.error("Failed to save entry:", err);
-      setMessage("❌ Failed to save entry.");
+      setMessage("Failed to save entry. Please try again.");
     } finally {
       setSaving(false);
     }

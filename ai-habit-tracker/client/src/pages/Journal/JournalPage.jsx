@@ -17,6 +17,8 @@ import {
   FiSliders,
   FiZap,
   FiAward,
+  FiActivity,
+  FiStar,
 } from "react-icons/fi";
 
 export default function JournalPage() {
@@ -69,17 +71,17 @@ export default function JournalPage() {
         </div>
 
         <div className={styles.statCard}>
-          <span className={styles.statValue}>🔥 {summary.currentStreak} Days</span>
+          <span className={styles.statValue} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><FiActivity size={18} /> {summary.currentStreak} Days</span>
           <span className={styles.statLabel}>Journaling Streak</span>
         </div>
 
         <div className={styles.statCard}>
-          <span className={styles.statValue}>⭐ {summary.avgMoodScore} / 5</span>
+          <span className={styles.statValue} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><FiStar size={18} /> {summary.avgMoodScore} / 5</span>
           <span className={styles.statLabel}>Avg Mood Score</span>
         </div>
 
         <div className={styles.statCard}>
-          <span className={styles.statValue}>⚡ {summary.avgProductivity} h</span>
+          <span className={styles.statValue} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><FiZap size={18} /> {summary.avgProductivity} h</span>
           <span className={styles.statLabel}>Avg Daily Productivity</span>
         </div>
       </div>
