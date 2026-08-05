@@ -25,6 +25,8 @@ import reportRoutes from "./routes/reportRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 
+import journalRoutes from "./routes/journalRoutes.js";
+
 // Import streak reset function
 import { scheduleDailyReminderCron, scheduleWeeklySummaryCron } from "./cron/emailReminder.cron.js";
 import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
@@ -102,6 +104,7 @@ app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/journal", journalRoutes);
 
 /* =======================
    AUTOMATIC STREAK RESET - DAILY CRON JOB
