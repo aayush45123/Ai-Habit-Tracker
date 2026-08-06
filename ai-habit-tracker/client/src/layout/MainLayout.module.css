@@ -47,23 +47,10 @@
    RESPONSIVE DESIGN
 --------------------------*/
 
-@media (max-width: 1024px) {
-  .mainSection {
-    margin-left: 240px;
-  }
-
-  .pageBody {
-    padding: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .layoutContainer {
-    flex-direction: column;
-  }
-
+@media (max-width: 1023px) {
   .mainSection {
     margin-left: 0;
+    width: 100%;
   }
 
   .mainSection::before {
@@ -71,12 +58,21 @@
   }
 
   .pageBody {
-    padding: 1rem;
+    padding: 1.25rem 1rem;
+    padding-top: max(4rem, env(safe-area-inset-top)); /* Space for hamburger button */
   }
 }
 
 @media (max-width: 480px) {
   .pageBody {
-    padding: 0.75rem;
+    padding: 0.75rem 0.5rem;
+    padding-top: 4.25rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .pageBody {
+    padding: 0.5rem 0.35rem;
+    padding-top: 4rem;
   }
 }

@@ -1663,3 +1663,27 @@
     padding: 1.25rem 1.5rem;
   }
 }
+
+/* Extra Small Mobile (max 360px) */
+@media (max-width: 360px) {
+  .root {
+    padding: 0.5rem;
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .progressGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  .startNewBtn,
+  .submitBtn,
+  .cancelBtn {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    width: 100%;
+  }
+}

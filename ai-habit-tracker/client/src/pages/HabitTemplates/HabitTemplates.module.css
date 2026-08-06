@@ -702,6 +702,26 @@
   }
 }
 
+@media (max-width: 360px) {
+  .root {
+    padding: 0.5rem;
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .categoryButton {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .addBtn {
+    font-size: 0.8rem;
+    padding: 0.65rem 1rem;
+  }
+}
+
 /* ======================================================
    HabitTemplates Skeleton Styles
    ====================================================== */

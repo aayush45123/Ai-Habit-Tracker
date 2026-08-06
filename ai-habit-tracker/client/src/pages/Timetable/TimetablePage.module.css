@@ -565,7 +565,7 @@
 
 @media (max-width: 768px) {
   .root {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
   }
 
   .title {
@@ -574,13 +574,17 @@
 
   .headerActions {
     flex-wrap: wrap;
+    width: 100%;
   }
 
   .aiBtn,
   .editBtn,
-  .createBtn {
-    padding: 0.65rem 1rem;
-    font-size: 0.85rem;
+  .createBtn,
+  .deleteBtn {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 0.65rem 0.875rem;
+    font-size: 0.8rem;
   }
 
   .infoDetails {
@@ -588,11 +592,68 @@
   }
 
   .emptyState {
-    padding: 3rem 1.5rem;
+    padding: 2.5rem 1rem;
   }
 
   .emptyTitle {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .root {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .headerIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .headerIcon .icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .aiCTA {
+    padding: 1.25rem 0.875rem;
+  }
+
+  .ctaTitle {
+    font-size: 1.1rem;
+  }
+
+  .ctaButton,
+  .emptyButton {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .headerContent {
+    gap: 0.5rem;
+  }
+
+  .aiBtn,
+  .editBtn,
+  .createBtn {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.65rem;
   }
 }
 

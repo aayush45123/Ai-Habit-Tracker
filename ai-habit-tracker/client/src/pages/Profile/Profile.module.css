@@ -374,3 +374,52 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+@media (max-width: 768px) {
+  .profileContainer {
+    padding: 1rem 0.5rem;
+  }
+
+  .profileCard {
+    padding: 1.5rem 1rem;
+    box-shadow: 6px 6px 0 0 var(--color-border);
+  }
+
+  .readOnlyGrid,
+  .inputsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profileContainer {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .profileCard {
+    padding: 1.25rem 0.75rem;
+    box-shadow: 4px 4px 0 0 var(--color-border);
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .saveBtn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    box-shadow: 4px 4px 0 0 var(--color-border);
+  }
+}
+
+@media (max-width: 360px) {
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .saveBtn {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.8rem;
+  }
+}

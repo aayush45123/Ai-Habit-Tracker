@@ -413,20 +413,20 @@
 
 @media (max-width: 480px) {
   .root {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .subtitle {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
   }
 
   .chartCard,
   .calendarCard {
-    padding: 1rem;
+    padding: 0.75rem 0.5rem;
     box-shadow: 4px 4px 0 var(--color-border);
   }
 
@@ -436,58 +436,56 @@
   }
 
   .chartTitle {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .badge {
-    padding: 0.25rem 0.625rem;
-    font-size: 0.625rem;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.6rem;
   }
 
   .chartWrapper {
-    height: 250px;
+    height: 220px;
   }
 
   .leadRow {
-    padding: 0.75rem;
-    gap: 0.75rem;
+    padding: 0.5rem;
+    gap: 0.5rem;
     box-shadow: 2px 2px 0 var(--color-border);
   }
 
-  .leadRow:hover {
-    box-shadow: 3px 3px 0 var(--color-border);
-  }
-
   .leadRank {
-    width: 28px;
-    height: 28px;
-    font-size: 0.75rem;
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
   }
 
   .leadName {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
 
   .leadPercent {
-    font-size: 0.9375rem;
-    min-width: 50px;
+    font-size: 0.875rem;
+    min-width: 45px;
   }
 
   .calendarWeek {
-    gap: 2px;
+    gap: 1px;
   }
 
   .calendarDayHeaders {
-    gap: 2px;
+    gap: 1px;
   }
 
   .dayHeader {
-    font-size: 0.5625rem;
-    padding: 0.25rem 0;
+    font-size: 0.5rem;
+    padding: 0.15rem 0;
   }
 
   .calendarCell {
     box-shadow: 1px 1px 0 var(--color-border);
+    padding: 0.1rem;
+    min-height: 28px;
   }
 
   .calendarCell:not(.emptyCell):hover {
@@ -495,38 +493,60 @@
   }
 
   .calendarDate {
-    font-size: 0.625rem;
+    font-size: 0.55rem;
   }
 
   .checkMark {
-    font-size: 1rem;
+    font-size: 0.85rem;
   }
 
   .crossMark {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 
   .emptyCircle,
   .futureCircle {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   .highlight {
-    padding: 1rem;
+    padding: 0.875rem;
     box-shadow: 3px 3px 0 var(--color-border);
   }
 
   .highlightIcon {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .highlightText {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
   }
 
   .highlightValue {
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .root {
+    padding: 0.35rem;
+  }
+
+  .chartWrapper {
+    height: 190px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .dayHeader {
+    font-size: 0.45rem;
+  }
+
+  .calendarDate {
+    font-size: 0.5rem;
   }
 }
 
