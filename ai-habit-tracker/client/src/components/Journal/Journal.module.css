@@ -303,3 +303,65 @@
   flex-direction: column;
   gap: 1.5rem;
 }
+
+@media (max-width: 768px) {
+  .journalContainer {
+    padding: 1rem 0.5rem;
+  }
+
+  .titleArea h1 {
+    font-size: 1.75rem;
+  }
+
+  .formCard,
+  .reportCard {
+    padding: 1.25rem 1rem;
+    box-shadow: 4px 4px 0px var(--color-border, #000);
+  }
+
+  .sectionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .submitBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .titleArea h1 {
+    font-size: 1.4rem;
+  }
+
+  .tabBtn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .moodPicker {
+    gap: 0.35rem;
+  }
+
+  .moodBtn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .journalContainer {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .titleArea h1 {
+    font-size: 1.2rem;
+  }
+
+  .formCard,
+  .reportCard,
+  .feedCard {
+    padding: 0.85rem 0.5rem;
+  }
+}

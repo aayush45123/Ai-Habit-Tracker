@@ -165,7 +165,7 @@
 }
 
 .time {
-  font-size: 6rem;
+  font-size: clamp(2.5rem, 14vw, 6rem);
   font-weight: 900;
   color: var(--color-text-primary);
   font-family: var(--font-primary);
@@ -326,12 +326,8 @@
   }
 
   .card {
-    padding: 2rem 1.5rem;
+    padding: 2rem 1.25rem;
     box-shadow: 8px 8px 0px var(--color-accent-primary);
-  }
-
-  .time {
-    font-size: 4rem;
   }
 
   .actions {
@@ -342,5 +338,63 @@
   .secondary,
   .ghost {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .root {
+    padding: 0.5rem;
+  }
+
+  .header {
+    padding: 1rem;
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .typeBtn {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+    flex: 1 1 auto;
+  }
+
+  .stat {
+    padding: 0.75rem;
+    min-width: 90px;
+    flex: 1;
+  }
+
+  .count {
+    font-size: 1.75rem;
+  }
+
+  .card {
+    padding: 1.25rem 0.75rem;
+    box-shadow: 6px 6px 0px var(--color-accent-primary);
+  }
+}
+
+@media (max-width: 360px) {
+  .root {
+    padding: 0.35rem;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .typeBtn {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .primary,
+  .secondary,
+  .ghost {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
   }
 }

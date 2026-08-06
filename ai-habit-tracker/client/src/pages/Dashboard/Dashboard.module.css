@@ -490,34 +490,71 @@
 
 @media (max-width: 480px) {
   .dashRoot {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .headerTitle {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+  }
+
+  .headerSub {
+    font-size: 0.85rem;
   }
 
   .statCard {
     flex: 0 0 50%;
+    padding: 0.75rem 0.5rem;
+    min-height: 75px;
   }
 
   .statNum {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
+  }
+
+  .statLabel {
+    font-size: 0.6875rem;
   }
 
   .panel {
-    padding: 1rem;
+    padding: 0.875rem;
     box-shadow: 4px 4px 0px var(--color-accent-primary);
   }
 
   .panelTitle {
-    font-size: 1rem;
+    font-size: 0.9375rem;
   }
 
   .floatingAI {
-    bottom: 1rem;
+    bottom: max(1rem, env(safe-area-inset-bottom));
     right: 1rem;
     width: 48px;
     height: 48px;
+  }
+}
+
+@media (max-width: 360px) {
+  .dashRoot {
+    padding: 0.35rem;
+  }
+
+  .statCard {
+    flex: 0 0 100%;
+    border-right: none !important;
+  }
+
+  .headerTitle {
+    font-size: 1.3rem;
+  }
+
+  .ctaBtn {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .floatingAI {
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    right: 0.75rem;
+    width: 44px;
+    height: 44px;
   }
 }

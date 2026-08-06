@@ -1,9 +1,9 @@
 /* Hamburger Menu Button - Mobile Only */
 .hamburger {
   position: fixed;
-  top: 1rem;
+  top: max(1rem, env(safe-area-inset-top));
   right: 1rem;
-  z-index: 50;
+  z-index: 999;
   background-color: var(--color-bg-primary);
   border: 2px solid var(--color-border);
   padding: 0.75rem;
@@ -11,10 +11,12 @@
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
   display: none;
+  border-radius: 0;
 }
 
 .hamburger:hover {
   box-shadow: 5px 5px 0px var(--color-border);
+  background-color: var(--color-bg-secondary);
 }
 
 .hamburger:active {
@@ -26,15 +28,18 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 30;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 990;
   display: none;
+  backdrop-filter: blur(2px);
 }
 
 /* Sidebar Container */
 .sidebar {
   width: 280px;
+  max-width: 85vw;
   height: 100vh;
+  height: 100dvh;
   background-color: var(--color-bg-primary);
   border-right: 2px solid var(--color-border);
   display: flex;
@@ -44,8 +49,10 @@
   top: 0;
   overflow-y: auto;
   box-shadow: 8px 0px 0px var(--color-border);
-  z-index: 40;
-  transition: transform 0.3s ease-in-out;
+  z-index: 995;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Header Section */
@@ -227,12 +234,18 @@
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0 0 0.125rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .userStatus {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Scrollbar Styling */
@@ -257,7 +270,9 @@
 @media (max-width: 1023px) {
   /* Show hamburger button on mobile */
   .hamburger {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Show overlay when sidebar is open */
@@ -278,7 +293,7 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 260px;
+    width: min(260px, 85vw);
   }
 
   .header {
@@ -297,7 +312,7 @@
 
 @media (max-width: 480px) {
   .sidebar {
-    width: 240px;
+    width: min(240px, 82vw);
   }
 
   .header {
@@ -314,6 +329,23 @@
   }
 }
 
+@media (max-width: 360px) {
+  .sidebar {
+    width: 80vw;
+  }
+
+  .navLink {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.775rem;
+  }
+
+  .hamburger {
+    padding: 0.5rem;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
 /* Ensure sidebar is always visible on large screens */
 @media (min-width: 1024px) {
   .sidebar {
@@ -321,7 +353,7 @@
   }
 
   .hamburger {
-    display: none;
+    display: none !important;
   }
 
   .overlay {

@@ -668,28 +668,58 @@
 
 @media (max-width: 480px) {
   .heroTitle {
-    font-size: 2rem;
+    font-size: 1.85rem;
   }
 
   .sectionTitle {
-    font-size: 2rem;
+    font-size: 1.6rem;
   }
 
   .ctaTitle {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .navButtons {
-    gap: 0.5rem;
+    gap: 0.35rem;
   }
 
   .loginBtn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
   }
 
   .signupBtn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary,
+  .ctaPrimaryLarge {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero {
+    padding: 2.5rem 0.75rem 2rem;
+  }
+
+  .heroTitle {
+    font-size: 1.5rem;
+  }
+
+  .navContent {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .logo {
+    font-size: 1.15rem;
+  }
+
+  .featureCard,
+  .stepCard {
+    padding: 1.25rem 0.875rem;
   }
 }
