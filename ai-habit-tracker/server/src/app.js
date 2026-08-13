@@ -152,6 +152,14 @@ app.get("/", (req, res) => {
   res.status(200).send("AI Habit Tracker Backend Running");
 });
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "AI Habit Tracker",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 /* =======================
    ERROR HANDLER
 ======================= */
