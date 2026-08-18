@@ -29,13 +29,15 @@ async function getTransporter() {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      // Force IPv4 — Render resolves smtp.gmail.com to IPv6 which is unreachable
+      family: 4,
       // Fail fast — don't hang for 90 seconds
-      connectionTimeout: 10000,   // 10 seconds to connect
-      greetingTimeout: 10000,     // 10 seconds for SMTP greeting
-      socketTimeout: 15000,       // 15 seconds for socket inactivity
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
       tls: { rejectUnauthorized: false },
     });
-    console.log("Email transporter: SMTP configured");
+    console.log("Email transporter: SMTP configured (IPv4 forced)");
   } else {
     // Ethereal test account – emails are not delivered, only previewed
     const testAccount = await nodemailer.createTestAccount();
