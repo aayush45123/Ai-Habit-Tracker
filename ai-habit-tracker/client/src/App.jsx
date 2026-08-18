@@ -11,6 +11,7 @@ import PageLoader from "./components/common/PageLoader/PageLoader";
 import Landing from "./pages/Landing/Landing";
 import Login from "./pages/Auth/Login/Login";
 import Signup from "./pages/Auth/Signup/Signup";
+import VerifyEmail from "./pages/Auth/VerifyEmail/VerifyEmail";
 
 // ─── Lazy (all authenticated / heavy pages) ─────────────────────────────────
 const Dashboard      = lazy(() => import("./pages/Dashboard/Dashboard"));
@@ -66,6 +67,14 @@ function App() {
             element={
               <PublicRoute>
                 <Signup />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/verify-email"
+            element={
+              <PublicRoute>
+                <VerifyEmail />
               </PublicRoute>
             }
           />

@@ -3,7 +3,7 @@ import api from "../../../utils/api";
 import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.jsx";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 
 function Login() {
   const navigate = useNavigate();
@@ -16,6 +16,10 @@ function Login() {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [requireVerification, setRequireVerification] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,6 +28,8 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setRequireVerification(false);
+    setResendSuccess("");
     setIsLoading(true);
 
     try {
@@ -31,12 +37,35 @@ function Login() {
 
       if (res.status === 200) {
         login(res.data.token);
-        navigate("/dashboard"); // Changed from "/" to "/dashboard"
+        navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      const data = err.response?.data;
+      if (err.response?.status === 403 && data?.requireVerification) {
+        setRequireVerification(true);
+        setUnverifiedEmail(data.email || form.email);
+        setError(data.message || "Please verify your email before logging in.");
+      } else {
+        setError(data?.message || "Login failed");
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!unverifiedEmail) return;
+    setResendLoading(true);
+    setResendSuccess("");
+    setError("");
+
+    try {
+      const res = await api.post("/auth/resend-verification", { email: unverifiedEmail });
+      setResendSuccess(res.data?.message || "Verification email sent! Check your inbox.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to resend verification email.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -52,8 +81,63 @@ function Login() {
 
         {error && (
           <div className={styles.errorBox}>
-            <span className={styles.errorIcon}>!</span>
+            <AlertCircle size={16} className={styles.errorIcon} />
             <p className={styles.errorText}>{error}</p>
+          </div>
+        )}
+
+        {resendSuccess && (
+          <div
+            style={{
+              padding: "0.75rem 1rem",
+              border: "2px solid var(--color-border)",
+              backgroundColor: "#e6ffed",
+              color: "#22863a",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              marginBottom: "1rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <CheckCircle2 size={16} />
+            <span>{resendSuccess}</span>
+          </div>
+        )}
+
+        {requireVerification && (
+          <div
+            style={{
+              padding: "1rem",
+              border: "2px solid var(--color-border)",
+              backgroundColor: "var(--color-bg-primary)",
+              marginBottom: "1.25rem",
+              boxShadow: "4px 4px 0 0 var(--color-border)",
+              textAlign: "left",
+            }}
+          >
+            <p style={{ fontSize: "0.85rem", fontWeight: 700, margin: "0 0 0.5rem 0" }}>
+              Didn't receive the verification email?
+            </p>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendLoading}
+              style={{
+                width: "100%",
+                padding: "0.6rem 1rem",
+                border: "2px solid var(--color-border)",
+                backgroundColor: "var(--color-accent-primary)",
+                color: "var(--color-text-on-dark)",
+                fontWeight: 800,
+                fontSize: "0.85rem",
+                cursor: "pointer",
+                textTransform: "uppercase",
+              }}
+            >
+              {resendLoading ? "Sending Link..." : "Resend Verification Link"}
+            </button>
           </div>
         )}
 
@@ -88,9 +172,7 @@ function Login() {
 
           <button
             type="submit"
-            className={`${styles.submitBtn} ${
-              isLoading ? styles.btnLoading : ""
-            }`}
+            className={`${styles.submitBtn} ${isLoading ? styles.btnLoading : ""}`}
             disabled={isLoading}
           >
             {isLoading ? (
