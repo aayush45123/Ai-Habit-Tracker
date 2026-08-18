@@ -428,3 +428,156 @@
     font-size: 0.85rem;
   }
 }
+
+/* ─── Check Your Inbox Screen ───────────────────────────────────────── */
+
+.successIconWrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  box-shadow: 5px 5px 0 0 var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  background-color: var(--color-bg-secondary);
+  animation: bounceIn 0.5s ease-out;
+}
+
+@keyframes bounceIn {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.stepsBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 4px 4px 0 0 var(--color-border);
+}
+
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.stepNum {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--color-border);
+}
+
+.stepText {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.msgBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 2px solid;
+  margin-bottom: 0.75rem;
+}
+
+.msgSuccess {
+  background-color: #e6ffed;
+  color: #22863a;
+  border-color: #22863a;
+}
+
+.msgError {
+  background-color: #ffebe9;
+  color: #cb2431;
+  border-color: #cb2431;
+}
+
+.resendBtn {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 3px 3px 0 0 var(--color-border);
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.resendBtn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 0 var(--color-border);
+}
+
+.resendBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spamNote {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+/* ─── Password Rules Checklist ───────────────────────────────────────── */
+
+.pwRules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  box-shadow: 3px 3px 0 0 var(--color-border);
+  animation: slideDown 0.2s ease-out;
+}
+
+.pwRule {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.pwRuleOk {
+  color: #22863a;
+}
+
+.pwRuleFail {
+  color: var(--color-text-secondary);
+}
+
