@@ -29,8 +29,13 @@ async function getTransporter() {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      // Fail fast — don't hang for 90 seconds
+      connectionTimeout: 10000,   // 10 seconds to connect
+      greetingTimeout: 10000,     // 10 seconds for SMTP greeting
+      socketTimeout: 15000,       // 15 seconds for socket inactivity
+      tls: { rejectUnauthorized: false },
     });
-    console.log("📧 Email transporter: SMTP configured");
+    console.log("Email transporter: SMTP configured");
   } else {
     // Ethereal test account – emails are not delivered, only previewed
     const testAccount = await nodemailer.createTestAccount();
