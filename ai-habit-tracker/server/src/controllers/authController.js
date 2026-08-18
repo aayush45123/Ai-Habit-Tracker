@@ -55,11 +55,14 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Send verification email
+    // Send verification email — fire & forget (do NOT await, avoids blocking the response)
     const verificationUrl = `${getClientUrl()}/verify-email?token=${rawToken}`;
-    await sendVerificationEmail(user, verificationUrl);
+    sendVerificationEmail(user, verificationUrl).catch((err) =>
+      console.error("[Signup] Failed to send verification email:", err.message)
+    );
 
-    res.status(201).json({
+    // Respond immediately — no need to wait for email delivery
+    return res.status(201).json({
       message: "Account created! Please check your email to verify your account before logging in.",
       requireVerification: true,
       email: user.email,
@@ -135,9 +138,12 @@ export const resendVerification = async (req, res) => {
     await user.save();
 
     const verificationUrl = `${getClientUrl()}/verify-email?token=${rawToken}`;
-    await sendVerificationEmail(user, verificationUrl);
+    // Fire & forget — respond immediately
+    sendVerificationEmail(user, verificationUrl).catch((err) =>
+      console.error("[Resend] Failed to send verification email:", err.message)
+    );
 
-    res.json({
+    return res.json({
       message: "A new verification link has been sent to your email. Please check your inbox.",
     });
   } catch (error) {
