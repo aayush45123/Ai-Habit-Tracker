@@ -1,5 +1,6 @@
 // server/src/services/email.service.js
-import nodemailer from "nodemailer";
+// Uses Resend (HTTPS API) — bypasses SMTP port blocks on Render/cloud hosts
+import { Resend } from "resend";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -8,54 +9,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.join(__dirname, "../templates");
 
 // ──────────────────────────────────────────
-// Create Nodemailer transporter
-// Falls back to Ethereal (catch-all test) if env vars are not set
+// Resend client (lazy init)
 // ──────────────────────────────────────────
-let transporter = null;
+let resendClient = null;
 
-async function getTransporter() {
-  if (transporter) return transporter;
-
-  if (
-    process.env.EMAIL_HOST &&
-    process.env.EMAIL_USER &&
-    process.env.EMAIL_PASS
-  ) {
-    transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: parseInt(process.env.EMAIL_PORT || "587"),
-      secure: parseInt(process.env.EMAIL_PORT || "587") === 465,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      // Force IPv4 — Render resolves smtp.gmail.com to IPv6 which is unreachable
-      family: 4,
-      // Fail fast — don't hang for 90 seconds
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-      tls: { rejectUnauthorized: false },
-    });
-    console.log("Email transporter: SMTP configured (IPv4 forced)");
-  } else {
-    // Ethereal test account – emails are not delivered, only previewed
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-    console.log(
-      "⚠️  Email transporter: using Ethereal test account (emails not delivered). Set EMAIL_HOST/USER/PASS in .env for real delivery."
+function getResendClient() {
+  if (resendClient) return resendClient;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "RESEND_API_KEY is not set in environment variables. Get a free key at https://resend.com"
     );
   }
-
-  return transporter;
+  resendClient = new Resend(apiKey);
+  console.log("Email service: Resend configured");
+  return resendClient;
 }
 
 // ──────────────────────────────────────────
@@ -79,29 +47,33 @@ function loadTemplate(templateName, variables = {}) {
 }
 
 // ──────────────────────────────────────────
-// Core send helper
+// Core send helper (Resend HTTP API)
 // ──────────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
   try {
-    const transport = await getTransporter();
+    const client = getResendClient();
 
-    const info = await transport.sendMail({
-      from: process.env.EMAIL_FROM || '"HabitAI" <noreply@habitai.app>',
+    // Resend requires a verified domain "from" address.
+    // Until domain is verified, use "onboarding@resend.dev" (only delivers to your own verified email).
+    // After verifying your domain at resend.com, change this to your own domain email.
+    const from = process.env.EMAIL_FROM || "HabitAI <onboarding@resend.dev>";
+
+    const { data, error } = await client.emails.send({
+      from,
       to,
       subject,
       html,
     });
 
-    if (process.env.NODE_ENV !== "production") {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log(`📧 Email preview (Ethereal): ${previewUrl}`);
-      }
+    if (error) {
+      console.error("Email send error:", error.message);
+      return { success: false, error: error.message };
     }
 
-    return { success: true, messageId: info.messageId };
+    console.log("Email sent successfully. ID:", data?.id);
+    return { success: true, messageId: data?.id };
   } catch (err) {
-    console.error("❌ Email send error:", err.message);
+    console.error("Email send error:", err.message);
     return { success: false, error: err.message };
   }
 }
@@ -132,7 +104,7 @@ export async function sendDailyReminderEmail(user, incompleteHabits) {
 
   return sendEmail({
     to: user.email,
-    subject: "Don't Break Your Streak 🔥 — HabitAI Daily Reminder",
+    subject: "Don't Break Your Streak — HabitAI Daily Reminder",
     html,
   });
 }
@@ -155,7 +127,7 @@ export async function sendWeeklySummaryEmail(user, stats) {
 
   return sendEmail({
     to: user.email,
-    subject: "Your Weekly HabitAI Progress Report 📊",
+    subject: "Your Weekly HabitAI Progress Report",
     html,
   });
 }
@@ -174,7 +146,7 @@ export async function sendStreakLostEmail(user, habitTitle) {
 
   return sendEmail({
     to: user.email,
-    subject: "Your streak ended — but that's okay 💪 | HabitAI",
+    subject: "Your streak ended — but that's okay | HabitAI",
     html,
   });
 }
@@ -193,7 +165,7 @@ export async function sendGoalAchievedEmail(user, milestone) {
 
   return sendEmail({
     to: user.email,
-    subject: "🏆 You crushed it! Achievement Unlocked — HabitAI",
+    subject: "Achievement Unlocked — HabitAI",
     html,
   });
 }
@@ -216,4 +188,3 @@ export async function sendVerificationEmail(user, verificationUrl) {
     html,
   });
 }
-
