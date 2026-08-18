@@ -104,7 +104,7 @@ export default function HabitTemplates() {
 
       // Show success feedback
       const successMsg = document.createElement("div");
-      successMsg.textContent = "✓ Habit added successfully!";
+      successMsg.textContent = "Habit added successfully!";
       successMsg.className = styles.successToast;
       document.body.appendChild(successMsg);
 

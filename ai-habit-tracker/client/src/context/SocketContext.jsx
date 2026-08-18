@@ -13,6 +13,7 @@ import {
   onSocketEvent,
   offSocketEvent,
 } from "../services/socket.service";
+import { CheckCircle, Award, AlertTriangle, XCircle, Info } from "lucide-react";
 
 const SocketContext = createContext(null);
 
@@ -93,11 +94,11 @@ function NotificationToasts({ notifications, onDismiss }) {
   if (!notifications.length) return null;
 
   const typeStyles = {
-    success: { bg: "#10b981", icon: "✅" },
-    milestone: { bg: "linear-gradient(135deg, #f59e0b, #d97706)", icon: "🏆" },
-    warning: { bg: "#f59e0b", icon: "⚠️" },
-    error: { bg: "#ef4444", icon: "❌" },
-    info: { bg: "#6366f1", icon: "ℹ️" },
+    success: { bg: "var(--color-accent-primary, #000)", border: "var(--color-border, #000)", icon: <CheckCircle size={18} /> },
+    milestone: { bg: "var(--color-accent-primary, #000)", border: "var(--color-border, #000)", icon: <Award size={18} /> },
+    warning: { bg: "var(--color-accent-secondary, #222)", border: "var(--color-border, #000)", icon: <AlertTriangle size={18} /> },
+    error: { bg: "var(--color-accent-primary, #000)", border: "var(--color-border, #000)", icon: <XCircle size={18} /> },
+    info: { bg: "var(--color-accent-secondary, #222)", border: "var(--color-border, #000)", icon: <Info size={18} /> },
   };
 
   return (
@@ -119,18 +120,11 @@ function NotificationToasts({ notifications, onDismiss }) {
           <div
             key={n.id}
             style={{
-              background:
-                typeof style.bg === "string" && style.bg.startsWith("linear")
-                  ? style.bg
-                  : style.bg,
-              backgroundColor:
-                typeof style.bg === "string" && !style.bg.startsWith("linear")
-                  ? style.bg
-                  : undefined,
+              backgroundColor: style.bg,
               color: "#fff",
-              borderRadius: "10px",
+              border: "2px solid #000",
+              boxShadow: "4px 4px 0 0 #000",
               padding: "14px 16px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
               display: "flex",
               alignItems: "flex-start",
               gap: "10px",
@@ -139,7 +133,7 @@ function NotificationToasts({ notifications, onDismiss }) {
             }}
             onClick={() => onDismiss(n.id)}
           >
-            <span style={{ fontSize: "18px", flexShrink: 0 }}>{style.icon}</span>
+            <span style={{ flexShrink: 0, marginTop: "1px" }}>{style.icon}</span>
             <div>
               <div style={{ fontWeight: 700, fontSize: "14px" }}>{n.title}</div>
               <div style={{ fontSize: "13px", opacity: 0.9, marginTop: "2px" }}>
