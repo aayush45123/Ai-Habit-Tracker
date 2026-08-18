@@ -2,7 +2,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -21,20 +21,9 @@
   }
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-5px); }
 }
 
 @keyframes shimmer {
@@ -43,18 +32,18 @@
 }
 
 @keyframes countUp {
-  from { opacity: 0; transform: scale(0.8) translateY(10px); }
+  from { opacity: 0; transform: scale(0.85) translateY(8px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes gridMove {
   0% { transform: translateY(0); }
-  100% { transform: translateY(40px); }
+  100% { transform: translateY(32px); }
 }
 
 @keyframes tagPulse {
-  0%, 100% { box-shadow: 4px 4px 0 0 var(--color-border); }
-  50% { box-shadow: 6px 6px 0 0 var(--color-border); }
+  0%, 100% { box-shadow: 3px 3px 0 0 var(--color-border); }
+  50% { box-shadow: 5px 5px 0 0 var(--color-border); }
 }
 
 /* ─── Base ─── */
@@ -63,6 +52,7 @@
   background-color: var(--color-bg-primary);
   position: relative;
   overflow-x: hidden;
+  font-family: var(--font-primary);
 }
 
 /* ─── Animated Grid Background ─── */
@@ -74,9 +64,9 @@
   background-image:
     linear-gradient(var(--color-border) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.045;
-  animation: gridMove 8s linear infinite alternate;
+  background-size: 40px 40px;
+  opacity: 0.035;
+  animation: gridMove 10s linear infinite alternate;
 }
 
 /* ─── Navbar ─── */
@@ -115,16 +105,18 @@
 }
 
 .loginBtn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--color-text-primary);
   text-decoration: none;
-  transition: color var(--transition-speed) var(--transition-easing);
+  transition: all var(--transition-speed) var(--transition-easing);
+  border: 2px solid transparent;
 }
 
 .loginBtn:hover {
-  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+  background-color: var(--color-bg-secondary);
 }
 
 .signupBtn {
@@ -132,42 +124,26 @@
   background-color: var(--color-accent-primary);
   color: var(--color-text-on-dark);
   border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0 0 var(--color-border);
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all var(--transition-speed) var(--transition-easing);
-  position: relative;
-}
-
-.signupBtn::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-accent-primary);
-  opacity: 0.5;
-  z-index: -1;
-  transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .signupBtn:hover {
-  transform: translate(-3px, -3px);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--color-border);
   background-color: var(--color-accent-secondary);
-}
-
-.signupBtn:hover::after {
-  transform: translate(1px, 1px);
 }
 
 /* ─── Hero Section ─── */
 .hero {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 6rem 2rem 4rem;
+  padding: 5rem 2rem 3.5rem;
   text-align: center;
   position: relative;
   z-index: 1;
@@ -185,34 +161,23 @@
   padding: 0.5rem 1rem;
   background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
-  font-size: 0.875rem;
-  font-weight: 700;
+  box-shadow: 3px 3px 0 0 var(--color-border);
+  font-size: 0.85rem;
+  font-weight: 800;
   color: var(--color-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 2rem;
-  position: relative;
+  margin-bottom: 1.75rem;
   animation: fadeInDown 0.6s ease both, tagPulse 3s ease-in-out infinite 1s;
 }
 
-.heroTag::after {
-  content: "";
-  position: absolute;
-  bottom: -3px;
-  right: -3px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-border);
-  z-index: -1;
-}
-
 .heroTitle {
-  font-size: 4.5rem;
+  font-size: 4.25rem;
   font-weight: 900;
   color: var(--color-text-primary);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   line-height: 1.05;
-  letter-spacing: -2.5px;
+  letter-spacing: -2px;
   animation: fadeInUp 0.7s ease 0.1s both;
 }
 
@@ -225,23 +190,23 @@
   position: relative;
   background: linear-gradient(
     90deg,
-    var(--color-text-primary) 0%,
-    var(--color-text-secondary) 50%,
-    var(--color-text-primary) 100%
+    #000000 0%,
+    #555555 50%,
+    #000000 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 3s linear infinite 1s;
+  animation: shimmer 4s linear infinite 1s;
 }
 
 .heroSubtitle {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   line-height: 1.7;
   color: var(--color-text-secondary);
-  margin-bottom: 2.5rem;
-  max-width: 600px;
+  margin-bottom: 2.25rem;
+  max-width: 620px;
   margin-left: auto;
   margin-right: auto;
   animation: fadeInUp 0.7s ease 0.2s both;
@@ -251,83 +216,54 @@
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-bottom: 4rem;
+  margin-bottom: 3.5rem;
   animation: fadeInUp 0.7s ease 0.3s both;
 }
 
 .ctaPrimary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
   background-color: var(--color-accent-primary);
   color: var(--color-text-on-dark);
   border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0 0 var(--color-border);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: all var(--transition-speed) var(--transition-easing);
-  position: relative;
-}
-
-.ctaPrimary::after {
-  content: "";
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-accent-primary);
-  opacity: 0.5;
-  z-index: -1;
   transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .ctaPrimary:hover {
-  transform: translate(-4px, -4px);
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0 0 var(--color-border);
   background-color: var(--color-accent-secondary);
 }
 
-.ctaPrimary:hover::after {
-  transform: translate(2px, 2px);
-}
-
 .ctaSecondary {
+  display: inline-flex;
+  align-items: center;
   padding: 1rem 2rem;
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0 0 var(--color-border);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all var(--transition-speed) var(--transition-easing);
-  position: relative;
-}
-
-.ctaSecondary::after {
-  content: "";
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-border);
-  z-index: -1;
-  transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .ctaSecondary:hover {
-  background-color: var(--color-bg-tertiary);
+  background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  transform: translate(-4px, -4px);
-}
-
-.ctaSecondary:hover::after {
-  transform: translate(2px, 2px);
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0 0 var(--color-border);
 }
 
 /* ─── Hero Stats ─── */
@@ -335,118 +271,88 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 2rem;
+  gap: 2.5rem;
   padding: 2rem;
-  background-color: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
-  position: relative;
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  box-shadow: 6px 6px 0 0 var(--color-border);
   animation: fadeInUp 0.7s ease 0.4s both;
-}
-
-.heroStats::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  right: -6px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-border);
-  z-index: -1;
 }
 
 .statItem {
   text-align: center;
+  flex: 1;
 }
 
 .statNumber {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 900;
   color: var(--color-text-primary);
   margin-bottom: 0.25rem;
   opacity: 0;
-  transform: scale(0.8) translateY(10px);
+  transform: scale(0.85) translateY(8px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .statNumber.statVisible {
-  animation: countUp 0.7s ease both;
+  animation: countUp 0.6s ease both;
   opacity: 1;
   transform: scale(1) translateY(0);
 }
 
 .statLabel {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--color-text-secondary);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .statDivider {
   width: 2px;
-  height: 40px;
+  height: 48px;
   background-color: var(--color-border);
 }
 
 /* ─── Section Common ─── */
 .sectionHeader {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 3.5rem;
 }
 
 .sectionTag {
   display: inline-block;
-  padding: 0.3rem 1rem;
+  padding: 0.35rem 1rem;
   border: 2px solid var(--color-border);
   background-color: var(--color-bg-secondary);
+  box-shadow: 3px 3px 0 0 var(--color-border);
   font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
-  position: relative;
-}
-
-.sectionTag::after {
-  content: "";
-  position: absolute;
-  bottom: -3px;
-  right: -3px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-border);
-  z-index: -1;
 }
 
 .sectionTitle {
-  font-size: 2.75rem;
+  font-size: 2.5rem;
   font-weight: 900;
   color: var(--color-text-primary);
-  margin-bottom: 1rem;
+  margin: 0 0 0.75rem 0;
   letter-spacing: -1px;
-  position: relative;
-}
-
-.sectionTitle::after {
-  content: "";
-  display: block;
-  width: 60px;
-  height: 4px;
-  background-color: var(--color-accent-primary);
-  margin: 0.75rem auto 0;
 }
 
 .sectionSubtitle {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   color: var(--color-text-secondary);
+  margin: 0;
 }
 
 /* ─── Features Section ─── */
 .features {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 6rem 2rem;
+  padding: 5rem 2rem;
   position: relative;
   z-index: 1;
 }
@@ -458,64 +364,36 @@
 }
 
 .featureCard {
-  padding: 2rem;
-  background-color: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
-  transition: all var(--transition-speed) var(--transition-easing);
+  padding: 2.25rem 2rem;
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  box-shadow: 6px 6px 0 0 var(--color-border);
+  transition: transform var(--transition-speed) var(--transition-easing),
+              box-shadow var(--transition-speed) var(--transition-easing),
+              background-color var(--transition-speed) var(--transition-easing);
   position: relative;
-  cursor: pointer;
+  cursor: default;
   animation: fadeInUp 0.6s ease both;
 }
 
-.featureCard::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  right: -6px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-border);
-  z-index: -1;
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
 .featureCard:hover {
-  transform: translate(-4px, -4px);
-  background-color: var(--color-bg-tertiary);
-}
-
-.featureCard:hover::after {
-  transform: translate(2px, 2px);
-}
-
-.featureCard:hover .featureTitle {
-  color: var(--color-text-primary);
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0 0 var(--color-border);
+  background-color: var(--color-bg-secondary);
 }
 
 .featureIcon {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
   border: 2px solid var(--color-border);
+  box-shadow: 3px 3px 0 0 var(--color-border);
   margin-bottom: 1.5rem;
-  position: relative;
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
-.featureIcon::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-border);
-  opacity: 0.4;
-  z-index: -1;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .featureCard:hover .featureIcon {
@@ -527,21 +405,21 @@
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--color-text-primary);
-  margin-bottom: 0.75rem;
-  transition: color var(--transition-speed) var(--transition-easing);
+  margin: 0 0 0.75rem 0;
 }
 
 .featureDescription {
   font-size: 0.9375rem;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--color-text-secondary);
+  margin: 0;
 }
 
 /* ─── How It Works ─── */
 .howItWorks {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 2rem 6rem;
+  padding: 4rem 2rem 5rem;
   position: relative;
   z-index: 1;
 }
@@ -553,70 +431,58 @@
 }
 
 .stepCard {
-  padding: 2rem;
-  background-color: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
+  padding: 2.25rem 2rem;
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  box-shadow: 6px 6px 0 0 var(--color-border);
   position: relative;
-  transition: all var(--transition-speed) var(--transition-easing);
-  cursor: pointer;
+  transition: transform var(--transition-speed) var(--transition-easing),
+              box-shadow var(--transition-speed) var(--transition-easing),
+              background-color var(--transition-speed) var(--transition-easing);
+  cursor: default;
   animation: fadeInUp 0.6s ease both;
 }
 
-.stepCard::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  right: -6px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-border);
-  z-index: -1;
-  transition: all var(--transition-speed) var(--transition-easing);
-}
-
 .stepCard:hover {
-  transform: translate(-4px, -4px);
-  background-color: var(--color-bg-tertiary);
-}
-
-.stepCard:hover::after {
-  transform: translate(2px, 2px);
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0 0 var(--color-border);
+  background-color: var(--color-bg-secondary);
 }
 
 .stepNumber {
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-weight: 900;
   color: var(--color-text-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   line-height: 1;
-  opacity: 0.12;
+  opacity: 0.2;
   transition: opacity var(--transition-speed) var(--transition-easing);
-  font-variant-numeric: tabular-nums;
 }
 
 .stepCard:hover .stepNumber {
-  opacity: 0.3;
+  opacity: 0.6;
 }
 
 .stepTitle {
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--color-text-primary);
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.75rem 0;
 }
 
 .stepDescription {
   font-size: 0.9375rem;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--color-text-secondary);
+  margin: 0;
 }
 
 /* ─── Social Proof ─── */
 .socialProof {
   background-color: var(--color-accent-primary);
   padding: 3rem 2rem;
-  border-top: 2px solid var(--color-border);
-  border-bottom: 2px solid var(--color-border);
+  border-top: 3px solid var(--color-border);
+  border-bottom: 3px solid var(--color-border);
   position: relative;
   z-index: 1;
 }
@@ -628,10 +494,10 @@
 }
 
 .proofTitle {
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 900;
   color: var(--color-text-on-dark);
-  margin-bottom: 2rem;
+  margin: 0 0 1.75rem 0;
 }
 
 .proofItems {
@@ -654,7 +520,7 @@
 .finalCta {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 6rem 2rem;
+  padding: 5.5rem 2rem;
   text-align: center;
   position: relative;
   z-index: 1;
@@ -663,29 +529,17 @@
 .ctaContent {
   max-width: 700px;
   margin: 0 auto;
-  position: relative;
-}
-
-.ctaDecorTop {
-  width: 80px;
-  height: 4px;
-  background-color: var(--color-accent-primary);
-  margin: 0 auto 2rem;
-}
-
-.ctaDecorBottom {
-  width: 80px;
-  height: 4px;
-  background-color: var(--color-accent-primary);
-  margin: 2rem auto 0;
-  opacity: 0.3;
+  padding: 3.5rem 2.5rem;
+  background-color: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  box-shadow: 8px 8px 0 0 var(--color-border);
 }
 
 .ctaTitle {
-  font-size: 3rem;
+  font-size: 2.75rem;
   font-weight: 900;
   color: var(--color-text-primary);
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
   letter-spacing: -1px;
 }
 
@@ -693,52 +547,36 @@
   font-size: 1.125rem;
   line-height: 1.7;
   color: var(--color-text-secondary);
-  margin-bottom: 2.5rem;
+  margin: 0 0 2.25rem 0;
 }
 
 .ctaPrimaryLarge {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem 2.5rem;
+  padding: 1.15rem 2.5rem;
   background-color: var(--color-accent-primary);
   color: var(--color-text-on-dark);
   border: 2px solid var(--color-border);
-  font-size: 1.125rem;
-  font-weight: 700;
+  box-shadow: 5px 5px 0 0 var(--color-border);
+  font-size: 1.1rem;
+  font-weight: 800;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all var(--transition-speed) var(--transition-easing);
-  position: relative;
-}
-
-.ctaPrimaryLarge::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  right: -6px;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-accent-primary);
-  opacity: 0.5;
-  z-index: -1;
-  transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .ctaPrimaryLarge:hover {
-  transform: translate(-5px, -5px);
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 0 var(--color-border);
   background-color: var(--color-accent-secondary);
-}
-
-.ctaPrimaryLarge:hover::after {
-  transform: translate(2px, 2px);
 }
 
 /* ─── Footer ─── */
 .footer {
   background-color: var(--color-bg-secondary);
-  border-top: 2px solid var(--color-border);
+  border-top: 3px solid var(--color-border);
   padding: 3rem 2rem 1.5rem;
   position: relative;
   z-index: 1;
@@ -771,6 +609,7 @@
 .footerTagline {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  margin: 0;
 }
 
 .footerLinks {
@@ -780,7 +619,7 @@
 
 .footerLink {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
   text-decoration: none;
   transition: color var(--transition-speed) var(--transition-easing);
@@ -793,8 +632,8 @@
 .footerBottom {
   max-width: 1200px;
   margin: 0 auto;
-  padding-top: 2rem;
-  border-top: 2px solid var(--color-border);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
   text-align: center;
   font-size: 0.875rem;
   color: var(--color-text-secondary);
@@ -807,7 +646,7 @@
   }
 
   .hero {
-    padding: 4rem 1rem 3rem;
+    padding: 3.5rem 1rem 2.5rem;
   }
 
   .heroTitle {
@@ -897,28 +736,5 @@
   .ctaPrimaryLarge {
     width: 100%;
     justify-content: center;
-  }
-}
-
-@media (max-width: 360px) {
-  .hero {
-    padding: 2.5rem 0.75rem 2rem;
-  }
-
-  .heroTitle {
-    font-size: 1.5rem;
-  }
-
-  .navContent {
-    padding: 0.75rem 0.5rem;
-  }
-
-  .logo {
-    font-size: 1.15rem;
-  }
-
-  .featureCard,
-  .stepCard {
-    padding: 1.25rem 0.875rem;
   }
 }
