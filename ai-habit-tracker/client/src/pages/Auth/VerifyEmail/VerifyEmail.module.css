@@ -1,0 +1,207 @@
+.authContainer {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-color: var(--color-bg-primary);
+  font-family: var(--font-primary);
+}
+
+.authCard {
+  background-color: var(--color-bg-secondary);
+  border: 3px solid var(--color-border);
+  box-shadow: 8px 8px 0 0 var(--color-border);
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+}
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  box-shadow: 4px 4px 0 0 var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  background-color: var(--color-bg-primary);
+}
+
+.iconSuccess {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.iconError {
+  background-color: #fee2e2;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.iconLoading {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  border-top-color: var(--color-accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 1.5rem auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0 0 var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  margin-top: 1rem;
+}
+
+.actionBtn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--color-border);
+  background-color: var(--color-accent-secondary);
+}
+
+.actionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background-color: var(--color-bg-tertiary);
+}
+
+.resendBox {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px dashed var(--color-border);
+  text-align: left;
+}
+
+.resendTitle {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.input:focus {
+  background-color: #fff;
+}
+
+.messageBox {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.successMsg {
+  background-color: #e6ffed;
+  color: #22863a;
+  border-color: #22863a;
+}
+
+.errorMsg {
+  background-color: #ffebe9;
+  color: #cb2431;
+  border-color: #cb2431;
+}
+
+.footerText {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.link {
+  color: var(--color-text-primary);
+  font-weight: 800;
+  text-decoration: underline;
+  margin-left: 0.25rem;
+}
+
+@media (max-width: 480px) {
+  .authCard {
+    padding: 2rem 1.25rem;
+    box-shadow: 5px 5px 0 0 var(--color-border);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .inputGroup {
+    flex-direction: column;
+  }
+}

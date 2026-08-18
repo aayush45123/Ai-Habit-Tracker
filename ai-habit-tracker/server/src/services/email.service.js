@@ -190,3 +190,23 @@ export async function sendGoalAchievedEmail(user, milestone) {
     html,
   });
 }
+
+/**
+ * Send email verification link
+ * @param {Object} user - User document
+ * @param {string} verificationUrl - Full verification link URL
+ */
+export async function sendVerificationEmail(user, verificationUrl) {
+  const html = loadTemplate("verifyEmail.html", {
+    USER_NAME: user.name,
+    VERIFICATION_URL: verificationUrl,
+    YEAR: new Date().getFullYear(),
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: "Verify Your Email Address — HabitAI",
+    html,
+  });
+}
+
