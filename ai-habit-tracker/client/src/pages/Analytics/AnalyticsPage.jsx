@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect, useState } from "react";
 import api from "../../utils/api.js";
 import styles from "./AnalyticsPage.module.css";
 import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
+import { Check, X } from "lucide-react";
 
 // ── chart.js is HUGE — only download it when Analytics is actually visited ───
 const AnalyticsCharts = lazy(() => import("./AnalyticsCharts.jsx"));
@@ -273,10 +274,10 @@ export default function AnalyticsPage() {
                         <div className={styles.calendarDate}>{cell.day}</div>
                         <div className={styles.calendarStatus}>
                           {cell.status === "good" && (
-                            <div className={styles.checkMark}>✔</div>
+                            <div className={styles.checkMark}><Check size={14} strokeWidth={3} /></div>
                           )}
                           {cell.status === "bad" && (
-                            <div className={styles.crossMark}>✖</div>
+                            <div className={styles.crossMark}><X size={14} strokeWidth={3} /></div>
                           )}
                           {cell.status === "empty" && (
                             <div className={styles.emptyCircle}></div>

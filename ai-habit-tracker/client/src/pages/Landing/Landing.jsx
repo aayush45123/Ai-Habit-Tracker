@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Zap,
@@ -15,6 +15,8 @@ import styles from "./Landing.module.css";
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [countersVisible, setCountersVisible] = useState(false);
+  const statsRef = useRef(null);
 
   // Redirect to dashboard if already logged in
   useEffect(() => {
@@ -24,8 +26,25 @@ export default function Landing() {
     }
   }, [navigate]);
 
+  // Intersection observer for stat counters
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setCountersVisible(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className={styles.landingPage}>
+      {/* Animated Grid Background */}
+      <div className={styles.gridBackground} aria-hidden="true" />
+
       {/* Navigation */}
       <nav className={styles.navbar}>
         <div className={styles.navContent}>
@@ -54,7 +73,7 @@ export default function Landing() {
           </div>
 
           <h1 className={styles.heroTitle}>
-            Build Better Habits,
+            <span className={styles.heroTitleLine1}>Build Better Habits,</span>
             <br />
             <span className={styles.highlightText}>Transform Your Life</span>
           </h1>
@@ -75,21 +94,30 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div className={styles.heroStats}>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>10K+</div>
-              <div className={styles.statLabel}>Active Users</div>
-            </div>
-            <div className={styles.statDivider}></div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>500K+</div>
-              <div className={styles.statLabel}>Habits Tracked</div>
-            </div>
-            <div className={styles.statDivider}></div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>85%</div>
-              <div className={styles.statLabel}>Success Rate</div>
-            </div>
+          <div className={styles.heroStats} ref={statsRef}>
+            <StatCounter
+              end={10000}
+              suffix="+"
+              label="Active Users"
+              visible={countersVisible}
+              display="10K+"
+            />
+            <div className={styles.statDivider} />
+            <StatCounter
+              end={500000}
+              suffix="+"
+              label="Habits Tracked"
+              visible={countersVisible}
+              display="500K+"
+            />
+            <div className={styles.statDivider} />
+            <StatCounter
+              end={85}
+              suffix="%"
+              label="Success Rate"
+              visible={countersVisible}
+              display="85%"
+            />
           </div>
         </div>
       </section>
@@ -97,6 +125,7 @@ export default function Landing() {
       {/* Features Section */}
       <section className={styles.features}>
         <div className={styles.sectionHeader}>
+          <div className={styles.sectionTag}>Features</div>
           <h2 className={styles.sectionTitle}>Everything You Need</h2>
           <p className={styles.sectionSubtitle}>
             Powerful tools to help you stay consistent and motivated
@@ -108,31 +137,37 @@ export default function Landing() {
             icon={<Target size={28} strokeWidth={2} />}
             title="Smart Tracking"
             description="Track your habits effortlessly with an intuitive interface designed for daily use."
+            delay={0}
           />
           <FeatureCard
             icon={<Brain size={28} strokeWidth={2} />}
             title="AI Insights"
             description="Get personalized recommendations and insights powered by artificial intelligence."
+            delay={1}
           />
           <FeatureCard
             icon={<TrendingUp size={28} strokeWidth={2} />}
             title="Progress Analytics"
             description="Visualize your progress with detailed charts and comprehensive analytics."
+            delay={2}
           />
           <FeatureCard
             icon={<Flame size={28} strokeWidth={2} />}
             title="Streak Building"
             description="Build momentum with streak tracking and celebrate your consistency."
+            delay={3}
           />
           <FeatureCard
             icon={<Calendar size={28} strokeWidth={2} />}
             title="21-Day Challenge"
             description="Transform habits into routines with guided challenges and milestones."
+            delay={4}
           />
           <FeatureCard
             icon={<BarChart3 size={28} strokeWidth={2} />}
             title="Focus Mode"
             description="Stay productive with integrated Pomodoro timer and focus tracking tools."
+            delay={5}
           />
         </div>
       </section>
@@ -140,6 +175,7 @@ export default function Landing() {
       {/* How It Works */}
       <section className={styles.howItWorks}>
         <div className={styles.sectionHeader}>
+          <div className={styles.sectionTag}>Process</div>
           <h2 className={styles.sectionTitle}>How It Works</h2>
           <p className={styles.sectionSubtitle}>
             Get started in three simple steps
@@ -151,16 +187,19 @@ export default function Landing() {
             number="01"
             title="Create Your Account"
             description="Sign up in seconds and start your journey to better habits today."
+            delay={0}
           />
           <StepCard
             number="02"
             title="Add Your Habits"
             description="Choose from templates or create custom habits that match your goals."
+            delay={1}
           />
           <StepCard
             number="03"
-            title="Track & Improve"
+            title="Track &amp; Improve"
             description="Mark habits daily, build streaks, and watch your progress grow."
+            delay={2}
           />
         </div>
       </section>
@@ -191,6 +230,7 @@ export default function Landing() {
       {/* CTA Section */}
       <section className={styles.finalCta}>
         <div className={styles.ctaContent}>
+          <div className={styles.ctaDecorTop} aria-hidden="true" />
           <h2 className={styles.ctaTitle}>Ready to Build Better Habits?</h2>
           <p className={styles.ctaSubtitle}>
             Start tracking your habits today and transform your life one day at
@@ -200,6 +240,7 @@ export default function Landing() {
             <span>Get Started Free</span>
             <ArrowRight size={22} strokeWidth={2.5} />
           </Link>
+          <div className={styles.ctaDecorBottom} aria-hidden="true" />
         </div>
       </section>
 
@@ -237,9 +278,23 @@ export default function Landing() {
 
 /* Helper Components */
 
-function FeatureCard({ icon, title, description }) {
+function StatCounter({ display, label, visible }) {
   return (
-    <div className={styles.featureCard}>
+    <div className={styles.statItem}>
+      <div className={`${styles.statNumber} ${visible ? styles.statVisible : ""}`}>
+        {display}
+      </div>
+      <div className={styles.statLabel}>{label}</div>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, description, delay }) {
+  return (
+    <div
+      className={styles.featureCard}
+      style={{ animationDelay: `${delay * 0.1}s` }}
+    >
       <div className={styles.featureIcon}>{icon}</div>
       <h3 className={styles.featureTitle}>{title}</h3>
       <p className={styles.featureDescription}>{description}</p>
@@ -247,9 +302,12 @@ function FeatureCard({ icon, title, description }) {
   );
 }
 
-function StepCard({ number, title, description }) {
+function StepCard({ number, title, description, delay }) {
   return (
-    <div className={styles.stepCard}>
+    <div
+      className={styles.stepCard}
+      style={{ animationDelay: `${delay * 0.12}s` }}
+    >
       <div className={styles.stepNumber}>{number}</div>
       <h3 className={styles.stepTitle}>{title}</h3>
       <p className={styles.stepDescription}>{description}</p>

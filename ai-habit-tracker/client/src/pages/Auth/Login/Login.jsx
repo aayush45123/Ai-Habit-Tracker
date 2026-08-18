@@ -3,6 +3,7 @@ import api from "../../../utils/api";
 import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { ArrowRight } from "lucide-react";
 
 function Login() {
   const navigate = useNavigate();
@@ -100,7 +101,7 @@ function Login() {
             ) : (
               <>
                 <span className={styles.btnText}>Login</span>
-                <span className={styles.btnIcon}>➜</span>
+                <ArrowRight size={16} className={styles.btnIcon} />
               </>
             )}
           </button>

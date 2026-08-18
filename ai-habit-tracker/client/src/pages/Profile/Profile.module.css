@@ -197,7 +197,7 @@
   width: 100%;
 }
 
-/* Account Details Details Grid */
+/* Account Details Grid */
 .readOnlyGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -280,6 +280,202 @@
   padding-right: 2.5rem;
 }
 
+/* ─── EMAIL REMINDER PREFERENCES SECTION ─── */
+.reminderSection {
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  box-shadow: 4px 4px 0 0 var(--color-border);
+}
+
+.reminderSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.reminderSectionTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.reminderSectionDesc {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Toggle rows */
+.reminderToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  padding: 0.875rem 1rem;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.reminderToggleRow.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.reminderToggleInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.reminderIcon {
+  flex-shrink: 0;
+  color: var(--color-text-primary);
+}
+
+.reminderToggleLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.reminderToggleSub {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.15rem;
+}
+
+/* Custom Toggle Switch (black/white themed) */
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggleInput {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggleTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  border-radius: 24px;
+  transition: background-color 0.25s;
+}
+
+.toggleTrack.toggleActive {
+  background-color: var(--color-accent-primary);
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  background: var(--color-text-on-dark);
+  border-radius: 50%;
+  transition: left 0.25s;
+  border: 1.5px solid var(--color-border);
+}
+
+/* When track is inactive, thumb should be dark */
+.toggleTrack:not(.toggleActive) + .toggleThumb {
+  background: var(--color-text-primary);
+}
+
+/* Reminder Time Picker */
+.reminderTimePicker {
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reminderTimeHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reminderTimeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.reminderTimeBtn {
+  padding: 0.6rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.reminderTimeBtn::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  z-index: -1;
+  transition: all 0.2s;
+}
+
+.reminderTimeBtn:hover {
+  transform: translate(-2px, -2px);
+  background-color: var(--color-bg-tertiary);
+}
+
+.reminderTimeBtn:hover::after {
+  transform: translate(1px, 1px);
+}
+
+.reminderTimeBtn.reminderTimeBtnActive {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  transform: translate(-2px, -2px);
+}
+
+.reminderTimeBtn.reminderTimeBtnActive::after {
+  transform: translate(1px, 1px);
+}
+
+.reminderTimeNote {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
 /* Save Button */
 .saveBtn {
   font-family: inherit;
@@ -296,6 +492,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 6px 6px 0 0 var(--color-border);
+  width: 100%;
 }
 
 .saveBtn:hover:not(:disabled) {
@@ -309,7 +506,8 @@
   box-shadow: 2px 2px 0 0 var(--color-border);
 }
 
-.saveBtn:disabled {
+.saveBtn:disabled,
+.saveBtn.submitting {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -322,7 +520,7 @@
   align-items: center;
   gap: 0.75rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   animation: slideDown 0.3s ease-out;
 }
 
@@ -354,27 +552,6 @@
   }
 }
 
-/* ─── Email Reminder Preferences Section ─── */
-.section {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 24px;
-  margin-top: 28px;
-}
-
-.sectionTitle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-accent, #7c3aed);
-  margin: 0 0 6px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 @media (max-width: 768px) {
   .profileContainer {
     padding: 1rem 0.5rem;
@@ -389,6 +566,10 @@
   .inputsGrid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+
+  .reminderTimeGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -410,6 +591,10 @@
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
     box-shadow: 4px 4px 0 0 var(--color-border);
+  }
+
+  .reminderTimeGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

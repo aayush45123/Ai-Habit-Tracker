@@ -1,5 +1,5 @@
 // client/src/pages/ChallengePage/ChallengePage.jsx (FIXED - Proper state reset on restart)
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -19,6 +19,8 @@ import {
   X as CloseIcon,
   RefreshCw,
   AlertCircle,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
@@ -44,11 +46,100 @@ function convert24to12(time24) {
 function blankHabits() {
   return Array.from({ length: 6 }, () => ({
     title: "",
-    startTime: "",
+    startTime: "06",
+    startMinute: "00",
     startPeriod: "AM",
-    endTime: "",
+    endTime: "08",
+    endMinute: "00",
     endPeriod: "AM",
   }));
+}
+
+/* ── Drum Time Picker Component ── */
+function DrumTimePicker({ hour, minute, period, onHourChange, onMinuteChange, onPeriodChange }) {
+  const hours = Array.from({ length: 12 }, (_, i) =>
+    String(i + 1).padStart(2, "0")
+  );
+  const minutes = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+
+  const hourRef = useRef(null);
+  const minRef = useRef(null);
+
+  const scrollTo = (ref, items, value) => {
+    const idx = items.indexOf(value);
+    if (ref.current && idx >= 0) {
+      ref.current.scrollTop = idx * 40;
+    }
+  };
+
+  useEffect(() => { scrollTo(hourRef, hours, hour); }, [hour]);
+  useEffect(() => { scrollTo(minRef, minutes, minute); }, [minute]);
+
+  return (
+    <div className={styles.drumPicker}>
+      {/* Hour column */}
+      <div className={styles.drumColumn}>
+        <button type="button" className={styles.drumArrow} onClick={() => {
+          const idx = hours.indexOf(hour);
+          onHourChange(hours[(idx - 1 + 12) % 12]);
+        }}><ChevronUp size={14} /></button>
+        <div className={styles.drumScroll} ref={hourRef}>
+          {hours.map((h) => (
+            <div
+              key={h}
+              className={`${styles.drumItem} ${h === hour ? styles.drumItemActive : ""}`}
+              onClick={() => onHourChange(h)}
+            >
+              {h}
+            </div>
+          ))}
+        </div>
+        <button type="button" className={styles.drumArrow} onClick={() => {
+          const idx = hours.indexOf(hour);
+          onHourChange(hours[(idx + 1) % 12]);
+        }}><ChevronDown size={14} /></button>
+      </div>
+
+      <div className={styles.drumSeparator}>:</div>
+
+      {/* Minute column */}
+      <div className={styles.drumColumn}>
+        <button type="button" className={styles.drumArrow} onClick={() => {
+          const idx = minutes.indexOf(minute);
+          onMinuteChange(minutes[(idx - 1 + minutes.length) % minutes.length]);
+        }}><ChevronUp size={14} /></button>
+        <div className={styles.drumScroll} ref={minRef}>
+          {minutes.map((m) => (
+            <div
+              key={m}
+              className={`${styles.drumItem} ${m === minute ? styles.drumItemActive : ""}`}
+              onClick={() => onMinuteChange(m)}
+            >
+              {m}
+            </div>
+          ))}
+        </div>
+        <button type="button" className={styles.drumArrow} onClick={() => {
+          const idx = minutes.indexOf(minute);
+          onMinuteChange(minutes[(idx + 1) % minutes.length]);
+        }}><ChevronDown size={14} /></button>
+      </div>
+
+      {/* AM/PM */}
+      <div className={styles.drumPeriod}>
+        <button
+          type="button"
+          className={`${styles.periodBtn} ${period === "AM" ? styles.periodBtnActive : ""}`}
+          onClick={() => onPeriodChange("AM")}
+        >AM</button>
+        <button
+          type="button"
+          className={`${styles.periodBtn} ${period === "PM" ? styles.periodBtnActive : ""}`}
+          onClick={() => onPeriodChange("PM")}
+        >PM</button>
+      </div>
+    </div>
+  );
 }
 
 export default function ChallengePage() {
@@ -106,13 +197,17 @@ export default function ChallengePage() {
           challenge.habits.map((h) => {
             const s = convert24to12(h.startTime);
             const e = convert24to12(h.endTime);
+            const [sHH, sMM] = (s.time || "06:00").split(":");
+            const [eHH, eMM] = (e.time || "08:00").split(":");
 
             return {
               title: h.title,
-              startTime: s.time,
-              startPeriod: s.period,
-              endTime: e.time,
-              endPeriod: e.period,
+              startTime: sHH || "06",
+              startMinute: sMM || "00",
+              startPeriod: s.period || "AM",
+              endTime: eHH || "08",
+              endMinute: eMM || "00",
+              endPeriod: e.period || "AM",
             };
           }),
         );
@@ -150,9 +245,11 @@ export default function ChallengePage() {
       ...habits,
       {
         title: "",
-        startTime: "",
+        startTime: "06",
+        startMinute: "00",
         startPeriod: "AM",
-        endTime: "",
+        endTime: "08",
+        endMinute: "00",
         endPeriod: "AM",
       },
     ]);
@@ -181,8 +278,8 @@ export default function ChallengePage() {
 
     const formatted = filledHabits.map((h) => ({
       title: h.title,
-      startTime: `${h.startTime} ${h.startPeriod}`,
-      endTime: `${h.endTime} ${h.endPeriod}`,
+      startTime: `${h.startTime}:${h.startMinute} ${h.startPeriod}`,
+      endTime: `${h.endTime}:${h.endMinute} ${h.endPeriod}`,
     }));
 
     try {
@@ -215,8 +312,8 @@ export default function ChallengePage() {
 
     const formatted = filledHabits.map((h) => ({
       title: h.title,
-      startTime: `${h.startTime} ${h.startPeriod}`,
-      endTime: `${h.endTime} ${h.endPeriod}`,
+      startTime: `${h.startTime}:${h.startMinute || "00"} ${h.startPeriod || "AM"}`,
+      endTime: `${h.endTime}:${h.endMinute || "00"} ${h.endPeriod || "AM"}`,
     }));
 
     try {
@@ -279,8 +376,8 @@ export default function ChallengePage() {
 
     const formatted = filledHabits.map((h) => ({
       title: h.title,
-      startTime: `${h.startTime} ${h.startPeriod}`,
-      endTime: `${h.endTime} ${h.endPeriod}`,
+      startTime: `${h.startTime}:${h.startMinute || "00"} ${h.startPeriod || "AM"}`,
+      endTime: `${h.endTime}:${h.endMinute || "00"} ${h.endPeriod || "AM"}`,
     }));
 
     try {
@@ -323,8 +420,8 @@ export default function ChallengePage() {
 
     const formatted = filledHabits.map((h) => ({
       title: h.title,
-      startTime: `${h.startTime} ${h.startPeriod}`,
-      endTime: `${h.endTime} ${h.endPeriod}`,
+      startTime: `${h.startTime}:${h.startMinute || "00"} ${h.startPeriod || "AM"}`,
+      endTime: `${h.endTime}:${h.endMinute || "00"} ${h.endPeriod || "AM"}`,
     }));
 
     try {
@@ -398,12 +495,16 @@ export default function ChallengePage() {
         existing.habits.map((h) => {
           const s = convert24to12(h.startTime);
           const e = convert24to12(h.endTime);
+          const [sHH, sMM] = (s.time || "06:00").split(":");
+          const [eHH, eMM] = (e.time || "08:00").split(":");
           return {
             title: h.title,
-            startTime: s.time,
-            startPeriod: s.period,
-            endTime: e.time,
-            endPeriod: e.period,
+            startTime: sHH || "06",
+            startMinute: sMM || "00",
+            startPeriod: s.period || "AM",
+            endTime: eHH || "08",
+            endMinute: eMM || "00",
+            endPeriod: e.period || "AM",
           };
         }),
       );
@@ -743,51 +844,31 @@ export default function ChallengePage() {
                   />
                 </div>
 
-                <div className={styles.timeControls}>
+              <div className={styles.timeControls}>
                   <div className={styles.timeGroup}>
                     <Clock className={styles.timeIcon} />
                     <label className={styles.timeLabel}>Start</label>
-                    <input
-                      className={styles.timeInput}
-                      placeholder="06:00"
-                      value={h.startTime}
-                      onChange={(e) =>
-                        updateHabit(i, "startTime", e.target.value)
-                      }
+                    <DrumTimePicker
+                      hour={h.startTime || "06"}
+                      minute={h.startMinute || "00"}
+                      period={h.startPeriod || "AM"}
+                      onHourChange={(v) => updateHabit(i, "startTime", v)}
+                      onMinuteChange={(v) => updateHabit(i, "startMinute", v)}
+                      onPeriodChange={(v) => updateHabit(i, "startPeriod", v)}
                     />
-                    <select
-                      className={styles.periodSelect}
-                      value={h.startPeriod}
-                      onChange={(e) =>
-                        updateHabit(i, "startPeriod", e.target.value)
-                      }
-                    >
-                      <option>AM</option>
-                      <option>PM</option>
-                    </select>
                   </div>
 
                   <div className={styles.timeGroup}>
                     <Clock className={styles.timeIcon} />
                     <label className={styles.timeLabel}>End</label>
-                    <input
-                      className={styles.timeInput}
-                      placeholder="08:00"
-                      value={h.endTime}
-                      onChange={(e) =>
-                        updateHabit(i, "endTime", e.target.value)
-                      }
+                    <DrumTimePicker
+                      hour={h.endTime || "08"}
+                      minute={h.endMinute || "00"}
+                      period={h.endPeriod || "AM"}
+                      onHourChange={(v) => updateHabit(i, "endTime", v)}
+                      onMinuteChange={(v) => updateHabit(i, "endMinute", v)}
+                      onPeriodChange={(v) => updateHabit(i, "endPeriod", v)}
                     />
-                    <select
-                      className={styles.periodSelect}
-                      value={h.endPeriod}
-                      onChange={(e) =>
-                        updateHabit(i, "endPeriod", e.target.value)
-                      }
-                    >
-                      <option>AM</option>
-                      <option>PM</option>
-                    </select>
                   </div>
                 </div>
 
@@ -958,3 +1039,4 @@ export default function ChallengePage() {
     </div>
   );
 }
+

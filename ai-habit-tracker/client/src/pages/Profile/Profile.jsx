@@ -2,7 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import api from "../../utils/api";
-import { FiUser, FiActivity, FiTarget, FiAlertCircle, FiCheckCircle, FiCamera, FiUploadCloud, FiBell, FiMail, FiClock } from "react-icons/fi";
+import {
+  FiUser,
+  FiActivity,
+  FiTarget,
+  FiAlertCircle,
+  FiCheckCircle,
+  FiCamera,
+  FiUploadCloud,
+  FiBell,
+  FiMail,
+  FiClock,
+} from "react-icons/fi";
+import { Flame } from "lucide-react";
 import styles from "./Profile.module.css";
 
 const Profile = () => {
@@ -132,7 +144,6 @@ const Profile = () => {
         goal: formData.goal,
       };
 
-      // Add goals only if they are explicitly filled
       if (formData.dailyGoal) payload.dailyGoal = parseInt(formData.dailyGoal);
       if (formData.proteinGoal) payload.proteinGoal = parseInt(formData.proteinGoal);
 
@@ -140,9 +151,7 @@ const Profile = () => {
 
       if (res.status === 200 || res.status === 201) {
         setMessage({ type: "success", text: "Profile details updated successfully!" });
-        // Refresh AuthContext profile details
         await refreshProfile();
-        // Redirect to dashboard after a brief delay
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
@@ -324,7 +333,7 @@ const Profile = () => {
 
           {/* Section 3: Lifestyle Goals */}
           <div className={styles.formSection}>
-            <h4 className={styles.sectionTitle}>Lifestyle & Objectives</h4>
+            <h4 className={styles.sectionTitle}>Lifestyle &amp; Objectives</h4>
             <div className={styles.inputsGrid}>
               <div className={styles.inputGroup}>
                 <label className={styles.label}>Activity Level</label>
@@ -398,115 +407,113 @@ const Profile = () => {
           </div>
 
           {/* ── EMAIL REMINDER PREFERENCES SECTION ── */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>
-              <FiBell size={16} /> Email Reminder Preferences
-            </h3>
-            <p style={{ color: "#888", fontSize: "13px", marginBottom: "18px" }}>
+          <div className={styles.reminderSection}>
+            <div className={styles.reminderSectionHeader}>
+              <FiBell size={16} />
+              <h3 className={styles.reminderSectionTitle}>Email Reminder Preferences</h3>
+            </div>
+            <p className={styles.reminderSectionDesc}>
               HabitAI will send you personalized daily reminders for incomplete habits every evening.
             </p>
 
             {/* Enable Notifications Toggle */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "14px 18px", marginBottom: "14px", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <FiMail size={18} color="#7c3aed" />
+            <div className={styles.reminderToggleRow}>
+              <div className={styles.reminderToggleInfo}>
+                <FiMail size={18} className={styles.reminderIcon} />
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "14px", color: "#e0e0e0" }}>Email Notifications</div>
-                  <div style={{ fontSize: "12px", color: "#888" }}>Receive all habit-related email alerts</div>
+                  <div className={styles.reminderToggleLabel}>Email Notifications</div>
+                  <div className={styles.reminderToggleSub}>Receive all habit-related email alerts</div>
                 </div>
               </div>
-              <label style={{ position: "relative", display: "inline-block", width: "44px", height: "24px", cursor: "pointer" }}>
+              <label className={styles.toggleSwitch}>
                 <input
                   type="checkbox"
                   checked={reminderPrefs.emailNotifications}
-                  onChange={(e) => setReminderPrefs((p) => ({ ...p, emailNotifications: e.target.checked }))}
-                  style={{ opacity: 0, width: 0, height: 0 }}
+                  onChange={(e) =>
+                    setReminderPrefs((p) => ({ ...p, emailNotifications: e.target.checked }))
+                  }
+                  className={styles.toggleInput}
                 />
-                <span style={{
-                  position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-                  background: reminderPrefs.emailNotifications ? "#7c3aed" : "#444",
-                  borderRadius: "24px", transition: "0.3s"
-                }} />
-                <span style={{
-                  position: "absolute", top: "3px",
-                  left: reminderPrefs.emailNotifications ? "23px" : "3px",
-                  width: "18px", height: "18px",
-                  background: "#fff", borderRadius: "50%", transition: "0.3s"
-                }} />
+                <span className={`${styles.toggleTrack} ${reminderPrefs.emailNotifications ? styles.toggleActive : ""}`} />
+                <span
+                  className={styles.toggleThumb}
+                  style={{ left: reminderPrefs.emailNotifications ? "22px" : "3px" }}
+                />
               </label>
             </div>
 
             {/* Daily Reminder Toggle */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "14px 18px", marginBottom: "14px", border: "1px solid rgba(255,255,255,0.08)", opacity: reminderPrefs.emailNotifications ? 1 : 0.5 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={{ fontSize: "18px" }}>🔥</span>
+            <div className={`${styles.reminderToggleRow} ${!reminderPrefs.emailNotifications ? styles.disabled : ""}`}>
+              <div className={styles.reminderToggleInfo}>
+                <Flame size={18} className={styles.reminderIcon} />
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "14px", color: "#e0e0e0" }}>Daily Habit Reminders</div>
-                  <div style={{ fontSize: "12px", color: "#888" }}>Remind me to complete pending habits</div>
+                  <div className={styles.reminderToggleLabel}>Daily Habit Reminders</div>
+                  <div className={styles.reminderToggleSub}>Remind me to complete pending habits</div>
                 </div>
               </div>
-              <label style={{ position: "relative", display: "inline-block", width: "44px", height: "24px", cursor: reminderPrefs.emailNotifications ? "pointer" : "not-allowed" }}>
+              <label className={styles.toggleSwitch}>
                 <input
                   type="checkbox"
                   checked={reminderPrefs.isReminderEnabled}
                   disabled={!reminderPrefs.emailNotifications}
-                  onChange={(e) => setReminderPrefs((p) => ({ ...p, isReminderEnabled: e.target.checked }))}
-                  style={{ opacity: 0, width: 0, height: 0 }}
+                  onChange={(e) =>
+                    setReminderPrefs((p) => ({ ...p, isReminderEnabled: e.target.checked }))
+                  }
+                  className={styles.toggleInput}
                 />
-                <span style={{
-                  position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-                  background: reminderPrefs.isReminderEnabled && reminderPrefs.emailNotifications ? "#7c3aed" : "#444",
-                  borderRadius: "24px", transition: "0.3s"
-                }} />
-                <span style={{
-                  position: "absolute", top: "3px",
-                  left: reminderPrefs.isReminderEnabled && reminderPrefs.emailNotifications ? "23px" : "3px",
-                  width: "18px", height: "18px",
-                  background: "#fff", borderRadius: "50%", transition: "0.3s"
-                }} />
+                <span
+                  className={`${styles.toggleTrack} ${
+                    reminderPrefs.isReminderEnabled && reminderPrefs.emailNotifications ? styles.toggleActive : ""
+                  }`}
+                />
+                <span
+                  className={styles.toggleThumb}
+                  style={{
+                    left:
+                      reminderPrefs.isReminderEnabled && reminderPrefs.emailNotifications
+                        ? "22px"
+                        : "3px",
+                  }}
+                />
               </label>
             </div>
 
             {/* Reminder Time Picker */}
             {reminderPrefs.emailNotifications && reminderPrefs.isReminderEnabled && (
-              <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "14px 18px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                  <FiClock size={16} color="#7c3aed" />
-                  <div style={{ fontWeight: 600, fontSize: "14px", color: "#e0e0e0" }}>Preferred Reminder Time (IST)</div>
+              <div className={styles.reminderTimePicker}>
+                <div className={styles.reminderTimeHeader}>
+                  <FiClock size={16} className={styles.reminderIcon} />
+                  <div className={styles.reminderToggleLabel}>Preferred Reminder Time (IST)</div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+                <div className={styles.reminderTimeGrid}>
                   {["08:00", "12:00", "18:00", "20:00", "21:00", "22:00"].map((t) => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setReminderPrefs((p) => ({ ...p, dailyReminderTime: t }))}
-                      style={{
-                        padding: "8px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-                        cursor: "pointer", transition: "all 0.2s",
-                        background: reminderPrefs.dailyReminderTime === t ? "rgba(124,58,237,0.3)" : "rgba(255,255,255,0.05)",
-                        border: reminderPrefs.dailyReminderTime === t ? "1px solid #7c3aed" : "1px solid rgba(255,255,255,0.08)",
-                        color: reminderPrefs.dailyReminderTime === t ? "#a78bfa" : "#ccc",
-                      }}
+                      className={`${styles.reminderTimeBtn} ${
+                        reminderPrefs.dailyReminderTime === t ? styles.reminderTimeBtnActive : ""
+                      }`}
                     >
                       {t}
                     </button>
                   ))}
                 </div>
-                <p style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}>Current: {reminderPrefs.dailyReminderTime} IST — you'll get an email around this time if you have incomplete habits.</p>
+                <p className={styles.reminderTimeNote}>
+                  Current: {reminderPrefs.dailyReminderTime} IST — you will get an email around this time if you have incomplete habits.
+                </p>
               </div>
             )}
 
             {/* Prefs message */}
             {prefsMessage.text && (
-              <div style={{
-                display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px",
-                borderRadius: "8px", fontSize: "13px", marginBottom: "10px",
-                background: prefsMessage.type === "success" ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
-                color: prefsMessage.type === "success" ? "#10b981" : "#ef4444",
-                border: `1px solid ${prefsMessage.type === "success" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`
-              }}>
-                {prefsMessage.type === "success" ? <FiCheckCircle size={15} /> : <FiAlertCircle size={15} />}
-                {prefsMessage.text}
+              <div className={`${styles.messageBox} ${styles[prefsMessage.type]}`}>
+                {prefsMessage.type === "success" ? (
+                  <FiCheckCircle size={15} />
+                ) : (
+                  <FiAlertCircle size={15} />
+                )}
+                <p>{prefsMessage.text}</p>
               </div>
             )}
 
@@ -514,13 +521,8 @@ const Profile = () => {
               type="button"
               onClick={handleSaveReminderPrefs}
               disabled={isSavingPrefs}
-              style={{
-                width: "100%", padding: "12px", borderRadius: "10px", fontWeight: 700,
-                fontSize: "14px", cursor: isSavingPrefs ? "not-allowed" : "pointer",
-                background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
-                color: "#fff", border: "none",
-                opacity: isSavingPrefs ? 0.7 : 1, transition: "all 0.2s",
-              }}
+              className={`${styles.saveBtn} ${isSavingPrefs ? styles.submitting : ""}`}
+              style={{ marginTop: 0 }}
             >
               {isSavingPrefs ? "Saving..." : "Save Reminder Preferences"}
             </button>

@@ -1,15 +1,92 @@
+/* ─── Keyframe Animations ─── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes gridMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(40px); }
+}
+
+@keyframes tagPulse {
+  0%, 100% { box-shadow: 4px 4px 0 0 var(--color-border); }
+  50% { box-shadow: 6px 6px 0 0 var(--color-border); }
+}
+
+/* ─── Base ─── */
 .landingPage {
   min-height: 100vh;
   background-color: var(--color-bg-primary);
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* Navbar */
+/* ─── Animated Grid Background ─── */
+.gridBackground {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--color-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.045;
+  animation: gridMove 8s linear infinite alternate;
+}
+
+/* ─── Navbar ─── */
 .navbar {
   position: sticky;
   top: 0;
   z-index: 100;
   background-color: var(--color-bg-primary);
   border-bottom: 2px solid var(--color-border);
+  animation: fadeInDown 0.5s ease both;
 }
 
 .navContent {
@@ -28,6 +105,7 @@
   font-size: 1.5rem;
   font-weight: 900;
   color: var(--color-text-primary);
+  animation: float 4s ease-in-out infinite;
 }
 
 .navButtons {
@@ -46,7 +124,7 @@
 }
 
 .loginBtn:hover {
-  color: var(--color-accent-secondary);
+  color: var(--color-text-secondary);
 }
 
 .signupBtn {
@@ -78,18 +156,21 @@
 
 .signupBtn:hover {
   transform: translate(-3px, -3px);
+  background-color: var(--color-accent-secondary);
 }
 
 .signupBtn:hover::after {
   transform: translate(1px, 1px);
 }
 
-/* Hero Section */
+/* ─── Hero Section ─── */
 .hero {
   max-width: 1200px;
   margin: 0 auto;
   padding: 6rem 2rem 4rem;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .heroContent {
@@ -106,11 +187,12 @@
   border: 2px solid var(--color-border);
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--color-accent-primary);
+  color: var(--color-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 2rem;
   position: relative;
+  animation: fadeInDown 0.6s ease both, tagPulse 3s ease-in-out infinite 1s;
 }
 
 .heroTag::after {
@@ -125,16 +207,33 @@
 }
 
 .heroTitle {
-  font-size: 4rem;
+  font-size: 4.5rem;
   font-weight: 900;
   color: var(--color-text-primary);
   margin-bottom: 1.5rem;
-  line-height: 1.1;
-  letter-spacing: -2px;
+  line-height: 1.05;
+  letter-spacing: -2.5px;
+  animation: fadeInUp 0.7s ease 0.1s both;
+}
+
+.heroTitleLine1 {
+  display: block;
 }
 
 .highlightText {
-  color: var(--color-accent-primary);
+  display: inline-block;
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    var(--color-text-primary) 0%,
+    var(--color-text-secondary) 50%,
+    var(--color-text-primary) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite 1s;
 }
 
 .heroSubtitle {
@@ -145,6 +244,7 @@
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  animation: fadeInUp 0.7s ease 0.2s both;
 }
 
 .heroButtons {
@@ -152,6 +252,7 @@
   gap: 1rem;
   justify-content: center;
   margin-bottom: 4rem;
+  animation: fadeInUp 0.7s ease 0.3s both;
 }
 
 .ctaPrimary {
@@ -186,6 +287,7 @@
 
 .ctaPrimary:hover {
   transform: translate(-4px, -4px);
+  background-color: var(--color-accent-secondary);
 }
 
 .ctaPrimary:hover::after {
@@ -219,8 +321,8 @@
 }
 
 .ctaSecondary:hover {
-  background-color: var(--color-accent-secondary);
-  color: var(--color-text-on-dark);
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
   transform: translate(-4px, -4px);
 }
 
@@ -228,7 +330,7 @@
   transform: translate(2px, 2px);
 }
 
-/* Hero Stats */
+/* ─── Hero Stats ─── */
 .heroStats {
   display: flex;
   justify-content: center;
@@ -238,6 +340,7 @@
   background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
   position: relative;
+  animation: fadeInUp 0.7s ease 0.4s both;
 }
 
 .heroStats::after {
@@ -258,8 +361,17 @@
 .statNumber {
   font-size: 2rem;
   font-weight: 900;
-  color: var(--color-accent-primary);
+  color: var(--color-text-primary);
   margin-bottom: 0.25rem;
+  opacity: 0;
+  transform: scale(0.8) translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.statNumber.statVisible {
+  animation: countUp 0.7s ease both;
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
 .statLabel {
@@ -276,28 +388,67 @@
   background-color: var(--color-border);
 }
 
-/* Features Section */
-.features {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 6rem 2rem;
-}
-
+/* ─── Section Common ─── */
 .sectionHeader {
   text-align: center;
   margin-bottom: 4rem;
 }
 
+.sectionTag {
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-secondary);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.sectionTag::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-border);
+  z-index: -1;
+}
+
 .sectionTitle {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 900;
   color: var(--color-text-primary);
   margin-bottom: 1rem;
+  letter-spacing: -1px;
+  position: relative;
+}
+
+.sectionTitle::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 4px;
+  background-color: var(--color-accent-primary);
+  margin: 0.75rem auto 0;
 }
 
 .sectionSubtitle {
   font-size: 1.125rem;
   color: var(--color-text-secondary);
+}
+
+/* ─── Features Section ─── */
+.features {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .featuresGrid {
@@ -313,6 +464,7 @@
   transition: all var(--transition-speed) var(--transition-easing);
   position: relative;
   cursor: pointer;
+  animation: fadeInUp 0.6s ease both;
 }
 
 .featureCard::after {
@@ -337,7 +489,7 @@
 }
 
 .featureCard:hover .featureTitle {
-  color: var(--color-accent-primary);
+  color: var(--color-text-primary);
 }
 
 .featureIcon {
@@ -346,11 +498,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-accent-primary);
-  color: var(--color-text-on-dark);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   border: 2px solid var(--color-border);
   margin-bottom: 1.5rem;
   position: relative;
+  transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .featureIcon::after {
@@ -360,9 +513,14 @@
   right: -4px;
   width: 100%;
   height: 100%;
-  background-color: var(--color-accent-primary);
-  opacity: 0.5;
+  background-color: var(--color-border);
+  opacity: 0.4;
   z-index: -1;
+}
+
+.featureCard:hover .featureIcon {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
 }
 
 .featureTitle {
@@ -379,11 +537,13 @@
   color: var(--color-text-secondary);
 }
 
-/* How It Works */
+/* ─── How It Works ─── */
 .howItWorks {
   max-width: 1200px;
   margin: 0 auto;
   padding: 4rem 2rem 6rem;
+  position: relative;
+  z-index: 1;
 }
 
 .stepsGrid {
@@ -399,6 +559,7 @@
   position: relative;
   transition: all var(--transition-speed) var(--transition-easing);
   cursor: pointer;
+  animation: fadeInUp 0.6s ease both;
 }
 
 .stepCard::after {
@@ -423,11 +584,18 @@
 }
 
 .stepNumber {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 900;
-  color: var(--color-accent-primary);
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
   line-height: 1;
+  opacity: 0.12;
+  transition: opacity var(--transition-speed) var(--transition-easing);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepCard:hover .stepNumber {
+  opacity: 0.3;
 }
 
 .stepTitle {
@@ -443,12 +611,14 @@
   color: var(--color-text-secondary);
 }
 
-/* Social Proof */
+/* ─── Social Proof ─── */
 .socialProof {
   background-color: var(--color-accent-primary);
   padding: 3rem 2rem;
   border-top: 2px solid var(--color-border);
   border-bottom: 2px solid var(--color-border);
+  position: relative;
+  z-index: 1;
 }
 
 .proofContent {
@@ -480,17 +650,35 @@
   color: var(--color-text-on-dark);
 }
 
-/* Final CTA */
+/* ─── Final CTA ─── */
 .finalCta {
   max-width: 1200px;
   margin: 0 auto;
   padding: 6rem 2rem;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .ctaContent {
   max-width: 700px;
   margin: 0 auto;
+  position: relative;
+}
+
+.ctaDecorTop {
+  width: 80px;
+  height: 4px;
+  background-color: var(--color-accent-primary);
+  margin: 0 auto 2rem;
+}
+
+.ctaDecorBottom {
+  width: 80px;
+  height: 4px;
+  background-color: var(--color-accent-primary);
+  margin: 2rem auto 0;
+  opacity: 0.3;
 }
 
 .ctaTitle {
@@ -498,6 +686,7 @@
   font-weight: 900;
   color: var(--color-text-primary);
   margin-bottom: 1rem;
+  letter-spacing: -1px;
 }
 
 .ctaSubtitle {
@@ -539,17 +728,20 @@
 
 .ctaPrimaryLarge:hover {
   transform: translate(-5px, -5px);
+  background-color: var(--color-accent-secondary);
 }
 
 .ctaPrimaryLarge:hover::after {
   transform: translate(2px, 2px);
 }
 
-/* Footer */
+/* ─── Footer ─── */
 .footer {
   background-color: var(--color-bg-secondary);
   border-top: 2px solid var(--color-border);
   padding: 3rem 2rem 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .footerContent {
@@ -595,7 +787,7 @@
 }
 
 .footerLink:hover {
-  color: var(--color-accent-secondary);
+  color: var(--color-text-secondary);
 }
 
 .footerBottom {
@@ -608,7 +800,7 @@
   color: var(--color-text-secondary);
 }
 
-/* Responsive Design */
+/* ─── Responsive Design ─── */
 @media (max-width: 768px) {
   .navContent {
     padding: 1rem;
@@ -619,7 +811,8 @@
   }
 
   .heroTitle {
-    font-size: 2.5rem;
+    font-size: 2.75rem;
+    letter-spacing: -1.5px;
   }
 
   .heroSubtitle {
@@ -628,6 +821,7 @@
 
   .heroButtons {
     flex-direction: column;
+    align-items: center;
   }
 
   .heroStats {
@@ -654,6 +848,10 @@
     font-size: 2rem;
   }
 
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
   .footerContent {
     flex-direction: column;
     gap: 2rem;
@@ -668,7 +866,8 @@
 
 @media (max-width: 480px) {
   .heroTitle {
-    font-size: 1.85rem;
+    font-size: 2rem;
+    letter-spacing: -1px;
   }
 
   .sectionTitle {

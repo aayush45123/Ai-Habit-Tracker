@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "../../../utils/api";
 import styles from "./Signup.module.css";
 import { Link, useNavigate } from "react-router-dom";
+import { Check, AlertCircle, ArrowRight } from "lucide-react";
 
 function Signup() {
   const navigate = useNavigate();
@@ -54,14 +55,14 @@ function Signup() {
 
         {error && (
           <div className={styles.errorBox}>
-            <span className={styles.errorIcon}>!</span>
+            <AlertCircle size={16} className={styles.errorIcon} />
             <p className={styles.errorText}>{error}</p>
           </div>
         )}
 
         {successMessage && (
           <div className={styles.successBox}>
-            <span className={styles.successIcon}>✓</span>
+            <Check size={16} className={styles.successIcon} />
             <p className={styles.successText}>{successMessage}</p>
           </div>
         )}
@@ -126,7 +127,7 @@ function Signup() {
             ) : (
               <>
                 <span className={styles.btnText}>Create Account</span>
-                <span className={styles.btnIcon}>➜</span>
+                <ArrowRight size={16} className={styles.btnIcon} />
               </>
             )}
           </button>
