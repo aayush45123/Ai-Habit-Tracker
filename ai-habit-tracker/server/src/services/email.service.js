@@ -80,11 +80,12 @@ async function sendEmail({ to, subject, html }) {
 
     const info = await transport.sendMail({ from, to, subject, html });
 
-    console.log(`Email sent to ${to} | ID: ${info.messageId}`);
+    console.log(`[Email] Sent OK to ${to} | Subject: "${subject}" | ID: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (err) {
-    console.error("Email send error:", err.message);
-    return { success: false, error: err.message };
+    // Throw so fire-and-forget .catch() in controllers logs it visibly
+    console.error(`[Email] FAILED to send to ${to} | Error: ${err.message}`);
+    throw err;
   }
 }
 
