@@ -1,6 +1,6 @@
 // server/src/services/email.service.js
-// Uses Resend (HTTPS API) — bypasses SMTP port blocks on Render/cloud hosts
-import { Resend } from "resend";
+// Uses Brevo (formerly Sendinblue) SMTP — works on Render, no domain verification needed
+import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -9,21 +9,45 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.join(__dirname, "../templates");
 
 // ──────────────────────────────────────────
-// Resend client (lazy init)
+// Nodemailer transporter (Brevo SMTP)
+// Brevo SMTP is NOT blocked by Render unlike Gmail SMTP
 // ──────────────────────────────────────────
-let resendClient = null;
+let transporter = null;
 
-function getResendClient() {
-  if (resendClient) return resendClient;
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "RESEND_API_KEY is not set in environment variables. Get a free key at https://resend.com"
+async function getTransporter() {
+  if (transporter) return transporter;
+
+  const user = process.env.BREVO_SMTP_LOGIN || process.env.EMAIL_USER;
+  const pass = process.env.BREVO_SMTP_KEY  || process.env.EMAIL_PASS;
+
+  if (user && pass) {
+    transporter = nodemailer.createTransport({
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false,
+      auth: { user, pass },
+      // Force IPv4 — avoids IPv6 resolution issues on cloud hosts
+      family: 4,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+    });
+    console.log("Email service: Brevo SMTP configured");
+  } else {
+    // Fallback: log warning — email will silently fail but app won't crash
+    console.warn(
+      "[Email] No SMTP credentials found. Set BREVO_SMTP_LOGIN + BREVO_SMTP_KEY in environment variables."
     );
+    // Return a dummy transporter that logs instead of sending
+    transporter = {
+      sendMail: async (opts) => {
+        console.log(`[Email MOCK] Would have sent to: ${opts.to} | Subject: ${opts.subject}`);
+        return { messageId: "mock-no-credentials" };
+      },
+    };
   }
-  resendClient = new Resend(apiKey);
-  console.log("Email service: Resend configured");
-  return resendClient;
+
+  return transporter;
 }
 
 // ──────────────────────────────────────────
@@ -38,7 +62,6 @@ function loadTemplate(templateName, variables = {}) {
 
   let html = fs.readFileSync(filePath, "utf-8");
 
-  // Replace {{KEY}} placeholders
   for (const [key, value] of Object.entries(variables)) {
     html = html.replace(new RegExp(`{{${key}}}`, "g"), value);
   }
@@ -47,31 +70,18 @@ function loadTemplate(templateName, variables = {}) {
 }
 
 // ──────────────────────────────────────────
-// Core send helper (Resend HTTP API)
+// Core send helper
 // ──────────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
   try {
-    const client = getResendClient();
+    const transport = await getTransporter();
 
-    // Resend requires a verified domain "from" address.
-    // Until domain is verified, use "onboarding@resend.dev" (only delivers to your own verified email).
-    // After verifying your domain at resend.com, change this to your own domain email.
-    const from = process.env.EMAIL_FROM || "HabitAI <onboarding@resend.dev>";
+    const from = process.env.EMAIL_FROM || "HabitAI <noreply@habitai.app>";
 
-    const { data, error } = await client.emails.send({
-      from,
-      to,
-      subject,
-      html,
-    });
+    const info = await transport.sendMail({ from, to, subject, html });
 
-    if (error) {
-      console.error("Email send error:", error.message);
-      return { success: false, error: error.message };
-    }
-
-    console.log("Email sent successfully. ID:", data?.id);
-    return { success: true, messageId: data?.id };
+    console.log(`Email sent to ${to} | ID: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
   } catch (err) {
     console.error("Email send error:", err.message);
     return { success: false, error: err.message };
@@ -84,15 +94,10 @@ async function sendEmail({ to, subject, html }) {
 
 /**
  * Send daily reminder email with list of incomplete habits
- * @param {Object} user - User document
- * @param {Array}  incompleteHabits - Array of habit title strings
  */
 export async function sendDailyReminderEmail(user, incompleteHabits) {
   const habitListHtml = incompleteHabits
-    .map(
-      (title) =>
-        `<li style="padding:6px 0;border-bottom:1px solid #f0f0f0;">${title}</li>`
-    )
+    .map((title) => `<li style="padding:6px 0;border-bottom:1px solid #f0f0f0;">${title}</li>`)
     .join("");
 
   const html = loadTemplate("dailyReminder.html", {
@@ -111,8 +116,6 @@ export async function sendDailyReminderEmail(user, incompleteHabits) {
 
 /**
  * Send weekly progress summary email
- * @param {Object} user - User document
- * @param {Object} stats - { streak, completionRate, bestDay, worstDay, aiRecommendation }
  */
 export async function sendWeeklySummaryEmail(user, stats) {
   const html = loadTemplate("weeklySummary.html", {
@@ -134,8 +137,6 @@ export async function sendWeeklySummaryEmail(user, stats) {
 
 /**
  * Send streak-lost recovery email
- * @param {Object} user - User document
- * @param {string} habitTitle - The habit that broke the streak
  */
 export async function sendStreakLostEmail(user, habitTitle) {
   const html = loadTemplate("streakLost.html", {
@@ -153,8 +154,6 @@ export async function sendStreakLostEmail(user, habitTitle) {
 
 /**
  * Send goal achieved celebration email
- * @param {Object} user - User document
- * @param {string} milestone - Description of the achievement
  */
 export async function sendGoalAchievedEmail(user, milestone) {
   const html = loadTemplate("goalAchieved.html", {
@@ -172,8 +171,6 @@ export async function sendGoalAchievedEmail(user, milestone) {
 
 /**
  * Send email verification link
- * @param {Object} user - User document
- * @param {string} verificationUrl - Full verification link URL
  */
 export async function sendVerificationEmail(user, verificationUrl) {
   const html = loadTemplate("verifyEmail.html", {
