@@ -501,7 +501,7 @@ This project is licensed under the MIT License.
 ## Author
 
 <div align="center">
-<img src="./ai-habit-tracker/client/src/assets/me.png" width="90" style="border-radius:50%" alt="Aayush"/>
+<img src="./ai-habit-tracker/client/src/assets/me.jpg" width="90" style="border-radius:50%" alt="Aayush"/>
 
 **Aayush**
 AI & Data Science Student · Full-Stack Developer
