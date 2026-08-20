@@ -1,37 +1,26 @@
 // server/src/services/groqService.js - FINAL FIXED VERSION
-import Groq from "groq-sdk";
 import dotenv from "dotenv";
+import { completeWithGroq, extractAndParseJSON } from "../utils/aiClient.js";
 dotenv.config();
-
-const groqApiKey = process.env.GROQ_API_KEY;
-const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
 /**
  * Generate AI improvement suggestions for existing timetable
  */
 export async function generateImprovementSuggestions({
-  category,
-  goal,
-  level,
-  sportsMode,
-  weeklySchedule,
+  category = "general",
+  goal = "fitness",
+  level = "beginner",
+  sportsMode = { enabled: false },
+  weeklySchedule = [],
 }) {
-  if (!groq) {
-    return {
-      success: false,
-      error: "GROQ_API_KEY not set. Add it to enable AI improvements.",
-      fallback: generateFallbackSuggestions(weeklySchedule),
-    };
-  }
-
-  const sportInfo = sportsMode.enabled
-    ? `The user also plays ${sportsMode.sport.replace("_", " ")} competitively.`
+  const sportInfo = sportsMode?.enabled
+    ? `The user also plays ${sportsMode.sport?.replace("_", " ")} competitively.`
     : "";
 
   // Format current schedule for AI
   const scheduleText = weeklySchedule
     .map((day) => {
-      const exercisesList = day.exercises
+      const exercisesList = (day.exercises || [])
         .map(
           (ex, idx) =>
             `${idx + 1}. ${ex.name} - ${ex.sets || "?"} sets × ${ex.reps || ex.duration || "?"} ${ex.restBetweenSets ? `(rest: ${ex.restBetweenSets})` : ""}`,
@@ -47,9 +36,9 @@ export async function generateImprovementSuggestions({
   const prompt = `You are an expert fitness coach analyzing a workout timetable. Review this user's training plan and provide SPECIFIC, ACTIONABLE improvement suggestions.
 
 USER PROFILE:
-- Training Category: ${category.replace("_", " ").toUpperCase()}
-- Fitness Goal: ${goal.replace("_", " ").toUpperCase()}
-- Experience Level: ${level.toUpperCase()}
+- Training Category: ${category?.replace("_", " ")?.toUpperCase() || "GENERAL"}
+- Fitness Goal: ${goal?.replace("_", " ")?.toUpperCase() || "FITNESS"}
+- Experience Level: ${level?.toUpperCase() || "BEGINNER"}
 ${sportInfo}
 
 CURRENT WEEKLY SCHEDULE:
@@ -70,33 +59,17 @@ RESPONSE FORMAT (JSON ONLY, NO MARKDOWN):
       "suggestion": "Move Barbell Squats before Leg Extensions for better energy utilization",
       "reason": "Compound movements require more energy and should be done first",
       "priority": "high"
-    },
-    {
-      "day": "Tuesday",
-      "category": "rest_periods",
-      "suggestion": "Increase rest between sets to 90 seconds for heavy compounds",
-      "reason": "Adequate rest allows for full strength recovery",
-      "priority": "medium"
     }
-    // ... continue for all 7 days
   ],
   "overallAssessment": {
     "strengths": ["Good exercise variety", "Consistent training frequency"],
     "weaknesses": ["Some exercises could be reordered", "Rest periods could be optimized"],
     "riskFactors": ["Watch for overtraining signs"]
   }
-}
-
-IMPORTANT: 
-- Provide EXACTLY 7 suggestions (one per day)
-- Use specific day names ONLY (Monday-Sunday)
-- NO "General" suggestions
-- Be specific to each day's workout
-
-Generate now:`;
+}`;
 
   try {
-    const completion = await groq.chat.completions.create({
+    const { content } = await completeWithGroq({
       messages: [
         {
           role: "system",
@@ -108,22 +81,13 @@ Generate now:`;
           content: prompt,
         },
       ],
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.6,
-      max_tokens: 3000,
+      temperature: 0.3,
+      max_tokens: 2500,
+      jsonMode: true,
     });
 
-    const responseText = completion.choices[0]?.message?.content || "{}";
+    let aiResponse = extractAndParseJSON(content, {});
 
-    // Remove markdown code blocks if present
-    const cleanedResponse = responseText
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
-
-    let aiResponse = JSON.parse(cleanedResponse);
-
-    // ✅ VALIDATION: Filter out invalid suggestions
     const validCategories = [
       "exercise_order",
       "rest_periods",
@@ -144,27 +108,23 @@ Generate now:`;
       "Sunday",
     ];
 
-    if (aiResponse.suggestions) {
-      // ✅ Remove "General" suggestions and invalid categories
+    if (Array.isArray(aiResponse?.suggestions)) {
       aiResponse.suggestions = aiResponse.suggestions.filter(
         (sug) =>
           validCategories.includes(sug.category) &&
           validDays.includes(sug.day) &&
-          sug.day !== "General", // ✅ CRITICAL: No General suggestions
+          sug.day !== "General",
       );
 
-      // ✅ Limit to 7 suggestions (one per day)
       if (aiResponse.suggestions.length > 7) {
         aiResponse.suggestions = aiResponse.suggestions.slice(0, 7);
       }
     }
 
-    // If no valid suggestions or less than 7, use fallback
-    if (!aiResponse.suggestions || aiResponse.suggestions.length === 0) {
+    if (!aiResponse?.suggestions || aiResponse.suggestions.length === 0) {
       console.warn("AI returned no valid suggestions, using fallback");
       return {
         success: false,
-        error: "AI returned invalid suggestions",
         fallback: generateFallbackSuggestions(weeklySchedule),
       };
     }
@@ -174,7 +134,7 @@ Generate now:`;
       data: aiResponse,
     };
   } catch (error) {
-    console.error("Groq AI Error:", error);
+    console.error("Groq AI Error:", error.message);
     return {
       success: false,
       error: error.message,
@@ -186,7 +146,7 @@ Generate now:`;
 /**
  * Fallback suggestions if AI fails - ONE PER DAY
  */
-function generateFallbackSuggestions(weeklySchedule) {
+function generateFallbackSuggestions(weeklySchedule = []) {
   const days = [
     "Monday",
     "Tuesday",
@@ -198,9 +158,8 @@ function generateFallbackSuggestions(weeklySchedule) {
   ];
 
   const suggestions = days.map((day, index) => {
-    const daySchedule = weeklySchedule[index];
+    const daySchedule = weeklySchedule[index] || {};
 
-    // Provide day-specific suggestions based on the schedule
     if (daySchedule.isRestDay) {
       return {
         day,
@@ -213,7 +172,6 @@ function generateFallbackSuggestions(weeklySchedule) {
       };
     }
 
-    // Rotate through different categories for variety
     const categories = [
       {
         category: "exercise_order",
@@ -275,7 +233,7 @@ function generateFallbackSuggestions(weeklySchedule) {
 /**
  * Get today's workout based on current day
  */
-export function getTodaysWorkout(weeklySchedule) {
+export function getTodaysWorkout(weeklySchedule = []) {
   const days = [
     "Sunday",
     "Monday",
