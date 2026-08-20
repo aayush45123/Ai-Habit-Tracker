@@ -1,15 +1,6 @@
-import Groq from "groq-sdk";
 import AIChat from "../models/aiChat.js";
 import CalorieProfile from "../models/CalorieProfile.js";
-
-/* ---------------------------
-   CREATE GROQ CLIENT
----------------------------- */
-function createGroqClient() {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null;
-  return new Groq({ apiKey });
-}
+import { completeWithGroq } from "../utils/aiClient.js";
 
 /* ---------------------------
    GET CHAT HISTORY
@@ -41,13 +32,6 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ message: "Message required" });
     }
 
-    const groq = createGroqClient();
-    if (!groq) {
-      return res.status(500).json({
-        message: "GROQ_API_KEY not set. Add it to enable AI chat.",
-      });
-    }
-
     // Save user message
     await AIChat.create({
       userId,
@@ -72,21 +56,27 @@ export const sendMessage = async (req, res) => {
       .reverse()
       .map((m) => ({ role: m.role, content: m.message }));
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.4,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a habit coach. Give concise, actionable, motivating answers." +
-            profileContext,
-        },
-        ...messages,
-      ],
-    });
-
-    const reply = completion.choices[0].message.content;
+    let reply = "";
+    try {
+      const { content } = await completeWithGroq({
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an encouraging and practical habit coach. Give concise, actionable, motivating answers." +
+              profileContext,
+          },
+          ...messages,
+        ],
+        temperature: 0.4,
+        max_tokens: 600,
+      });
+      reply = content;
+    } catch (groqErr) {
+      console.warn("Groq chat error, using fallback coach response:", groqErr.message);
+      reply =
+        "I'm currently operating in offline mode, but remember: consistency beats intensity every single time. Keep taking small daily steps towards your goals!";
+    }
 
     // Save AI reply
     const aiMsg = await AIChat.create({

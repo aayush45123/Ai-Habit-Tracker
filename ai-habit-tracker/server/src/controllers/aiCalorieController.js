@@ -1,134 +1,110 @@
 // server/src/controllers/aiCalorieController.js
-import OpenAI from "openai";
 import FoodLog from "../models/FoodLog.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
+import { completeWithGroq, extractAndParseJSON } from "../utils/aiClient.js";
 
-function createGroqClient() {
-  return new OpenAI({
-    apiKey: process.env.GROQ_API_KEY,
-    baseURL: "https://api.groq.com/openai/v1",
-  });
+/* Heuristic fallback nutrition estimator when AI is offline */
+function estimateNutritionHeuristic(foodName) {
+  const text = (foodName || "").toLowerCase();
+  let calories = 250;
+  let protein = 10;
+
+  if (text.includes("egg")) {
+    const count = parseInt(text.match(/(\d+)\s*egg/)?.[1] || "1", 10);
+    calories = count * 78;
+    protein = count * 6;
+  } else if (text.includes("roti") || text.includes("chapati")) {
+    const count = parseInt(text.match(/(\d+)\s*(?:roti|chapati)/)?.[1] || "1", 10);
+    calories = count * 80;
+    protein = count * 3;
+  } else if (text.includes("fried rice") || text.includes("schezwan") || text.includes("shezwan") || text.includes("biryani")) {
+    const isHalf = text.includes("half");
+    calories = isHalf ? 280 : 550;
+    protein = isHalf ? 8 : 16;
+  } else if (text.includes("rice")) {
+    calories = text.includes("half") ? 130 : 260;
+    protein = text.includes("half") ? 3 : 6;
+  } else if (text.includes("chicken")) {
+    calories = 300;
+    protein = 32;
+  } else if (text.includes("paneer")) {
+    calories = 320;
+    protein = 18;
+  } else if (text.includes("dal") || text.includes("dhal")) {
+    calories = 180;
+    protein = 9;
+  } else if (text.includes("salad")) {
+    calories = 120;
+    protein = 4;
+  } else if (text.includes("pizza") || text.includes("burger")) {
+    calories = 450;
+    protein = 14;
+  } else if (text.includes("oat") || text.includes("oatmeal")) {
+    calories = 200;
+    protein = 7;
+  } else if (text.includes("milk") || text.includes("shake")) {
+    calories = 180;
+    protein = 8;
+  }
+
+  return { calories, protein };
 }
 
 /* ============================
    ESTIMATE FOOD CALORIES & PROTEIN
-   ✅ IMPROVED: Better prompts for accurate estimates
+   ✅ IMPROVED: Robust AI with auto model fallback & heuristic resilience
 ============================ */
 export const estimateFoodCalories = async (req, res) => {
+  const { foodName } = req.body;
+
+  if (!foodName || !foodName.trim()) {
+    return res.status(400).json({
+      message: "foodName is required",
+    });
+  }
+
+  const trimmedFood = foodName.trim();
+
   try {
-    const { foodName } = req.body;
+    const systemPrompt = `You are an expert nutritionist. Provide accurate calorie and protein estimates for food items.
+Return ONLY a valid JSON object in this exact format:
+{ "calories": number, "protein": number }`;
 
-    if (!foodName || !foodName.trim()) {
-      return res.status(400).json({
-        message: "foodName is required",
-      });
-    }
-
-    const groq = createGroqClient();
-
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.1, // Lower temperature for more consistent estimates
+    const { content } = await completeWithGroq({
       messages: [
-        {
-          role: "system",
-          content: `You are an expert nutritionist specializing in Indian and international cuisine. Provide accurate calorie and protein estimates for food items.
-
-IMPORTANT GUIDELINES:
-1. Consider TYPICAL PORTION SIZES for the food mentioned
-2. If "half plate" or "full plate" is mentioned, estimate accordingly:
-   - Half plate = 200-250g for rice/noodles
-   - Full plate = 400-500g
-   - Bowl = 250-300ml
-3. Account for cooking methods (fried foods have more calories)
-4. Include all ingredients (oil, ghee, cheese, etc.)
-5. Be realistic about protein content
-
-PROTEIN GUIDELINES (per 100g):
-- Rice/noodles: 2-4g
-- Chicken/fish: 20-30g
-- Paneer/cheese: 18-25g
-- Dal/lentils: 7-9g
-- Vegetables: 1-3g
-- Egg: ~13g per egg
-
-CALORIE GUIDELINES (per 100g):
-- Plain rice: 130 kcal
-- Fried rice: 150-180 kcal
-- Noodles: 130-160 kcal
-- Roti/chapati: ~70 kcal per piece
-- Dal: 90-110 kcal
-
-Return ONLY valid JSON in this exact format:
-{ "calories": number, "protein": number }
-
-Example outputs:
-- "half plate shezwan fried rice" → {"calories": 550, "protein": 15}
-- "2 eggs" → {"calories": 155, "protein": 26}
-- "chicken tikka 6 pieces" → {"calories": 280, "protein": 35}`,
-        },
-        {
-          role: "user",
-          content: `Estimate calories and protein for: ${foodName.trim()}`,
-        },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Estimate calories and protein for: ${trimmedFood}` },
       ],
+      temperature: 0.1,
+      max_tokens: 200,
+      jsonMode: true,
     });
 
-    const content = completion.choices[0].message.content.trim();
+    const parsed = extractAndParseJSON(content);
 
-    // Remove markdown code blocks if present
-    const cleanContent = content
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(cleanContent);
-    } catch (parseErr) {
-      console.error("JSON parse error:", cleanContent);
-      // Fallback: try to extract numbers from response
-      const calorieMatch = cleanContent.match(/"calories"\s*:\s*(\d+)/);
-      const proteinMatch = cleanContent.match(/"protein"\s*:\s*(\d+)/);
-
-      if (calorieMatch && proteinMatch) {
-        parsed = {
-          calories: parseInt(calorieMatch[1]),
-          protein: parseInt(proteinMatch[1]),
-        };
-      } else {
-        throw new Error("Could not parse nutrition estimate");
-      }
-    }
-
-    // Validate the response
     if (
-      typeof parsed.calories !== "number" ||
-      typeof parsed.protein !== "number" ||
-      parsed.calories < 10 ||
-      parsed.calories > 5000 ||
-      parsed.protein < 0 ||
-      parsed.protein > 300
+      parsed &&
+      typeof parsed.calories === "number" &&
+      typeof parsed.protein === "number" &&
+      parsed.calories >= 10 &&
+      parsed.calories <= 5000 &&
+      parsed.protein >= 0 &&
+      parsed.protein <= 300
     ) {
-      console.warn("Invalid nutrition estimate:", parsed);
-      return res.status(500).json({
-        message: "Invalid nutrition estimate received",
-        calories: 250,
-        protein: 12,
+      return res.json({
+        calories: Math.round(parsed.calories),
+        protein: Math.round(parsed.protein),
       });
     }
 
-    res.json({
-      calories: Math.round(parsed.calories),
-      protein: Math.round(parsed.protein),
-    });
+    // Heuristic fallback if JSON parsed was out of bounds
+    const fallbackEstimate = estimateNutritionHeuristic(trimmedFood);
+    return res.json(fallbackEstimate);
   } catch (err) {
-    console.error("Nutrition estimation error:", err);
-    res.status(500).json({
-      message: "Nutrition estimation failed",
-      calories: 250,
-      protein: 12,
-    });
+    console.warn("AI nutrition estimation failed, using heuristic estimation:", err.message);
+    const fallbackEstimate = estimateNutritionHeuristic(trimmedFood);
+    // Return 200 so user can proceed seamlessly
+    return res.json(fallbackEstimate);
   }
 };
 

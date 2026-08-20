@@ -1,17 +1,5 @@
-import OpenAI from "openai";
-
-function createGroqClient() {
-  const apiKey = process.env.GROQ_API_KEY;
-
-  if (!apiKey) {
-    return null;
-  }
-
-  return new OpenAI({
-    apiKey,
-    baseURL: "https://api.groq.com/openai/v1",
-  });
-}
+// server/src/controllers/aiTimetableController.js
+import { completeWithGroq, extractAndParseJSON } from "../utils/aiClient.js";
 
 const DAYS = [
   "Monday",
@@ -22,6 +10,46 @@ const DAYS = [
   "Saturday",
   "Sunday",
 ];
+
+function generateFallbackTimetable(body) {
+  const { fitnessGoal = "general_fitness", fitnessLevel = "beginner" } = body;
+  const splitMap = {
+    fat_loss: [
+      { day: "Monday", focus: "Full Body HIIT & Cardio", isRest: false, exercises: [{ name: "Jumping Jacks", sets: "3", reps: "30s", restBetweenSets: "45s", notes: "Warmup" }, { name: "Bodyweight Squats", sets: "4", reps: "15", restBetweenSets: "60s", notes: "Control form" }, { name: "Push-ups", sets: "3", reps: "10-12", restBetweenSets: "60s", notes: "Knee pushups if needed" }] },
+      { day: "Tuesday", focus: "Core & Interval Running", isRest: false, exercises: [{ name: "Plank", sets: "3", reps: "45s", restBetweenSets: "45s", notes: "Keep core tight" }, { name: "Mountain Climbers", sets: "3", reps: "30s", restBetweenSets: "45s", notes: "High pace" }] },
+      { day: "Wednesday", focus: "Active Recovery", isRest: true, exercises: [] },
+      { day: "Thursday", focus: "Lower Body Conditioning", isRest: false, exercises: [{ name: "Lunges", sets: "3", reps: "12 each", restBetweenSets: "60s", notes: "Step controlled" }, { name: "Glute Bridges", sets: "3", reps: "15", restBetweenSets: "45s", notes: "Squeeze at top" }] },
+      { day: "Friday", focus: "Upper Body & Core", isRest: false, exercises: [{ name: "Dumbbell Press / Push-ups", sets: "4", reps: "10", restBetweenSets: "60s", notes: "Steady tempo" }, { name: "Bicycle Crunches", sets: "3", reps: "20", restBetweenSets: "45s", notes: "Slow twists" }] },
+      { day: "Saturday", focus: "Endurance Cardio", isRest: false, exercises: [{ name: "Brisk Walk / Jog", sets: "1", reps: "30 mins", restBetweenSets: "None", notes: "Zone 2 cardio" }] },
+      { day: "Sunday", focus: "Rest & Recovery", isRest: true, exercises: [] },
+    ],
+  };
+
+  const defaultDays = splitMap.fat_loss;
+  return {
+    name: `${fitnessGoal.replace("_", " ")} Plan`,
+    category: "general_fitness",
+    goal: fitnessGoal,
+    level: fitnessLevel,
+    weeklySchedule: DAYS.map((day, idx) => {
+      const d = defaultDays[idx] || { day, focus: "General Workout", isRest: false, exercises: [] };
+      return {
+        day,
+        focusArea: d.focus,
+        isRestDay: d.isRest,
+        startTime: d.isRest ? "" : "07:00",
+        endTime: d.isRest ? "" : "08:00",
+        exercises: d.exercises,
+        timeBlock: {
+          morning: d.isRest ? "Rest" : "Main Workout",
+          afternoon: "Hydration & Walk",
+          evening: "Mobility",
+          night: "Sleep & Recovery",
+        },
+      };
+    }),
+  };
+}
 
 export const generateAITimetable = async (req, res) => {
   try {
@@ -36,22 +64,11 @@ export const generateAITimetable = async (req, res) => {
       additionalNotes,
     } = req.body;
 
-    const groq = createGroqClient();
-
-    if (!groq) {
-      return res.status(500).json({
-        message:
-          "GROQ_API_KEY not set. Add it to enable AI timetable generation.",
-      });
-    }
-
     const prompt = `
 You are an elite Strength & Conditioning Coach.
-
 Create a COMPLETE 7-day workout timetable.
 
 USER DETAILS
-
 Fitness Goal: ${fitnessGoal}
 Fitness Level: ${fitnessLevel}
 Days Per Week: ${daysPerWeek}
@@ -61,142 +78,76 @@ Injuries / Limitations: ${injuries}
 Focus Areas: ${focusAreas}
 Additional Notes: ${additionalNotes}
 
-WORKOUT GENERATION RULES
-
+WORKOUT GENERATION RULES:
 - Generate exactly 7 days (Monday to Sunday)
 - Include at least 1 recovery/rest day
-- Every training day must contain 5-8 exercises
-- Every exercise must have sets, reps, restBetweenSets and notes
-- Use realistic gym exercises
-- Use proper focus areas
-- Include start and end times
-- Include morning, afternoon, evening and night time blocks
-- Focus on balanced programming
-- Do not repeat the same workout every day
-- If goal is Sports Stamina, prioritize athletic performance, conditioning and mobility
-- If goal is Fat Loss, include conditioning and calorie-burning work
-- If goal is Muscle Gain, include progressive strength training
-- If goal is Strength, prioritize compound lifts
-
-WORKOUT SPLIT EXAMPLE
-
-Monday:
-Lower Body Strength
-
-Tuesday:
-Upper Body Strength
-
-Wednesday:
-Conditioning + Core
-
-Thursday:
-Lower Body Power
-
-Friday:
-Upper Body + Mobility
-
-Saturday:
-Sports Conditioning
-
-Sunday:
-Recovery
-
-RETURN ONLY VALID JSON
-
+- Every training day must contain 4-6 exercises with name, sets, reps, restBetweenSets, notes
+- Rest days must have isRestDay: true, exercises: []
+- Return ONLY valid JSON matching this schema:
 {
   "name": "string",
-  "category": "sports_specific",
-  "goal": "sports_stamina",
-  "level": "intermediate",
+  "category": "sports_specific | hypertrophy | fat_loss | strength",
+  "goal": "${fitnessGoal}",
+  "level": "${fitnessLevel}",
   "weeklySchedule": [
     {
       "day": "Monday",
-      "focusArea": "Lower Body Strength",
+      "focusArea": "string",
       "isRestDay": false,
       "startTime": "18:00",
-      "endTime": "19:30",
+      "endTime": "19:00",
       "exercises": [
         {
-          "name": "Barbell Squat",
-          "sets": "4",
-          "reps": "6-8",
-          "duration": "",
-          "restBetweenSets": "90s",
-          "notes": "Control the movement"
+          "name": "string",
+          "sets": "string",
+          "reps": "string",
+          "duration": "string",
+          "restBetweenSets": "string",
+          "notes": "string"
         }
       ],
       "timeBlock": {
-        "morning": "Mobility",
-        "afternoon": "Work/Study",
-        "evening": "Main Workout",
-        "night": "Stretching"
+        "morning": "string",
+        "afternoon": "string",
+        "evening": "string",
+        "night": "string"
       }
     }
   ]
-}
+}`;
 
-STRICT VALIDATION
+    let parsed = null;
+    try {
+      const { content } = await completeWithGroq({
+        messages: [
+          { role: "system", content: "You are a professional fitness planner. Return valid JSON only." },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 2500,
+        jsonMode: true,
+      });
 
-1. weeklySchedule must contain EXACTLY 7 objects.
-2. Each object must contain:
-   day
-   focusArea
-   isRestDay
-   startTime
-   endTime
-   exercises
-   timeBlock
-3. Training days must contain 5-8 exercises.
-4. Exercise names cannot be empty.
-5. Rest days must have:
-   isRestDay=true
-   exercises=[]
-6. Output ONLY JSON.
-7. No markdown.
-8. No explanation.
-9. No code block.
-10. No text before or after JSON.
-`;
+      parsed = extractAndParseJSON(content);
+    } catch (groqErr) {
+      console.warn("Groq timetable error, using fallback timetable:", groqErr.message);
+    }
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.5,
-      messages: [
-        {
-          role: "system",
-          content: "Return valid JSON only.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    });
-
-    let raw = completion.choices[0].message.content.trim();
-
-    raw = raw
-      .replace(/^```json/i, "")
-      .replace(/^```/i, "")
-      .replace(/```$/i, "")
-      .trim();
-
-    const parsed = JSON.parse(raw);
-    console.log(JSON.stringify(parsed, null, 2));
+    if (!parsed || !Array.isArray(parsed.weeklySchedule)) {
+      parsed = generateFallbackTimetable(req.body);
+    }
 
     parsed.weeklySchedule = DAYS.map((day, index) => {
       const current = parsed.weeklySchedule[index] || {};
-
       return {
         day,
-        focusArea: current.focusArea || "",
-        
-        isRestDay: current.isRestDay || false,
-        startTime: current.startTime || "",
-        endTime: current.endTime || "",
+        focusArea: current.focusArea || "Training",
+        isRestDay: Boolean(current.isRestDay),
+        startTime: current.startTime || "07:00",
+        endTime: current.endTime || "08:00",
         exercises: current.isRestDay
           ? []
-          : (current.exercises || []).filter((e) => e.name?.trim()),
+          : (current.exercises || []).filter((e) => e && e.name?.trim()),
         timeBlock: {
           morning: current.timeBlock?.morning || "",
           afternoon: current.timeBlock?.afternoon || "",
@@ -209,9 +160,6 @@ STRICT VALIDATION
     res.json(parsed);
   } catch (err) {
     console.error("AI Timetable Error:", err);
-
-    res.status(500).json({
-      message: err.message,
-    });
+    res.json(generateFallbackTimetable(req.body));
   }
 };
