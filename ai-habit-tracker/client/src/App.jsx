@@ -12,6 +12,7 @@ import Landing from "./pages/Landing/Landing";
 import Login from "./pages/Auth/Login/Login";
 import Signup from "./pages/Auth/Signup/Signup";
 import VerifyEmail from "./pages/Auth/VerifyEmail/VerifyEmail";
+import Maintenance3DModal from "./components/MaintenanceNotice/Maintenance3DModal";
 
 // ─── Lazy (all authenticated / heavy pages) ─────────────────────────────────
 const Dashboard      = lazy(() => import("./pages/Dashboard/Dashboard"));
@@ -42,6 +43,7 @@ function App() {
     <>
       <Analytics />
       <SpeedInsights />
+      <Maintenance3DModal />
 
       <Suspense fallback={<PageLoader />}>
         <Routes>
