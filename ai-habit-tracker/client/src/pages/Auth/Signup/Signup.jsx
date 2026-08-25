@@ -56,7 +56,13 @@ function Signup() {
         setSignupSuccess(true);
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Signup failed. Please try again.");
+      if (!err.response || err.response?.status === 503) {
+        setError(
+          "⚠️ Server is currently under scheduled maintenance until Sept 1st. Account creation is temporarily paused."
+        );
+      } else {
+        setError(err.response?.data?.message || "Signup failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
