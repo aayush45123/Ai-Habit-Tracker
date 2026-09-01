@@ -41,7 +41,7 @@ const app = express();
 /* =======================
    BODY PARSER
 ======================= */
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 /* =======================
    ✅ PRODUCTION CORS (FIXED)
@@ -81,7 +81,6 @@ app.options(/.*/, cors());
 /* =======================
    ROUTES - FIXED CALORIE PATH
 ======================= */
-app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/habits", habitRoutes);

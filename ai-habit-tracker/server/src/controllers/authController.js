@@ -23,8 +23,9 @@ export const signup = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const assignedRole = role === "admin" ? "admin" : "user";
-    const isAdmin = assignedRole === "admin";
+    // Never allow admin self-promotion via public signup endpoint
+    const assignedRole = "user";
+    const isAdmin = false;
 
     // Generate secure 32-byte verification token
     const rawToken = crypto.randomBytes(32).toString("hex");
@@ -69,7 +70,7 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.error("Signup error:", error);
-    res.status(500).json({ message: "Server error during registration", error: error.message });
+    res.status(500).json({ message: "Server error during registration" });
   }
 };
 
@@ -106,7 +107,7 @@ export const verifyEmail = async (req, res) => {
     });
   } catch (error) {
     console.error("Verify email error:", error);
-    res.status(500).json({ message: "Server error verifying email", error: error.message });
+    res.status(500).json({ message: "Server error verifying email" });
   }
 };
 
@@ -148,7 +149,7 @@ export const resendVerification = async (req, res) => {
     });
   } catch (error) {
     console.error("Resend verification error:", error);
-    res.status(500).json({ message: "Server error resending verification", error: error.message });
+    res.status(500).json({ message: "Server error resending verification" });
   }
 };
 
@@ -222,7 +223,7 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "Server error during login", error: error.message });
+    res.status(500).json({ message: "Server error during login" });
   }
 };
 
@@ -251,6 +252,7 @@ export const updateReminderPreferences = async (req, res) => {
 
     res.json({ message: "Reminder preferences updated", user });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Update reminder preferences error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

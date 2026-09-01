@@ -64,7 +64,8 @@ export const getAdminDashboard = async (req, res) => {
       topPerformingUsers,
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch admin dashboard", error: error.message });
+    console.error("Admin dashboard error:", error);
+    res.status(500).json({ message: "Failed to fetch admin dashboard" });
   }
 };
 
@@ -105,7 +106,8 @@ export const getUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch users", error: error.message });
+    console.error("Admin getUsers error:", error);
+    res.status(500).json({ message: "Failed to fetch users" });
   }
 };
 
@@ -145,7 +147,8 @@ export const updateUserRole = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update user", error: error.message });
+    console.error("Admin updateUserRole error:", error);
+    res.status(500).json({ message: "Failed to update user" });
   }
 };
 
@@ -161,12 +164,16 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Clean up user's habits
+    // Clean up all user data to prevent orphaned documents
+    const userHabits = await Habit.find({ userId: id }).select("_id");
+    const habitIds = userHabits.map((h) => h._id);
+    await HabitLog.deleteMany({ habitId: { $in: habitIds } });
     await Habit.deleteMany({ userId: id });
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete user", error: error.message });
+    console.error("Admin deleteUser error:", error);
+    res.status(500).json({ message: "Failed to delete user" });
   }
 };
 
@@ -186,7 +193,8 @@ export const createTemplate = async (req, res) => {
 
     res.status(201).json({ message: "Template created successfully", template });
   } catch (error) {
-    res.status(500).json({ message: "Failed to create template", error: error.message });
+    console.error("Admin createTemplate error:", error);
+    res.status(500).json({ message: "Failed to create template" });
   }
 };
 
@@ -201,6 +209,7 @@ export const deleteTemplate = async (req, res) => {
 
     res.json({ message: "Template deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete template", error: error.message });
+    console.error("Admin deleteTemplate error:", error);
+    res.status(500).json({ message: "Failed to delete template" });
   }
 };
