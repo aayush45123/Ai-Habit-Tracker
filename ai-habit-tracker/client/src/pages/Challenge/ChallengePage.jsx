@@ -1,5 +1,5 @@
-// client/src/pages/ChallengePage/ChallengePage.jsx (FIXED - Proper state reset on restart)
-import React, { useEffect, useRef, useState } from "react";
+// client/src/pages/ChallengePage/ChallengePage.jsx (ENHANCED - Dropdown timer & flexible challenge durations)
+import React, { useEffect, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -19,8 +19,6 @@ import {
   X as CloseIcon,
   RefreshCw,
   AlertCircle,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
@@ -55,95 +53,73 @@ function blankHabits() {
   }));
 }
 
-/* ── Drum Time Picker Component ── */
-function DrumTimePicker({ hour, minute, period, onHourChange, onMinuteChange, onPeriodChange }) {
-  const hours = Array.from({ length: 12 }, (_, i) =>
-    String(i + 1).padStart(2, "0")
-  );
-  const minutes = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+export const DURATION_PRESETS = [
+  { days: 7, label: "7 Days", sublabel: "1 Week" },
+  { days: 10, label: "10 Days", sublabel: "Sprint" },
+  { days: 15, label: "15 Days", sublabel: "Mid-Sprint" },
+  { days: 21, label: "21 Days", sublabel: "Habit Build", recommended: true },
+  { days: 30, label: "30 Days", sublabel: "1 Month" },
+];
 
-  const hourRef = useRef(null);
-  const minRef = useRef(null);
+const HOURS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+const MINUTE_PRESETS = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
 
-  const scrollTo = (ref, items, value) => {
-    const idx = items.indexOf(value);
-    if (ref.current && idx >= 0) {
-      ref.current.scrollTop = idx * 40;
-    }
-  };
-
-  useEffect(() => { scrollTo(hourRef, hours, hour); }, [hour]);
-  useEffect(() => { scrollTo(minRef, minutes, minute); }, [minute]);
+/* ── Clean Dropdown Time Picker Component ── */
+function TimeDropdownPicker({ hour, minute, period, onHourChange, onMinuteChange, onPeriodChange }) {
+  const formattedHour = String(hour || "06").padStart(2, "0");
+  const formattedMinute = String(minute || "00").padStart(2, "0");
+  const minutesList = MINUTE_PRESETS.includes(formattedMinute)
+    ? MINUTE_PRESETS
+    : [...MINUTE_PRESETS, formattedMinute].sort((a, b) => Number(a) - Number(b));
 
   return (
-    <div className={styles.drumPicker}>
-      {/* Hour column */}
-      <div className={styles.drumColumn}>
-        <button type="button" className={styles.drumArrow} onClick={() => {
-          const idx = hours.indexOf(hour);
-          onHourChange(hours[(idx - 1 + 12) % 12]);
-        }}><ChevronUp size={14} /></button>
-        <div className={styles.drumScroll} ref={hourRef}>
-          {hours.map((h) => (
-            <div
-              key={h}
-              className={`${styles.drumItem} ${h === hour ? styles.drumItemActive : ""}`}
-              onClick={() => onHourChange(h)}
-            >
-              {h}
-            </div>
-          ))}
-        </div>
-        <button type="button" className={styles.drumArrow} onClick={() => {
-          const idx = hours.indexOf(hour);
-          onHourChange(hours[(idx + 1) % 12]);
-        }}><ChevronDown size={14} /></button>
-      </div>
+    <div className={styles.timeDropdownContainer}>
+      <select
+        className={styles.timeSelect}
+        value={formattedHour}
+        onChange={(e) => onHourChange(e.target.value)}
+        aria-label="Hour"
+      >
+        {HOURS.map((h) => (
+          <option key={h} value={h}>
+            {h}
+          </option>
+        ))}
+      </select>
 
-      <div className={styles.drumSeparator}>:</div>
+      <span className={styles.timeSeparator}>:</span>
 
-      {/* Minute column */}
-      <div className={styles.drumColumn}>
-        <button type="button" className={styles.drumArrow} onClick={() => {
-          const idx = minutes.indexOf(minute);
-          onMinuteChange(minutes[(idx - 1 + minutes.length) % minutes.length]);
-        }}><ChevronUp size={14} /></button>
-        <div className={styles.drumScroll} ref={minRef}>
-          {minutes.map((m) => (
-            <div
-              key={m}
-              className={`${styles.drumItem} ${m === minute ? styles.drumItemActive : ""}`}
-              onClick={() => onMinuteChange(m)}
-            >
-              {m}
-            </div>
-          ))}
-        </div>
-        <button type="button" className={styles.drumArrow} onClick={() => {
-          const idx = minutes.indexOf(minute);
-          onMinuteChange(minutes[(idx + 1) % minutes.length]);
-        }}><ChevronDown size={14} /></button>
-      </div>
+      <select
+        className={styles.timeSelect}
+        value={formattedMinute}
+        onChange={(e) => onMinuteChange(e.target.value)}
+        aria-label="Minute"
+      >
+        {minutesList.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
 
-      {/* AM/PM */}
-      <div className={styles.drumPeriod}>
-        <button
-          type="button"
-          className={`${styles.periodBtn} ${period === "AM" ? styles.periodBtnActive : ""}`}
-          onClick={() => onPeriodChange("AM")}
-        >AM</button>
-        <button
-          type="button"
-          className={`${styles.periodBtn} ${period === "PM" ? styles.periodBtnActive : ""}`}
-          onClick={() => onPeriodChange("PM")}
-        >PM</button>
-      </div>
+      <select
+        className={`${styles.timeSelect} ${styles.periodSelect}`}
+        value={period || "AM"}
+        onChange={(e) => onPeriodChange(e.target.value)}
+        aria-label="AM or PM"
+      >
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
     </div>
   );
 }
 
 export default function ChallengePage() {
   const [habits, setHabits] = useState(blankHabits());
+  const [durationDays, setDurationDays] = useState(21);
+  const [isCustomDuration, setIsCustomDuration] = useState(false);
+  const [customDaysInput, setCustomDaysInput] = useState("");
 
   const [existing, setExisting] = useState(null);
   const [days, setDays] = useState([]);
@@ -156,13 +132,17 @@ export default function ChallengePage() {
   const [challengeHistory, setChallengeHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); // ✅ NEW: Force re-render key
+  const [refreshKey, setRefreshKey] = useState(0); // ✅ Force re-render key
+
+  const activeDuration = isCustomDuration
+    ? Math.max(1, parseInt(customDaysInput, 10) || 21)
+    : durationDays;
 
   /* Load challenge */
   useEffect(() => {
     loadChallenge();
     loadHistory();
-  }, [refreshKey]); // ✅ FIXED: Re-run when refreshKey changes
+  }, [refreshKey]);
 
   async function loadChallenge() {
     try {
@@ -181,7 +161,7 @@ export default function ChallengePage() {
         setChallengeCompleted(true);
         setCompletionStats(res.data.stats);
         setExisting(null);
-        setDays([]); // ✅ FIXED: Clear days array
+        setDays([]);
         setMessage("");
         return;
       }
@@ -189,9 +169,18 @@ export default function ChallengePage() {
       if (res.data.active) {
         const challenge = res.data.challenge;
         setExisting(challenge);
-        setDays(res.data.days); // ✅ This will now have fresh data
+        setDays(res.data.days);
         setChallengeCompleted(false);
         setCompletionStats(null);
+
+        if (challenge.durationDays) {
+          setDurationDays(challenge.durationDays);
+          const isPreset = DURATION_PRESETS.some(
+            (p) => p.days === challenge.durationDays,
+          );
+          setIsCustomDuration(!isPreset);
+          if (!isPreset) setCustomDaysInput(String(challenge.durationDays));
+        }
 
         setHabits(
           challenge.habits.map((h) => {
@@ -213,7 +202,7 @@ export default function ChallengePage() {
         );
       } else {
         setExisting(null);
-        setDays([]); // ✅ FIXED: Clear days array
+        setDays([]);
         setChallengeCompleted(false);
         setCompletionStats(null);
       }
@@ -278,20 +267,25 @@ export default function ChallengePage() {
 
     const formatted = filledHabits.map((h) => ({
       title: h.title,
-      startTime: `${h.startTime}:${h.startMinute} ${h.startPeriod}`,
-      endTime: `${h.endTime}:${h.endMinute} ${h.endPeriod}`,
+      startTime: `${h.startTime}:${h.startMinute || "00"} ${h.startPeriod || "AM"}`,
+      endTime: `${h.endTime}:${h.endMinute || "00"} ${h.endPeriod || "AM"}`,
     }));
 
     try {
-      const res = await api.post("/challenge/start", { habits: formatted });
+      const res = await api.post("/challenge/start", {
+        habits: formatted,
+        durationDays: activeDuration,
+      });
       setExisting(res.data.challenge);
       setChallengeCompleted(false);
       setCompletionStats(null);
-      setDays([]); // ✅ FIXED: Clear old days
-      setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh
+      setDays([]);
+      setRefreshKey((prev) => prev + 1);
       loadHistory();
-      setMessage("Challenge started successfully!");
-      setTimeout(() => setMessage(""), 3000);
+      setMessage(
+        `${activeDuration}-Day Challenge started successfully! Let's build strong habits.`,
+      );
+      setTimeout(() => setMessage(""), 3500);
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || "Error starting challenge.");
@@ -317,40 +311,37 @@ export default function ChallengePage() {
     }));
 
     try {
-      const res = await api.post("/challenge/restart", { habits: formatted });
+      const res = await api.post("/challenge/restart", {
+        habits: formatted,
+        durationDays: activeDuration,
+      });
 
-      // ✅ FIXED: Clear all old state BEFORE setting new challenge
       setDays([]);
       setExisting(null);
       setChallengeCompleted(false);
       setCompletionStats(null);
 
-      // ✅ FIXED: Set new challenge data
       setExisting(res.data.challenge);
       setShowRestartModal(false);
-
-      // ✅ FIXED: Force complete refresh of challenge data
       setRefreshKey((prev) => prev + 1);
 
       await loadHistory();
 
-      setMessage("Challenge restarted successfully!");
-      setTimeout(() => setMessage(""), 3000);
+      setMessage(
+        `${activeDuration}-Day Challenge restarted successfully!`,
+      );
+      setTimeout(() => setMessage(""), 3500);
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || "Error restarting challenge.");
     }
   }
 
-  /* -----------------------------------------------------
-     ✅ NEW: Start a brand-new challenge with a fresh set
-     of habits. The current challenge is archived to
-     history (backend /challenge/restart already does
-     this) but here the form starts blank instead of
-     pre-filled, so the user picks new habits.
-  ----------------------------------------------------- */
   function openNewChallengeForm() {
     setHabits(blankHabits());
+    setDurationDays(21);
+    setIsCustomDuration(false);
+    setCustomDaysInput("");
     setNewChallengeMode(true);
     setEditMode(false);
     setMessage("");
@@ -359,7 +350,7 @@ export default function ChallengePage() {
   function cancelNewChallenge() {
     setNewChallengeMode(false);
     setMessage("");
-    loadChallenge(); // restore current challenge's habits back into form state
+    loadChallenge();
   }
 
   async function submitNewChallenge() {
@@ -381,9 +372,10 @@ export default function ChallengePage() {
     }));
 
     try {
-      // Reuses the restart endpoint: archives current challenge to
-      // history and creates a fresh 21-day challenge with these habits.
-      const res = await api.post("/challenge/restart", { habits: formatted });
+      const res = await api.post("/challenge/restart", {
+        habits: formatted,
+        durationDays: activeDuration,
+      });
 
       setDays([]);
       setExisting(null);
@@ -397,7 +389,7 @@ export default function ChallengePage() {
       await loadHistory();
 
       setMessage(
-        "New challenge started! Your previous challenge was moved to history.",
+        `New ${activeDuration}-day challenge started! Your previous challenge was moved to history.`,
       );
       setTimeout(() => setMessage(""), 4000);
     } catch (err) {
@@ -431,7 +423,7 @@ export default function ChallengePage() {
 
       setExisting(res.data.challenge);
       setEditMode(false);
-      setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh after update
+      setRefreshKey((prev) => prev + 1);
       setMessage("Challenge updated successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -452,7 +444,7 @@ export default function ChallengePage() {
       await api.post(
         `/challenge/done/${existing._id}/${habitIndex}?hour=${hour}&minute=${minute}&today=${today}`,
       );
-      setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh after marking done
+      setRefreshKey((prev) => prev + 1);
     } catch (err) {
       console.error(err);
       if (err.response?.data?.challengeEnded) {
@@ -467,12 +459,15 @@ export default function ChallengePage() {
 
   function resetForm() {
     setHabits(blankHabits());
+    setDurationDays(21);
+    setIsCustomDuration(false);
+    setCustomDaysInput("");
     setMessage("");
     setChallengeCompleted(false);
     setCompletionStats(null);
     setExisting(null);
-    setDays([]); // ✅ FIXED: Clear days
-    setRefreshKey((prev) => prev + 1); // ✅ FIXED: Force refresh
+    setDays([]);
+    setRefreshKey((prev) => prev + 1);
   }
 
   async function deleteOldChallenge(challengeId) {
@@ -489,7 +484,6 @@ export default function ChallengePage() {
   }
 
   function openRestartModal() {
-    // Pre-fill with current habits
     if (existing) {
       setHabits(
         existing.habits.map((h) => {
@@ -508,8 +502,100 @@ export default function ChallengePage() {
           };
         }),
       );
+      const dur = existing.durationDays || 21;
+      setDurationDays(dur);
+      const isPreset = DURATION_PRESETS.some((p) => p.days === dur);
+      setIsCustomDuration(!isPreset);
+      if (!isPreset) setCustomDaysInput(String(dur));
     }
     setShowRestartModal(true);
+  }
+
+  const currentDisplayDuration = existing
+    ? existing.durationDays || 21
+    : activeDuration;
+
+  /* ── Duration Selector UI Component ── */
+  function renderDurationSelector() {
+    return (
+      <div className={styles.durationSelectorGroup}>
+        <div className={styles.durationLabelRow}>
+          <label className={styles.durationLabel}>
+            <Calendar className={styles.durationIcon} />
+            <span>Select Challenge Duration</span>
+          </label>
+          <span className={styles.durationHint}>
+            {activeDuration} {activeDuration === 1 ? "Day" : "Days"} Target
+          </span>
+        </div>
+
+        <div className={styles.durationPills}>
+          {DURATION_PRESETS.map((preset) => {
+            const isSelected =
+              !isCustomDuration && durationDays === preset.days;
+            return (
+              <button
+                key={preset.days}
+                type="button"
+                className={`${styles.durationPill} ${
+                  isSelected ? styles.durationPillActive : ""
+                }`}
+                onClick={() => {
+                  setDurationDays(preset.days);
+                  setIsCustomDuration(false);
+                }}
+              >
+                <span className={styles.durationPillDays}>{preset.label}</span>
+                <span className={styles.durationPillSub}>
+                  {preset.sublabel}
+                </span>
+                {preset.recommended && (
+                  <span className={styles.recommendedBadge}>Recommended</span>
+                )}
+              </button>
+            );
+          })}
+
+          <button
+            type="button"
+            className={`${styles.durationPill} ${
+              isCustomDuration ? styles.durationPillActive : ""
+            }`}
+            onClick={() => {
+              setIsCustomDuration(true);
+              if (!customDaysInput) {
+                setCustomDaysInput(String(durationDays || 21));
+              }
+            }}
+          >
+            <span className={styles.durationPillDays}>Custom</span>
+            <span className={styles.durationPillSub}>Any Days</span>
+          </button>
+        </div>
+
+        {isCustomDuration && (
+          <div className={styles.customDurationInputRow}>
+            <input
+              type="number"
+              min="1"
+              max="365"
+              className={styles.customDaysInput}
+              placeholder="e.g. 5, 14, 45, 60"
+              value={customDaysInput}
+              onChange={(e) => {
+                const val = e.target.value;
+                setCustomDaysInput(val);
+                const parsed = parseInt(val, 10);
+                if (parsed > 0) {
+                  setDurationDays(parsed);
+                }
+              }}
+            />
+            <span className={styles.customDaysUnit}>days challenge</span>
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -521,9 +607,15 @@ export default function ChallengePage() {
             <Target className={styles.targetIcon} />
           </div>
           <div className={styles.headerText}>
-            <h2 className={styles.title}>21-Day Challenge</h2>
+            <h2 className={styles.title}>
+              {existing
+                ? `${existing.durationDays || 21}-Day Challenge`
+                : "Habit Challenge"}
+            </h2>
             <p className={styles.subtitle}>
-              Commit to 21 days of powerful habit building
+              {existing
+                ? `Commit to ${existing.durationDays || 21} days of powerful habit building`
+                : "Commit to 21 days of powerful habit building (or pick your custom sprint)"}
             </p>
           </div>
         </div>
@@ -569,9 +661,11 @@ export default function ChallengePage() {
             <div className={styles.modalBody}>
               <p className={styles.modalText}>
                 Your current challenge will be moved to history, and a fresh
-                21-day challenge will begin today. You can modify your habits or
-                keep them the same.
+                challenge will begin today. Choose your target duration and review
+                your habits below.
               </p>
+
+              {renderDurationSelector()}
 
               <div className={styles.modalHabits}>
                 <h4 className={styles.modalSubtitle}>Review Your Habits:</h4>
@@ -598,7 +692,7 @@ export default function ChallengePage() {
                 onClick={restartChallenge}
               >
                 <RefreshCw className={styles.btnIcon} />
-                <span>Restart Challenge</span>
+                <span>Restart ({activeDuration} Days)</span>
               </button>
             </div>
           </div>
@@ -626,82 +720,85 @@ export default function ChallengePage() {
             </div>
           ) : (
             <div className={styles.historyGrid}>
-              {challengeHistory.map((challenge, index) => (
-                <div key={challenge._id} className={styles.historyCard}>
-                  <div className={styles.historyCardHeader}>
-                    <span className={styles.historyBadge}>
-                      {challenge.isActive ? (
-                        <>
-                          <Award className={styles.badgeIcon} /> Active
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className={styles.badgeIcon} /> Completed
-                        </>
-                      )}
-                    </span>
-                    <span className={styles.historyNumber}>
-                      #{challengeHistory.length - index}
-                    </span>
-                  </div>
-
-                  <div className={styles.historyDates}>
-                    <Calendar className={styles.dateIcon} />
-                    <span>
-                      {new Date(challenge.startDate).toLocaleDateString()}
-                    </span>
-                    <TrendingUp className={styles.arrowIcon} />
-                    <span>
-                      {new Date(challenge.endDate).toLocaleDateString()}
-                    </span>
-                  </div>
-
-                  <div className={styles.historyProgress}>
-                    <div className={styles.progressBar}>
-                      <div
-                        className={styles.progressFill}
-                        style={{ width: `${challenge.completionRate}%` }}
-                      />
-                    </div>
-                    <span className={styles.progressText}>
-                      Day {challenge.daysElapsed}/21
-                    </span>
-                  </div>
-
-                  <div className={styles.historyStats}>
-                    <div className={styles.historyStat}>
-                      <span className={styles.historyStatValue}>
-                        {challenge.completionRate}%
+              {challengeHistory.map((challenge, index) => {
+                const dur = challenge.durationDays || 21;
+                return (
+                  <div key={challenge._id} className={styles.historyCard}>
+                    <div className={styles.historyCardHeader}>
+                      <span className={styles.historyBadge}>
+                        {challenge.isActive ? (
+                          <>
+                            <Award className={styles.badgeIcon} /> Active
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className={styles.badgeIcon} /> Completed
+                          </>
+                        )}
                       </span>
-                      <span className={styles.historyStatLabel}>
-                        Completion
+                      <span className={styles.historyNumber}>
+                        #{challengeHistory.length - index} ({dur} Days)
                       </span>
                     </div>
-                    <div className={styles.historyStat}>
-                      <span className={styles.historyStatValue}>
-                        {challenge.totalCompleted}
-                      </span>
-                      <span className={styles.historyStatLabel}>Done</span>
-                    </div>
-                    <div className={styles.historyStat}>
-                      <span className={styles.historyStatValue}>
-                        {challenge.habitCount}
-                      </span>
-                      <span className={styles.historyStatLabel}>Habits</span>
-                    </div>
-                  </div>
 
-                  {!challenge.isActive && (
-                    <button
-                      className={styles.historyDeleteBtn}
-                      onClick={() => deleteOldChallenge(challenge._id)}
-                    >
-                      <Trash2 className={styles.deleteIcon} />
-                      <span>Delete</span>
-                    </button>
-                  )}
-                </div>
-              ))}
+                    <div className={styles.historyDates}>
+                      <Calendar className={styles.dateIcon} />
+                      <span>
+                        {new Date(challenge.startDate).toLocaleDateString()}
+                      </span>
+                      <TrendingUp className={styles.arrowIcon} />
+                      <span>
+                        {new Date(challenge.endDate).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    <div className={styles.historyProgress}>
+                      <div className={styles.progressBar}>
+                        <div
+                          className={styles.progressFill}
+                          style={{ width: `${challenge.completionRate}%` }}
+                        />
+                      </div>
+                      <span className={styles.progressText}>
+                        Day {challenge.daysElapsed}/{dur}
+                      </span>
+                    </div>
+
+                    <div className={styles.historyStats}>
+                      <div className={styles.historyStat}>
+                        <span className={styles.historyStatValue}>
+                          {challenge.completionRate}%
+                        </span>
+                        <span className={styles.historyStatLabel}>
+                          Completion
+                        </span>
+                      </div>
+                      <div className={styles.historyStat}>
+                        <span className={styles.historyStatValue}>
+                          {challenge.totalCompleted}
+                        </span>
+                        <span className={styles.historyStatLabel}>Done</span>
+                      </div>
+                      <div className={styles.historyStat}>
+                        <span className={styles.historyStatValue}>
+                          {challenge.habitCount}
+                        </span>
+                        <span className={styles.historyStatLabel}>Habits</span>
+                      </div>
+                    </div>
+
+                    {!challenge.isActive && (
+                      <button
+                        className={styles.historyDeleteBtn}
+                        onClick={() => deleteOldChallenge(challenge._id)}
+                      >
+                        <Trash2 className={styles.deleteIcon} />
+                        <span>Delete</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -713,11 +810,11 @@ export default function ChallengePage() {
           <Sparkles className={styles.sparkleIcon} />
         </div>
         <div className={styles.bannerContent}>
-          <h3 className={styles.bannerTitle}>Why 21 Days?</h3>
+          <h3 className={styles.bannerTitle}>Why 21 Days? (Recommended)</h3>
           <p className={styles.bannerText}>
-            Research shows it takes approximately 21 days to form a new habit.
-            This challenge helps you build consistency, track your progress
-            daily, and transform your routines into lasting behaviors.
+            Research shows it takes approximately 21 days to form a permanent
+            habit. You can also pick 1 week, 10 days, 15 days, 30 days, or any
+            custom duration that matches your personal consistency goals.
           </p>
           <div className={styles.bannerStats}>
             <div className={styles.stat}>
@@ -727,12 +824,14 @@ export default function ChallengePage() {
             </div>
             <div className={styles.stat}>
               <Calendar className={styles.statIcon} />
-              <span className={styles.statNumber}>21</span>
-              <span className={styles.statLabel}>Days to Success</span>
+              <span className={styles.statNumber}>{currentDisplayDuration}</span>
+              <span className={styles.statLabel}>Days Target</span>
             </div>
             <div className={styles.stat}>
               <CheckCircle className={styles.statIcon} />
-              <span className={styles.statNumber}>126+</span>
+              <span className={styles.statNumber}>
+                {6 * currentDisplayDuration}+
+              </span>
               <span className={styles.statLabel}>Total Completions</span>
             </div>
           </div>
@@ -748,7 +847,8 @@ export default function ChallengePage() {
             </div>
             <h2 className={styles.completionTitle}>Challenge Completed!</h2>
             <p className={styles.completionSubtitle}>
-              Congratulations on completing your 21-day journey!
+              Congratulations on completing your{" "}
+              {completionStats.durationDays || 21}-day journey!
             </p>
           </div>
 
@@ -788,7 +888,7 @@ export default function ChallengePage() {
         <div className={styles.actionButtons}>
           <button className={styles.editBtn} onClick={() => setEditMode(true)}>
             <Edit className={styles.btnIcon} />
-            <span>Edit Challenge</span>
+            <span>Edit Habits</span>
           </button>
           <button className={styles.restartBtn} onClick={openRestartModal}>
             <RefreshCw className={styles.btnIcon} />
@@ -811,9 +911,9 @@ export default function ChallengePage() {
             <Plus className={styles.cardIcon} />
             <h3 className={styles.cardTitle}>
               {newChallengeMode
-                ? "Start New Challenge — Choose New Habits"
+                ? "Start New Challenge — Choose Duration & Habits"
                 : existing && editMode
-                  ? "Edit Your Challenge"
+                  ? "Edit Your Challenge Habits"
                   : "Set Up Your Challenge"}
             </h3>
           </div>
@@ -823,12 +923,15 @@ export default function ChallengePage() {
               <AlertCircle className={styles.noticeIcon} />
               <p className={styles.noticeText}>
                 Your current challenge will be moved to history once you start
-                this one. Pick a fresh set of habits below.
+                this one. Pick a fresh duration and set of habits below.
               </p>
             </div>
           )}
 
           <div className={styles.formContent}>
+            {/* Show Duration Selector for new challenge or initial setup */}
+            {(!existing || newChallengeMode) && renderDurationSelector()}
+
             {habits.map((h, i) => (
               <div key={i} className={styles.habitRow}>
                 <div className={styles.habitNumber}>{i + 1}</div>
@@ -844,11 +947,11 @@ export default function ChallengePage() {
                   />
                 </div>
 
-              <div className={styles.timeControls}>
+                <div className={styles.timeControls}>
                   <div className={styles.timeGroup}>
                     <Clock className={styles.timeIcon} />
                     <label className={styles.timeLabel}>Start</label>
-                    <DrumTimePicker
+                    <TimeDropdownPicker
                       hour={h.startTime || "06"}
                       minute={h.startMinute || "00"}
                       period={h.startPeriod || "AM"}
@@ -861,7 +964,7 @@ export default function ChallengePage() {
                   <div className={styles.timeGroup}>
                     <Clock className={styles.timeIcon} />
                     <label className={styles.timeLabel}>End</label>
-                    <DrumTimePicker
+                    <TimeDropdownPicker
                       hour={h.endTime || "08"}
                       minute={h.endMinute || "00"}
                       period={h.endPeriod || "AM"}
@@ -904,7 +1007,7 @@ export default function ChallengePage() {
               {newChallengeMode ? (
                 <>
                   <Target className={styles.btnIcon} />
-                  <span>Start New Challenge</span>
+                  <span>Start {activeDuration}-Day Challenge</span>
                 </>
               ) : existing ? (
                 <>
@@ -914,7 +1017,7 @@ export default function ChallengePage() {
               ) : (
                 <>
                   <Target className={styles.btnIcon} />
-                  <span>Start 21-Day Challenge</span>
+                  <span>Start {activeDuration}-Day Challenge</span>
                 </>
               )}
             </button>
@@ -951,7 +1054,7 @@ export default function ChallengePage() {
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <CheckCircle className={styles.cardIcon} />
-            <h3 className={styles.cardTitle}>Your Challenge</h3>
+            <h3 className={styles.cardTitle}>Your Active Challenge</h3>
           </div>
 
           <div className={styles.reviewBox}>
@@ -983,7 +1086,8 @@ export default function ChallengePage() {
             <div className={styles.progressHeaderText}>
               <h3 className={styles.progressTitle}>Your Progress Journey</h3>
               <p className={styles.progressSubtitle}>
-                Track your daily completion across all 21 days
+                Track your daily completion across all{" "}
+                {existing.durationDays || days.length || 21} days
               </p>
             </div>
           </div>
@@ -1029,7 +1133,7 @@ export default function ChallengePage() {
         </>
       )}
 
-      {/* HEATMAP & TREND - ✅ FIXED: Pass refreshKey to force re-render */}
+      {/* HEATMAP & TREND - Pass refreshKey to force re-render */}
       {(existing || challengeCompleted) && !newChallengeMode && (
         <ChallengeHeatmap key={`heatmap-${refreshKey}`} />
       )}

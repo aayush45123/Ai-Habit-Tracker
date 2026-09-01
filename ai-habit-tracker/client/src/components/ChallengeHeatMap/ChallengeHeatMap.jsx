@@ -137,7 +137,7 @@ export default function ChallengeHeatmap() {
         <div className={styles.headerContent}>
           <h3 className={styles.title}>
             <FaFire className={styles.titleIcon} />
-            21-Day Challenge Heatmap
+            {stats?.durationDays || stats?.totalDays || 21}-Day Challenge Heatmap
           </h3>
           <p className={styles.subtitle}>
             Your journey to building unstoppable habits
@@ -190,7 +190,7 @@ export default function ChallengeHeatmap() {
             <div className={styles.statProgress}>
               <div
                 className={styles.statProgressBar}
-                style={{ width: `${(stats.completedDays / 21) * 100}%` }}
+                style={{ width: `${(stats.completedDays / (stats?.durationDays || stats?.totalDays || 21)) * 100}%` }}
               ></div>
             </div>
           </div>

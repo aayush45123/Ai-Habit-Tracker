@@ -80,8 +80,10 @@ export default function ChallengeTrend() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>21-Day Trend Analysis</h3>
-        <div className={styles.badge}>ALL 21 DAYS</div>
+        <h3 className={styles.title}>
+          {trendData.length || 21}-Day Trend Analysis
+        </h3>
+        <div className={styles.badge}>ALL {trendData.length || 21} DAYS</div>
       </div>
 
       <Suspense fallback={<ChartFallback />}>
