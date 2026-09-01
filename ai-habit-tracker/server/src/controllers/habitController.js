@@ -33,10 +33,6 @@ const recalculateStreaks = async (habitId) => {
     const todayISO = getTodayIST();
     const allLogs = await HabitLog.find({ habitId }).sort({ date: 1 });
 
-    console.log(`\nRecalculating streaks for habit ${habitId}`);
-    console.log(`Today: ${todayISO}`);
-    console.log(`Total logs: ${allLogs.length}`);
-
     // Calculate LONGEST STREAK (all-time best)
     let longestStreak = 0;
     let tempStreak = 0;
@@ -95,22 +91,10 @@ const recalculateStreaks = async (habitId) => {
       return logDateString === yesterdayISO;
     });
 
-    console.log(
-      `🔍 Today's log:`,
-      todayLog ? `${todayLog.date} - ${todayLog.status}` : "NOT FOUND",
-    );
-    console.log(
-      `🔍 Yesterday's log:`,
-      yesterdayLog
-        ? `${yesterdayLog.date} - ${yesterdayLog.status}`
-        : "NOT FOUND",
-    );
-
     // CRITICAL FIX: Current streak logic
     // Case 1: Today is marked as "done" - count streak from today backwards
     if (todayLog && todayLog.status === "done") {
       currentStreak = 1;
-      console.log(`Today is DONE - starting streak count`);
 
       // Count backwards from yesterday
       for (let daysBack = 1; daysBack <= 365; daysBack++) {
@@ -126,13 +110,7 @@ const recalculateStreaks = async (habitId) => {
 
         if (logForDate && logForDate.status === "done") {
           currentStreak++;
-          console.log(
-            `✅ ${daysBack} day(s) ago (${checkDate}): DONE - streak now ${currentStreak}`,
-          );
         } else {
-          console.log(
-            `❌ ${daysBack} day(s) ago (${checkDate}): ${logForDate ? "MISSED" : "no log"} - streak ends`,
-          );
           break;
         }
       }
@@ -140,9 +118,6 @@ const recalculateStreaks = async (habitId) => {
     // Case 2: Today is NOT done, but yesterday was done - keep yesterday's streak
     else if (yesterdayLog && yesterdayLog.status === "done") {
       currentStreak = 1;
-      console.log(
-        `⚠️ Today NOT done, but yesterday WAS done - counting from yesterday`,
-      );
 
       // Count backwards from 2 days ago
       for (let daysBack = 2; daysBack <= 365; daysBack++) {
@@ -158,13 +133,7 @@ const recalculateStreaks = async (habitId) => {
 
         if (logForDate && logForDate.status === "done") {
           currentStreak++;
-          console.log(
-            `✅ ${daysBack} day(s) ago (${checkDate}): DONE - streak now ${currentStreak}`,
-          );
         } else {
-          console.log(
-            `❌ ${daysBack} day(s) ago (${checkDate}): ${logForDate ? "MISSED" : "no log"} - streak ends`,
-          );
           break;
         }
       }
@@ -172,12 +141,7 @@ const recalculateStreaks = async (habitId) => {
     // Case 3: Neither today nor yesterday is done - streak is BROKEN (0)
     else {
       currentStreak = 0;
-      console.log(`Streak BROKEN - neither today nor yesterday is done`);
     }
-
-    console.log(
-      `Final streaks - Current: ${currentStreak}, Longest: ${longestStreak}\n`,
-    );
 
     return { currentStreak, longestStreak };
   } catch (err) {
@@ -267,9 +231,8 @@ export const addHabit = async (req, res) => {
 
     res.status(201).json({ message: "Habit added", habit });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error adding habit", error: error.message });
+    console.error("Error adding habit:", error);
+    res.status(500).json({ message: "Error adding habit" });
   }
 };
 
@@ -283,9 +246,8 @@ export const getAllHabits = async (req, res) => {
     });
     res.json({ habits });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching habits", error: error.message });
+    console.error("Error fetching habits:", error);
+    res.status(500).json({ message: "Error fetching habits" });
   }
 };
 
@@ -298,9 +260,8 @@ export const getHabitById = async (req, res) => {
     if (!habit) return res.status(404).json({ message: "Habit not found" });
     res.json({ habit });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching habit", error: error.message });
+    console.error("Error fetching habit:", error);
+    res.status(500).json({ message: "Error fetching habit" });
   }
 };
 
@@ -317,9 +278,8 @@ export const getHabitLogs = async (req, res) => {
     });
     res.json({ habit, logs });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching logs", error: error.message });
+    console.error("Error fetching logs:", error);
+    res.status(500).json({ message: "Error fetching logs" });
   }
 };
 
@@ -340,9 +300,8 @@ export const updateHabit = async (req, res) => {
 
     res.json({ message: "Habit updated", habit });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error updating habit", error: error.message });
+    console.error("Error updating habit:", error);
+    res.status(500).json({ message: "Error updating habit" });
   }
 };
 
@@ -368,9 +327,8 @@ export const deleteHabit = async (req, res) => {
 
     res.json({ message: "Habit deleted" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error deleting habit", error: error.message });
+    console.error("Error deleting habit:", error);
+    res.status(500).json({ message: "Error deleting habit" });
   }
 };
 
@@ -448,9 +406,7 @@ export const logHabit = async (req, res) => {
     });
   } catch (err) {
     console.error("Error in logHabit:", err);
-    res
-      .status(500)
-      .json({ message: "Error logging habit", error: err.message });
+    res.status(500).json({ message: "Error logging habit" });
   }
 };
 
@@ -666,14 +622,6 @@ export const getAnalytics = async (req, res) => {
         expectedDays = hLogs.length;
       }
 
-      console.log(
-        `Habit "${habit.title}" (_id=${habit._id}) → hLogs found: ${hLogs.length}, doneCount: ${doneCount}`,
-      );
-      console.log(
-        "All log habitIds in DB:",
-        normalizedLogs.map((l) => l.habitId?.toString()),
-      );
-
       leaderboard.push({
         habit: habit.title,
         completionRate: Math.min(completionRate, 100), // Cap at 100%
@@ -702,6 +650,6 @@ export const getAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error("Analytics error:", error);
-    res.status(500).json({ message: "Analytics error", error: error.message });
+    res.status(500).json({ message: "Analytics error" });
   }
 };

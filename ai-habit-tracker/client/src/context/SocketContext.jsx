@@ -22,6 +22,7 @@ export function SocketProvider({ children }) {
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const socketRef = useRef(null);
+  const dismissTimers = useRef({});
 
   useEffect(() => {
     if (!token || !user) {
@@ -40,10 +41,12 @@ export function SocketProvider({ children }) {
       const notifWithId = { ...notification, id };
       setNotifications((prev) => [notifWithId, ...prev.slice(0, 9)]);
 
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
+      // Auto-dismiss after 5 seconds — store timer ref for cleanup
+      const timerId = setTimeout(() => {
         setNotifications((prev) => prev.filter((n) => n.id !== id));
+        delete dismissTimers.current[id];
       }, 5000);
+      dismissTimers.current[id] = timerId;
     };
 
     socket.on("connect", handleConnect);
@@ -57,6 +60,9 @@ export function SocketProvider({ children }) {
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       offSocketEvent("notification:new", handleNotification);
+      // Clear all pending dismiss timers to prevent setState after unmount
+      Object.values(dismissTimers.current).forEach(clearTimeout);
+      dismissTimers.current = {};
     };
   }, [token, user]);
 
