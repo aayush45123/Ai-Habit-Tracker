@@ -47,7 +47,7 @@ function Login() {
         setError(data.message || "Please verify your email before logging in.");
       } else if (!err.response || err.response?.status === 503) {
         setError(
-          "⚠️ Server is currently under scheduled maintenance until Sept 1st. Authentication is temporarily paused."
+          "Server is temporarily unavailable. Please try again later."
         );
       } else {
         setError(data?.message || "Login failed");

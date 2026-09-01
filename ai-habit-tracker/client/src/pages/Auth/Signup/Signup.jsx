@@ -58,7 +58,7 @@ function Signup() {
     } catch (err) {
       if (!err.response || err.response?.status === 503) {
         setError(
-          "⚠️ Server is currently under scheduled maintenance until Sept 1st. Account creation is temporarily paused."
+          "Server is temporarily unavailable. Please try again later."
         );
       } else {
         setError(err.response?.data?.message || "Signup failed. Please try again.");
