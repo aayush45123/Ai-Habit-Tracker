@@ -25,6 +25,10 @@ const challengeSchema = new mongoose.Schema(
       required: true,
     },
     habits: [challengeHabitSchema],
+    durationDays: {
+      type: Number,
+      default: 21,
+    },
     isActive: {
       type: Boolean,
       default: true,

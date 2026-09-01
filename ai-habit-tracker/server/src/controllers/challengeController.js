@@ -67,17 +67,19 @@ function getHabitStatusForToday(
 }
 
 /* -----------------------------------------------------
-   START 21-DAY CHALLENGE
+   START CHALLENGE
 ----------------------------------------------------- */
 export const startChallenge = async (req, res) => {
   try {
-    let { habits } = req.body;
+    let { habits, durationDays = 21 } = req.body;
 
     if (!habits || habits.length < 6) {
       return res.status(400).json({
         message: "Please enter at least 6 habits to start the challenge.",
       });
     }
+
+    const totalDays = Math.max(1, parseInt(durationDays, 10) || 21);
 
     await Challenge.updateMany(
       { userId: req.user, isActive: true },
@@ -94,7 +96,7 @@ export const startChallenge = async (req, res) => {
     const now = new Date();
     const istNow = new Date(now.getTime() + 330 * 60000);
     const endDate = new Date(istNow);
-    endDate.setDate(istNow.getDate() + 20);
+    endDate.setDate(istNow.getDate() + (totalDays - 1));
     const endDateISO = endDate.toISOString().split("T")[0];
 
     const challenge = await Challenge.create({
@@ -102,6 +104,7 @@ export const startChallenge = async (req, res) => {
       habits: formattedHabits,
       startDate: todayISO,
       endDate: endDateISO,
+      durationDays: totalDays,
       isActive: true,
     });
 
@@ -116,13 +119,15 @@ export const startChallenge = async (req, res) => {
 ----------------------------------------------------- */
 export const restartChallenge = async (req, res) => {
   try {
-    const { habits } = req.body;
+    const { habits, durationDays = 21 } = req.body;
 
     if (!habits || habits.length < 6) {
       return res.status(400).json({
         message: "Please enter at least 6 habits to restart the challenge.",
       });
     }
+
+    const totalDays = Math.max(1, parseInt(durationDays, 10) || 21);
 
     const currentChallenge = await Challenge.findOne({
       userId: req.user,
@@ -144,7 +149,7 @@ export const restartChallenge = async (req, res) => {
     const now = new Date();
     const istNow = new Date(now.getTime() + 330 * 60000);
     const endDate = new Date(istNow);
-    endDate.setDate(istNow.getDate() + 20);
+    endDate.setDate(istNow.getDate() + (totalDays - 1));
     const endDateISO = endDate.toISOString().split("T")[0];
 
     const newChallenge = await Challenge.create({
@@ -152,6 +157,7 @@ export const restartChallenge = async (req, res) => {
       habits: formattedHabits,
       startDate: todayISO,
       endDate: endDateISO,
+      durationDays: totalDays,
       isActive: true,
     });
 
@@ -246,7 +252,15 @@ export const getCurrentChallenge = async (req, res) => {
 
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
 
-    const TOTAL_DAYS = 21;
+    const TOTAL_DAYS =
+      challenge.durationDays ||
+      (challenge.endDate && challenge.startDate
+        ? Math.round(
+            (new Date(challenge.endDate + "T00:00:00Z") -
+              new Date(challenge.startDate + "T00:00:00Z")) /
+              (1000 * 60 * 60 * 24)
+          ) + 1
+        : 21);
     const days = [];
 
     for (let i = 0; i < TOTAL_DAYS; i++) {
@@ -320,9 +334,20 @@ async function getChallengeStats(challengeId, todayISO) {
     const challenge = await Challenge.findById(challengeId);
     const logs = await ChallengeLog.find({ challengeId });
 
-    const totalHabits = challenge.habits.length * 21;
+    const totalDays =
+      challenge.durationDays ||
+      (challenge.endDate && challenge.startDate
+        ? Math.round(
+            (new Date(challenge.endDate + "T00:00:00Z") -
+              new Date(challenge.startDate + "T00:00:00Z")) /
+              (1000 * 60 * 60 * 24)
+          ) + 1
+        : 21);
+
+    const totalHabits = challenge.habits.length * totalDays;
     const completedHabits = logs.length;
-    const completionRate = Math.round((completedHabits / totalHabits) * 100);
+    const completionRate =
+      totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
 
     const perfectDays = new Set();
     logs.forEach((log) => {
@@ -337,7 +362,8 @@ async function getChallengeStats(challengeId, todayISO) {
       completedHabits,
       completionRate,
       perfectDays: perfectDays.size,
-      daysCompleted: 21,
+      daysCompleted: totalDays,
+      durationDays: totalDays,
     };
   } catch (err) {
     return null;
@@ -357,7 +383,15 @@ export const getChallengeHeatmap = async (req, res) => {
 
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
     const todayISO = getTodayIST();
-    const TOTAL_DAYS = 21;
+    const TOTAL_DAYS =
+      challenge.durationDays ||
+      (challenge.endDate && challenge.startDate
+        ? Math.round(
+            (new Date(challenge.endDate + "T00:00:00Z") -
+              new Date(challenge.startDate + "T00:00:00Z")) /
+              (1000 * 60 * 60 * 24)
+          ) + 1
+        : 21);
     const heatmap = [];
 
     for (let i = 0; i < TOTAL_DAYS; i++) {
@@ -410,7 +444,7 @@ export const getChallengeHeatmap = async (req, res) => {
 
     const relevantDays = challenge.isActive
       ? heatmap.filter((d) => d.date <= todayISO).length
-      : 21;
+      : TOTAL_DAYS;
 
     const totalPossibleHabits = relevantDays * challenge.habits.length;
     const totalCompleted = logs.length;
@@ -450,6 +484,8 @@ export const getChallengeHeatmap = async (req, res) => {
       overallCompletion,
       totalCompleted,
       totalPossibleHabits,
+      totalDays: TOTAL_DAYS,
+      durationDays: TOTAL_DAYS,
       isCompleted: !challenge.isActive,
       endDate: challenge.endDate,
     };
@@ -543,31 +579,41 @@ export const getChallengeHistory = async (req, res) => {
     const history = await Promise.all(
       challenges.map(async (challenge) => {
         const logs = await ChallengeLog.find({ challengeId: challenge._id });
-        const totalPossible = challenge.habits.length * 21;
+        const totalDays =
+          challenge.durationDays ||
+          (challenge.endDate && challenge.startDate
+            ? Math.round(
+                (new Date(challenge.endDate + "T00:00:00Z") -
+                  new Date(challenge.startDate + "T00:00:00Z")) /
+                  (1000 * 60 * 60 * 24)
+              ) + 1
+            : 21);
+
+        const totalPossible = challenge.habits.length * totalDays;
         const completed = logs.length;
         const completionRate =
           totalPossible > 0 ? Math.round((completed / totalPossible) * 100) : 0;
 
         const todayISO = getTodayIST();
-        const startDate = new Date(challenge.startDate);
-        const endDate = new Date(challenge.endDate);
-        const today = new Date(todayISO);
+        const startDate = new Date(challenge.startDate + "T00:00:00Z");
+        const today = new Date(todayISO + "T00:00:00Z");
 
         let daysElapsed = 0;
         if (challenge.isActive) {
           const diff = today.getTime() - startDate.getTime();
           daysElapsed = Math.min(
-            Math.floor(diff / (1000 * 60 * 60 * 24)) + 1,
-            21
+            Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)) + 1),
+            totalDays
           );
         } else {
-          daysElapsed = 21;
+          daysElapsed = totalDays;
         }
 
         return {
           _id: challenge._id,
           startDate: challenge.startDate,
           endDate: challenge.endDate,
+          durationDays: totalDays,
           isActive: challenge.isActive,
           completionRate,
           totalCompleted: completed,
