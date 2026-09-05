@@ -19,6 +19,7 @@ import {
   X as CloseIcon,
   RefreshCw,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./ChallengePage.module.css";
@@ -949,8 +950,10 @@ export default function ChallengePage() {
 
                 <div className={styles.timeControls}>
                   <div className={styles.timeGroup}>
-                    <Clock className={styles.timeIcon} />
-                    <label className={styles.timeLabel}>Start</label>
+                    <div className={styles.timeTag}>
+                      <Clock className={styles.timeIcon} />
+                      <span className={styles.timeLabel}>Start</span>
+                    </div>
                     <TimeDropdownPicker
                       hour={h.startTime || "06"}
                       minute={h.startMinute || "00"}
@@ -961,9 +964,15 @@ export default function ChallengePage() {
                     />
                   </div>
 
+                  <div className={styles.timeArrowDivider} aria-hidden="true">
+                    <ArrowRight className={styles.arrowDividerIcon} />
+                  </div>
+
                   <div className={styles.timeGroup}>
-                    <Clock className={styles.timeIcon} />
-                    <label className={styles.timeLabel}>End</label>
+                    <div className={styles.timeTag}>
+                      <Clock className={styles.timeIcon} />
+                      <span className={styles.timeLabel}>End</span>
+                    </div>
                     <TimeDropdownPicker
                       hour={h.endTime || "08"}
                       minute={h.endMinute || "00"}

@@ -932,48 +932,54 @@
 }
 
 /* ========================================
-   HABIT INPUT ROW - FIXED WITH REMOVE BUTTON
+   HABIT INPUT ROW - POLISHED & STRUCTURED
 ======================================== */
 .habitRow {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  padding: 1.25rem;
   background-color: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
   border-radius: 0;
   box-shadow: 4px 4px 0 0 var(--color-border);
   position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  transition: all var(--transition-speed) var(--transition-easing);
+}
+
+.habitRow:hover {
+  transform: translateY(-1px);
+  box-shadow: 6px 6px 0 0 var(--color-border);
 }
 
 .habitNumber {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 800;
+  font-size: 0.95rem;
   border: 2px solid var(--color-border);
   border-radius: 0;
   flex-shrink: 0;
-  align-self: flex-start;
 }
 
 .habitInput {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0; /* Ensures the input field flexes and never forces overflow */
 }
 
 .textInput {
   width: 100%;
-  padding: 0.875rem 1rem;
-  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   font-family: var(--font-primary);
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
@@ -986,7 +992,7 @@
 
 .textInput:focus {
   border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
 }
 
 .textInput::placeholder {
@@ -994,86 +1000,97 @@
   opacity: 0.7;
 }
 
+/* Unified Time Controls Container */
 .timeControls {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  width: 100%;
-  align-items: stretch;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  box-shadow: 2px 2px 0 0 var(--color-border);
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .timeGroup {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background-color: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.timeTag {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background-color: var(--color-bg-secondary);
+  padding: 0.25rem 0.5rem;
+  border: 1.5px solid var(--color-border);
   border-radius: 0;
-  flex: 1;
-  min-width: 200px;
+  flex-shrink: 0;
 }
 
 .timeIcon {
-  width: 16px;
-  height: 16px;
-  color: var(--color-text-secondary);
+  width: 13px;
+  height: 13px;
+  color: var(--color-text-primary);
   stroke-width: 2.5;
   flex-shrink: 0;
 }
 
 .timeLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  line-height: 1;
   white-space: nowrap;
+}
+
+.timeArrowDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  padding: 0 0.15rem;
   flex-shrink: 0;
 }
 
-.timeInput {
-  width: 70px;
-  padding: 0.5rem;
-  font-size: 0.9rem;
-  font-family: var(--font-primary);
-  color: var(--color-text-primary);
-  background-color: transparent;
-  border: none;
-  border-bottom: 2px solid var(--color-border);
-  outline: none;
-  text-align: center;
-  transition: all var(--transition-speed) var(--transition-easing);
-  flex-shrink: 0;
-}
-
-.timeInput:focus {
-  border-bottom-color: var(--color-accent-primary);
+.arrowDividerIcon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
 }
 
 /* ── Dropdown Time Picker Styles ── */
 .timeDropdownContainer {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  background-color: var(--color-bg-primary);
-  padding: 0.25rem 0.4rem;
-  border: 2px solid var(--color-border);
+  gap: 0.2rem;
+  background-color: var(--color-bg-secondary);
+  padding: 0.2rem 0.3rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0;
+  flex-shrink: 0;
 }
 
 .timeSelect {
-  padding: 0.45rem 0.5rem;
-  font-size: 0.95rem;
+  padding: 0.35rem 0.3rem;
+  font-size: 0.875rem;
   font-weight: 700;
   font-family: var(--font-primary), monospace;
   color: var(--color-text-primary);
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-bg-primary);
   border: 1.5px solid var(--color-border);
   border-radius: 0;
   outline: none;
   cursor: pointer;
   transition: all var(--transition-speed) var(--transition-easing);
   text-align: center;
+  min-width: 44px;
 }
 
 .timeSelect:hover {
@@ -1094,12 +1111,12 @@
 }
 
 .timeSeparator {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 900;
   color: var(--color-text-primary);
   line-height: 1;
   user-select: none;
-  padding: 0 2px;
+  padding: 0 1px;
 }
 
 .periodSelect {
@@ -1107,6 +1124,12 @@
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);
   border-color: var(--color-border);
+  min-width: 50px;
+}
+
+.periodSelect:hover {
+  background-color: var(--color-accent-secondary);
+  color: var(--color-bg-primary);
 }
 
 .periodSelect option {
@@ -1635,36 +1658,30 @@
    RESPONSIVE DESIGN
 ======================================== */
 
-/* Large Desktop (1200px+) */
-@media (min-width: 1200px) {
+/* Large screens - perfectly aligned single row */
+@media (min-width: 1081px) {
   .habitRow {
     flex-direction: row;
-    align-items: flex-start;
-  }
-
-  .habitNumber {
-    margin-top: 0.5rem;
-  }
-
-  .habitInput {
-    flex: 1;
-  }
-
-  .timeControls {
-    flex: 0 0 auto;
-    max-width: 480px;
-  }
-
-  .timeGroup {
-    flex: 1;
-    min-width: 220px;
+    align-items: center;
   }
 }
 
-/* Tablet (768px - 1199px) */
-@media (max-width: 1199px) and (min-width: 768px) {
-  .timeGroup {
-    min-width: 180px;
+/* Tablet & Smaller Desktop (max 1080px) */
+@media (max-width: 1080px) {
+  .habitRow {
+    flex-wrap: wrap;
+    gap: 0.875rem;
+    padding: 1.15rem;
+  }
+
+  .habitInput {
+    flex: 1 1 calc(100% - 100px);
+  }
+
+  .timeControls {
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
   }
 }
 
@@ -1718,12 +1735,18 @@
 
   .timeControls {
     flex-direction: column;
-    gap: 0.75rem;
+    align-items: stretch;
+    gap: 0.625rem;
+    padding: 0.75rem;
   }
 
   .timeGroup {
+    justify-content: space-between;
     width: 100%;
-    min-width: 100%;
+  }
+
+  .timeArrowDivider {
+    display: none;
   }
 
   .formActions {
