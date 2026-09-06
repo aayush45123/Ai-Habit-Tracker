@@ -4,6 +4,7 @@ import HabitCard from "../../components/HabitCard/HabitCard";
 import RiskAlerts from "../../components/RiskAlerts/RiskAlerts";
 import Recommendations from "../../components/Recommendations/Recommendations";
 import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
+import AddHabitModal from "../../components/AddHabitModal/AddHabitModal";
 import { FaRobot, FaWifi } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext";
 import styles from "./Dashboard.module.css";
@@ -26,6 +27,9 @@ export default function Dashboard() {
 
   // Floating AI Chat
   const [chatOpen, setChatOpen] = useState(false);
+
+  // Add Habit Modal
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   // Socket
   const { subscribe, isConnected } = useSocket();
@@ -219,7 +223,7 @@ export default function Dashboard() {
         </div>
         <button
           className={styles.ctaBtn}
-          onClick={() => (window.location.href = "/add")}
+          onClick={() => setAddModalOpen(true)}
         >
           + Add Habit
         </button>
@@ -322,7 +326,7 @@ export default function Dashboard() {
                 <p>No habits yet.</p>
                 <button
                   className={styles.secondary}
-                  onClick={() => (window.location.href = "/add")}
+                  onClick={() => setAddModalOpen(true)}
                 >
                   Create first habit
                 </button>
@@ -449,6 +453,19 @@ export default function Dashboard() {
       <div className={styles.recommendationsSection}>
         <Recommendations />
       </div>
+
+      {/* ── ADD HABIT MODAL ── */}
+      <AddHabitModal
+        open={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onSuccess={(newHabits) => {
+          // Optimistically prepend the newly created habits
+          setHabits((prev) => [...newHabits, ...prev]);
+          // Silently re-fetch from server to reconcile
+          fetchHabits(false);
+          fetchAnalytics();
+        }}
+      />
 
       {/* ── FLOATING AI CHAT ── */}
       <AIChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
