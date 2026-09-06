@@ -207,3 +207,173 @@
     gap: 1rem;
   }
 }
+
+/* ══════════════════════════════════════════
+   WEIGHT-BASED FORMULA TABLE
+══════════════════════════════════════════ */
+
+.formulaSection {
+  background: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.formulaSection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6ee7b7, #60a5fa, #a78bfa, #f97316);
+}
+
+.formulaSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.formulaSectionIcon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.formulaSectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.formulaSectionSub {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.formulaSectionSub strong {
+  color: var(--color-text-primary);
+}
+
+/* ── Table layout ── */
+.formulaTable {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1.5px solid var(--color-border);
+}
+
+.formulaTableHead {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr 1fr;
+  gap: 0;
+  background: var(--color-bg-secondary);
+  padding: 0.6rem 1rem;
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.thNum,
+.thLabel,
+.thFormula,
+.thTarget {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.thTarget {
+  text-align: right;
+}
+
+/* ── Data rows ── */
+.formulaRow {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr 1fr;
+  gap: 0;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.formulaRow:last-child {
+  border-bottom: none;
+}
+
+.formulaRow:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.rowNum {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.rowLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.rowFormula {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  font-family: "Courier New", monospace;
+  opacity: 0.85;
+}
+
+.rowTarget {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* ── Per-metric accent colors on target value ── */
+.rowSteps      .rowTarget { color: #6ee7b7; }
+.rowCalories   .rowTarget { color: #f97316; }
+.rowProtein    .rowTarget { color: #60a5fa; }
+.rowWater      .rowTarget { color: #38bdf8; }
+.rowWeightLoss .rowTarget { color: #a78bfa; }
+
+/* Left border accent per row */
+.rowSteps      { border-left: 3px solid #6ee7b7; }
+.rowCalories   { border-left: 3px solid #f97316; }
+.rowProtein    { border-left: 3px solid #60a5fa; }
+.rowWater      { border-left: 3px solid #38bdf8; }
+.rowWeightLoss { border-left: 3px solid #a78bfa; }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .formulaTableHead {
+    display: none; /* hide column headings on mobile */
+  }
+
+  .formulaRow {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+    padding: 0.9rem 1rem;
+  }
+
+  .rowFormula {
+    font-size: 0.78rem;
+  }
+
+  .rowTarget {
+    text-align: left;
+    font-size: 1rem;
+  }
+}
