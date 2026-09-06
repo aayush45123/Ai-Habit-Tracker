@@ -37,13 +37,57 @@ export default function NutritionRecommendation({ profile }) {
     return null;
   }
 
+  const wbt = recommendations.weightBasedTargets;
+
+  // Build row definitions for the formula table
+  const formulaRows = wbt
+    ? [
+        {
+          icon: wbt.steps.icon,
+          label: wbt.steps.label,
+          formula: wbt.steps.formula,
+          target: `${wbt.steps.value.toLocaleString()} ${wbt.steps.unit}`,
+          colorClass: styles.rowSteps,
+        },
+        {
+          icon: wbt.calorieRange.icon,
+          label: wbt.calorieRange.label,
+          formula: wbt.calorieRange.formula,
+          target: `${wbt.calorieRange.low.toLocaleString()}–${wbt.calorieRange.high.toLocaleString()} ${wbt.calorieRange.unit}`,
+          colorClass: styles.rowCalories,
+        },
+        {
+          icon: wbt.proteinRange.icon,
+          label: wbt.proteinRange.label,
+          formula: wbt.proteinRange.formula,
+          target: `${wbt.proteinRange.low}–${wbt.proteinRange.high} ${wbt.proteinRange.unit}`,
+          colorClass: styles.rowProtein,
+        },
+        {
+          icon: wbt.water.icon,
+          label: wbt.water.label,
+          formula: wbt.water.formula,
+          target: `${wbt.water.ml.toLocaleString()} ml = ${wbt.water.liters} ${wbt.water.unit}`,
+          colorClass: styles.rowWater,
+        },
+        {
+          icon: wbt.weeklyWeightLoss.icon,
+          label: wbt.weeklyWeightLoss.label,
+          formula: wbt.weeklyWeightLoss.formula,
+          target: `${wbt.weeklyWeightLoss.low}–${wbt.weeklyWeightLoss.high} ${wbt.weeklyWeightLoss.unit}`,
+          colorClass: styles.rowWeightLoss,
+        },
+      ]
+    : [];
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Ai Recommends Your Daily Targets</h3>
+        <h3 className={styles.title}>AI Recommends Your Daily Targets</h3>
         <span className={styles.badge}>{recommendations.goalLabel}</span>
       </div>
 
+      {/* ── Standard BMR/TDEE cards ── */}
       <div className={styles.grid}>
         <div className={styles.card}>
           <div className={styles.cardIcon}>
@@ -85,6 +129,49 @@ export default function NutritionRecommendation({ profile }) {
         </div>
       </div>
 
+      {/* ── Weight-Based Formula Targets Table ── */}
+      {wbt && (
+        <div className={styles.formulaSection}>
+          <div className={styles.formulaSectionHeader}>
+            <span className={styles.formulaSectionIcon}>⚡</span>
+            <div>
+              <h4 className={styles.formulaSectionTitle}>
+                Weight-Based Formula Targets
+              </h4>
+              <p className={styles.formulaSectionSub}>
+                For your <strong>{wbt.bodyWeight} kg</strong> body weight
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.formulaTable}>
+            {/* Table header */}
+            <div className={styles.formulaTableHead}>
+              <span className={styles.thNum}>#</span>
+              <span className={styles.thLabel}>Target</span>
+              <span className={styles.thFormula}>Formula</span>
+              <span className={styles.thTarget}>Your target</span>
+            </div>
+
+            {/* Table rows */}
+            {formulaRows.map((row, i) => (
+              <div
+                key={i}
+                className={`${styles.formulaRow} ${row.colorClass}`}
+              >
+                <span className={styles.rowNum}>
+                  {row.icon} {i + 1}.
+                </span>
+                <span className={styles.rowLabel}>{row.label}</span>
+                <span className={styles.rowFormula}>{row.formula}</span>
+                <span className={styles.rowTarget}>{row.target}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Macronutrient Breakdown ── */}
       <div className={styles.breakdown}>
         <h4 className={styles.breakdownTitle}>Macronutrient Breakdown</h4>
         <div className={styles.macros}>

@@ -156,6 +156,69 @@ function calculateRecommendations(profile) {
     ],
   };
 
+  // ─── Weight-Based Formula Targets (body-weight proportional) ───────────────
+  // 1. Daily steps:  weight × 100
+  const stepsTarget = weight * 100;
+
+  // 2. Daily calorie range: weight × 22  →  weight × 24
+  const calRangeLow  = Math.round(weight * 22);
+  const calRangeHigh = Math.round(weight * 24);
+
+  // 3. Daily protein range: weight × 1.6  →  weight × 2
+  const proteinRangeLow  = Math.round(weight * 1.6);
+  const proteinRangeHigh = Math.round(weight * 2);
+
+  // 4. Daily water: weight × 40 ml
+  const waterMl = weight * 40;
+  const waterL  = (waterMl / 1000).toFixed(1);
+
+  // 5. Weekly weight-loss range: weight × 0.5%  →  weight × 1%
+  const weightLossLow  = (weight * 0.005).toFixed(2);
+  const weightLossHigh = (weight * 0.01).toFixed(2);
+
+  const weightBasedTargets = {
+    bodyWeight: weight,
+    steps: {
+      value: stepsTarget,
+      formula: `${weight} × 100`,
+      label: "Daily steps",
+      unit: "steps/day",
+      icon: "🚶",
+    },
+    calorieRange: {
+      low: calRangeLow,
+      high: calRangeHigh,
+      formula: `${weight} × 22–24`,
+      label: "Daily calories",
+      unit: "kcal/day",
+      icon: "🍽️",
+    },
+    proteinRange: {
+      low: proteinRangeLow,
+      high: proteinRangeHigh,
+      formula: `${weight} × 1.6–2`,
+      label: "Daily protein",
+      unit: "g/day",
+      icon: "💪",
+    },
+    water: {
+      ml: waterMl,
+      liters: waterL,
+      formula: `${weight} × 40 ml`,
+      label: "Daily water",
+      unit: "L/day",
+      icon: "💧",
+    },
+    weeklyWeightLoss: {
+      low: weightLossLow,
+      high: weightLossHigh,
+      formula: `${weight} × 0.5–1%`,
+      label: "Weekly weight loss",
+      unit: "kg/week",
+      icon: "⚖️",
+    },
+  };
+
   return {
     bmr: Math.round(bmr),
     calories: Math.round(calories),
@@ -166,6 +229,7 @@ function calculateRecommendations(profile) {
     water,
     goalLabel: goalLabels[goal] || "Maintenance",
     tips: tips[goal] || tips.maintain,
+    weightBasedTargets,
   };
 }
 
