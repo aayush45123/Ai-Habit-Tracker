@@ -36,10 +36,12 @@ import ProtectedRoute from "./utils/protectedRoute";
 import PublicRoute from "./utils/PublicRoute";
 import ProtectedAdminRoute from "./utils/ProtectedAdminRoute";
 import ProfileRequiredRoute from "./utils/ProfileRequiredRoute";
+import ScrollToTop from "./components/common/ScrollToTop/ScrollToTop";
 
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Analytics />
       <SpeedInsights />
 

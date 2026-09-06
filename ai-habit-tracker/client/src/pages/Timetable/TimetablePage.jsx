@@ -286,16 +286,18 @@ export default function TimetablePage() {
       const res = await api.get("/timetable/active");
 
       if (res.data.active) {
-        setActiveTimetable(res.data.timetable);
-        setTodaysWorkout(res.data.todaysWorkout);
+        const timetable = res.data.timetable;
+        const todayWorkout = res.data.todaysWorkout;
+        setActiveTimetable(timetable);
+        setTodaysWorkout(todayWorkout);
         setShowCreator(false);
 
         // Load AI improvements if already requested
-        if (res.data.timetable.hasRequestedAI) {
-          setAiSuggestions(res.data.timetable.aiImprovements || []);
+        if (timetable.hasRequestedAI) {
+          setAiSuggestions(timetable.aiImprovements || []);
         }
 
-        await loadWorkoutLog(res.data.timetable._id);
+        await loadWorkoutLog(timetable._id, timetable, todayWorkout);
       } else {
         setShowCreator(true);
         setWorkoutLog(null);
@@ -311,108 +313,123 @@ export default function TimetablePage() {
     }
   }
 
-  async function loadWorkoutLog(timetableId) {
+  async function loadWorkoutLog(timetableId, currentTimetable = activeTimetable, currentTodayWorkout = todaysWorkout) {
     if (!timetableId) return;
 
     setLogLoading(true);
+    const todayDate = getTodayDateString();
 
-    const apiAvailable = isWorkoutApiAvailable(timetableId);
+    // 1. Immediately restore today's cached progress if present to avoid 0% flicker on refresh
+    const cachedHistory = readLocalWorkoutHistory(timetableId);
+    const cachedToday =
+      cachedHistory[todayDate] ||
+      Object.values(cachedHistory).find(
+        (entry) =>
+          entry?.date === todayDate ||
+          (entry?.scheduledDay && entry.scheduledDay === currentTodayWorkout?.day),
+      );
 
-    try {
-      if (!apiAvailable) {
-        throw Object.assign(new Error("Workout log API unavailable"), {
-          response: { status: 404 },
-        });
+    if (cachedToday && Array.isArray(cachedToday.completedExerciseIds) && cachedToday.completedExerciseIds.length > 0) {
+      setWorkoutLog(cachedToday);
+      setCompletedExerciseIds(cachedToday.completedExerciseIds);
+      setDraftNote(cachedToday?.checkpoint?.note || "");
+      setDraftDuration(cachedToday?.actualDuration || 0);
+      setDraftStatus(cachedToday?.status || "partial");
+      if (currentTimetable) {
+        setWorkoutAnalytics(buildLocalAnalytics(currentTimetable, cachedHistory));
       }
+    }
 
+    // 2. Fetch fresh workout log and analytics from backend API
+    try {
       const res = await api.get(`/timetables/${timetableId}/workout-log/today`);
       setWorkoutApiAvailable(timetableId, true);
-      setWorkoutLog(res.data.workoutLog || null);
-      setWorkoutAnalytics(res.data.analytics || null);
-      writeLocalWorkoutHistory(
-        timetableId,
-        res.data.workoutLog?.date || getTodayDateString(),
-        res.data.workoutLog,
-      );
 
-      const incomingLog = res.data.workoutLog;
-      setCompletedExerciseIds(incomingLog?.completedExerciseIds || []);
-      setDraftNote(incomingLog?.checkpoint?.note || "");
-      setDraftDuration(incomingLog?.actualDuration || 0);
-      setDraftStatus(
-        incomingLog?.status && incomingLog.status !== "pending"
-          ? incomingLog.status
-          : incomingLog?.status === "rest"
-            ? "rest"
-            : "partial",
-      );
-    } catch (err) {
-      if (err.response?.status !== 404) {
-        console.error("Error loading workout log:", err);
-      } else {
-        setWorkoutApiAvailable(timetableId, false);
-      }
-
-      const cachedHistory = readLocalWorkoutHistory(timetableId);
-      const cachedToday = cachedHistory[getTodayDateString()];
-
-      if (cachedToday) {
-        setWorkoutLog(cachedToday);
-        setCompletedExerciseIds(cachedToday.completedExerciseIds || []);
-        setDraftNote(cachedToday?.checkpoint?.note || "");
-        setDraftDuration(cachedToday?.actualDuration || 0);
-        setDraftStatus(cachedToday?.status || "partial");
-        setWorkoutAnalytics(
-          buildLocalAnalytics(activeTimetable, cachedHistory),
+      if (res.data?.workoutLog) {
+        const incomingLog = res.data.workoutLog;
+        setWorkoutLog(incomingLog);
+        setWorkoutAnalytics(res.data.analytics || null);
+        setCompletedExerciseIds(incomingLog.completedExerciseIds || []);
+        setDraftNote(incomingLog.checkpoint?.note || "");
+        setDraftDuration(incomingLog.actualDuration || 0);
+        setDraftStatus(
+          incomingLog.status && incomingLog.status !== "pending"
+            ? incomingLog.status
+            : incomingLog.status === "rest"
+              ? "rest"
+              : "partial",
         );
-      } else {
-        const fallbackLog = {
-          date: getTodayDateString(),
-          scheduledDay: todaysWorkout?.day || "Today",
-          focusArea: todaysWorkout?.focusArea || "",
-          status: todaysWorkout?.isRestDay ? "rest" : "pending",
-          totalExercises: todaysWorkout?.exercises?.length || 0,
-          completedExercises: 0,
-          completionPercentage: 0,
-          scheduledDuration: 0,
-          actualDuration: 0,
-          completedExerciseIds: [],
-          checkpoint: {
-            submitted: !!todaysWorkout?.isRestDay,
-            note: "",
-            submittedAt: null,
-          },
-          exerciseEntries: (todaysWorkout?.exercises || []).map(
-            (exercise, index) => ({
-              exerciseId:
-                exercise._id?.toString() ||
-                `${todaysWorkout?.day || "today"}-${index}`,
-              name: exercise.name,
-              sets: exercise.sets || "",
-              reps: exercise.reps || "",
-              duration: exercise.duration || "",
-              restBetweenSets: exercise.restBetweenSets || "",
-              notes: exercise.notes || "",
-              completed: false,
-              completedAt: null,
-            }),
-          ),
-        };
-
-        setWorkoutLog(fallbackLog);
-        setCompletedExerciseIds([]);
-        setDraftNote("");
-        setDraftDuration(0);
-        setDraftStatus(todaysWorkout?.isRestDay ? "rest" : "partial");
-        setWorkoutAnalytics(buildLocalAnalytics(activeTimetable, {}));
+        writeLocalWorkoutHistory(
+          timetableId,
+          incomingLog.date || todayDate,
+          incomingLog,
+        );
+        return;
       }
-    } finally {
-      setLogLoading(false);
+    } catch (err) {
+      console.warn("Could not load workout log from server, using local cache:", err.message);
     }
+
+    // 3. Fallback: if server did not return a log, use local cache or create fallback
+    if (cachedToday) {
+      setWorkoutLog(cachedToday);
+      setCompletedExerciseIds(cachedToday.completedExerciseIds || []);
+      setDraftNote(cachedToday?.checkpoint?.note || "");
+      setDraftDuration(cachedToday?.actualDuration || 0);
+      setDraftStatus(cachedToday?.status || "partial");
+      setWorkoutAnalytics(
+        buildLocalAnalytics(currentTimetable, cachedHistory),
+      );
+    } else {
+      const fallbackLog = {
+        date: todayDate,
+        scheduledDay: currentTodayWorkout?.day || "Today",
+        focusArea: currentTodayWorkout?.focusArea || "",
+        status: currentTodayWorkout?.isRestDay ? "rest" : "pending",
+        totalExercises: currentTodayWorkout?.exercises?.length || 0,
+        completedExercises: 0,
+        completionPercentage: 0,
+        scheduledDuration: 0,
+        actualDuration: 0,
+        completedExerciseIds: [],
+        checkpoint: {
+          submitted: !!currentTodayWorkout?.isRestDay,
+          note: "",
+          submittedAt: null,
+        },
+        exerciseEntries: (currentTodayWorkout?.exercises || []).map(
+          (exercise, index) => ({
+            exerciseId:
+              exercise._id?.toString() ||
+              `${currentTodayWorkout?.day || "today"}-${index}`,
+            name: exercise.name,
+            sets: exercise.sets || "",
+            reps: exercise.reps || "",
+            duration: exercise.duration || "",
+            restBetweenSets: exercise.restBetweenSets || "",
+            notes: exercise.notes || "",
+            completed: false,
+            completedAt: null,
+          }),
+        ),
+      };
+
+      setWorkoutLog(fallbackLog);
+      setCompletedExerciseIds([]);
+      setDraftNote("");
+      setDraftDuration(0);
+      setDraftStatus(currentTodayWorkout?.isRestDay ? "rest" : "partial");
+      setWorkoutAnalytics(buildLocalAnalytics(currentTimetable, {}));
+    }
+
+    setLogLoading(false);
   }
 
   const workoutExerciseIds =
-    todaysWorkout?.exercises?.map((exercise) => exercise._id?.toString()) || [];
+    todaysWorkout?.exercises?.map(
+      (exercise, index) =>
+        exercise._id?.toString() || `${todaysWorkout?.day || "today"}-${index}`,
+    ) || [];
 
   const workoutCompletionPercentage =
     todaysWorkout &&
@@ -430,6 +447,8 @@ export default function TimetablePage() {
     const cachedLog = {
       ...(workoutLog || {}),
       date: currentDate,
+      scheduledDay: workoutLog?.scheduledDay || todaysWorkout?.day || "Today",
+      focusArea: workoutLog?.focusArea || todaysWorkout?.focusArea || "",
       completedExerciseIds: nextExerciseIds,
       completedExercises: nextExerciseIds.length,
       completionPercentage:
@@ -449,12 +468,6 @@ export default function TimetablePage() {
     writeLocalWorkoutHistory(activeTimetable._id, currentDate, cachedLog);
 
     try {
-      if (!isWorkoutApiAvailable(activeTimetable._id)) {
-        throw Object.assign(new Error("Workout log API unavailable"), {
-          response: { status: 404 },
-        });
-      }
-
       const res = await api.patch(
         `/timetables/${activeTimetable._id}/workout-log/today`,
         {
@@ -465,22 +478,19 @@ export default function TimetablePage() {
         },
       );
 
-      setWorkoutLog(res.data.workoutLog || null);
-      setWorkoutAnalytics(res.data.analytics || null);
       setWorkoutApiAvailable(activeTimetable._id, true);
-      writeLocalWorkoutHistory(
-        activeTimetable._id,
-        res.data.workoutLog?.date || currentDate,
-        res.data.workoutLog,
-      );
+      if (res.data?.workoutLog) {
+        setWorkoutLog(res.data.workoutLog);
+        setWorkoutAnalytics(res.data.analytics || null);
+        writeLocalWorkoutHistory(
+          activeTimetable._id,
+          res.data.workoutLog?.date || currentDate,
+          res.data.workoutLog,
+        );
+      }
       return;
     } catch (err) {
-      if (err.response?.status !== 404) {
-        console.error("Error saving workout draft:", err);
-      } else {
-        setWorkoutApiAvailable(activeTimetable._id, false);
-      }
-
+      console.warn("Could not sync workout draft to server, maintained in local storage:", err);
       const fallbackLog = {
         ...(workoutLog || {}),
         date: currentDate,
@@ -628,12 +638,6 @@ export default function TimetablePage() {
     setMessage("");
 
     try {
-      if (!isWorkoutApiAvailable(activeTimetable._id)) {
-        throw Object.assign(new Error("Workout log API unavailable"), {
-          response: { status: 404 },
-        });
-      }
-
       const res = await api.post(
         `/timetables/${activeTimetable._id}/workout-log/submit`,
         {
@@ -658,13 +662,6 @@ export default function TimetablePage() {
       setMessage(res.data.message || "Workout log saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
-      if (err.response?.status !== 404) {
-        console.error(err);
-        setMessage(err.response?.data?.message || "Error saving checkpoint");
-      } else {
-        setWorkoutApiAvailable(activeTimetable._id, false);
-      }
-
       if (err.response?.status === 409) {
         setMessage(
           err.response?.data?.message || "Workout log already submitted",
@@ -672,6 +669,7 @@ export default function TimetablePage() {
         setTimeout(() => setMessage(""), 3000);
         return;
       }
+      console.warn("Server checkpoint save failed, saving to local history:", err);
 
       const fallbackDate = workoutLog?.date || getTodayDateString();
       const fallbackLog = {

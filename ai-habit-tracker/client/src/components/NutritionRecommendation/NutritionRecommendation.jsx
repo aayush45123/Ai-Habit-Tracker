@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Flame, Dumbbell, Droplets, Lightbulb } from "lucide-react";
+import { Flame, Dumbbell, Droplets, Lightbulb, Scale, Info } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./NutritionRecommendation.module.css";
 
@@ -39,43 +39,53 @@ export default function NutritionRecommendation({ profile }) {
 
   const wbt = recommendations.weightBasedTargets;
 
-  // Build row definitions for the formula table
-  const formulaRows = wbt
+  // Build row definitions for the weight-based targets table (no emojis, explicit why explanations)
+  const calculationRows = wbt
     ? [
         {
-          icon: wbt.steps.icon,
-          label: wbt.steps.label,
-          formula: wbt.steps.formula,
-          target: `${wbt.steps.value.toLocaleString()} ${wbt.steps.unit}`,
-          colorClass: styles.rowSteps,
+          num: "01",
+          label: wbt.steps?.label || "Daily Steps",
+          basis: wbt.steps?.basis || `${wbt.bodyWeight} kg × 100`,
+          target: `${(wbt.steps?.value || 0).toLocaleString()} ${wbt.steps?.unit || "steps/day"}`,
+          why:
+            wbt.steps?.explanation ||
+            "Proportionate baseline activity that increases non-exercise thermogenesis (NEAT) without overtaxing joints.",
         },
         {
-          icon: wbt.calorieRange.icon,
-          label: wbt.calorieRange.label,
-          formula: wbt.calorieRange.formula,
-          target: `${wbt.calorieRange.low.toLocaleString()}–${wbt.calorieRange.high.toLocaleString()} ${wbt.calorieRange.unit}`,
-          colorClass: styles.rowCalories,
+          num: "02",
+          label: wbt.calorieRange?.label || "Daily Calorie Target",
+          basis: wbt.calorieRange?.basis || `${wbt.bodyWeight} kg × 22–24 kcal`,
+          target: `${(wbt.calorieRange?.low || 0).toLocaleString()}–${(wbt.calorieRange?.high || 0).toLocaleString()} ${wbt.calorieRange?.unit || "kcal/day"}`,
+          why:
+            wbt.calorieRange?.explanation ||
+            "Calibrated energy baseline to trigger steady fat reduction while protecting metabolic health and hormonal function.",
         },
         {
-          icon: wbt.proteinRange.icon,
-          label: wbt.proteinRange.label,
-          formula: wbt.proteinRange.formula,
-          target: `${wbt.proteinRange.low}–${wbt.proteinRange.high} ${wbt.proteinRange.unit}`,
-          colorClass: styles.rowProtein,
+          num: "03",
+          label: wbt.proteinRange?.label || "Daily Protein Intake",
+          basis: wbt.proteinRange?.basis || `${wbt.bodyWeight} kg × 1.6–2.0 g`,
+          target: `${wbt.proteinRange?.low || 0}–${wbt.proteinRange?.high || 0} ${wbt.proteinRange?.unit || "g/day"}`,
+          why:
+            wbt.proteinRange?.explanation ||
+            "Supplies essential amino acids to preserve lean muscle tissue during caloric expenditure and support recovery.",
         },
         {
-          icon: wbt.water.icon,
-          label: wbt.water.label,
-          formula: wbt.water.formula,
-          target: `${wbt.water.ml.toLocaleString()} ml = ${wbt.water.liters} ${wbt.water.unit}`,
-          colorClass: styles.rowWater,
+          num: "04",
+          label: wbt.water?.label || "Daily Hydration",
+          basis: wbt.water?.basis || `${wbt.bodyWeight} kg × 40 ml`,
+          target: `${wbt.water?.liters || 0} ${wbt.water?.unit || "L/day"} (${(wbt.water?.ml || 0).toLocaleString()} ml)`,
+          why:
+            wbt.water?.explanation ||
+            "Ensures cellular fluid balance, waste clearance, and metabolic turnover scaled directly to total body mass.",
         },
         {
-          icon: wbt.weeklyWeightLoss.icon,
-          label: wbt.weeklyWeightLoss.label,
-          formula: wbt.weeklyWeightLoss.formula,
-          target: `${wbt.weeklyWeightLoss.low}–${wbt.weeklyWeightLoss.high} ${wbt.weeklyWeightLoss.unit}`,
-          colorClass: styles.rowWeightLoss,
+          num: "05",
+          label: wbt.weeklyWeightLoss?.label || "Weekly Fat-Loss Pace",
+          basis: wbt.weeklyWeightLoss?.basis || `${wbt.bodyWeight} kg × 0.5%–1.0%`,
+          target: `${wbt.weeklyWeightLoss?.low || 0}–${wbt.weeklyWeightLoss?.high || 0} ${wbt.weeklyWeightLoss?.unit || "kg/week"}`,
+          why:
+            wbt.weeklyWeightLoss?.explanation ||
+            "Clinical gold standard pace to maximize fat tissue loss while preventing muscle catabolism and metabolic adaptation.",
         },
       ]
     : [];
@@ -83,7 +93,7 @@ export default function NutritionRecommendation({ profile }) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>AI Recommends Your Daily Targets</h3>
+        <h3 className={styles.title}>AI Daily Target Recommendations</h3>
         <span className={styles.badge}>{recommendations.goalLabel}</span>
       </div>
 
@@ -91,7 +101,7 @@ export default function NutritionRecommendation({ profile }) {
       <div className={styles.grid}>
         <div className={styles.card}>
           <div className={styles.cardIcon}>
-            <Flame size={24} />
+            <Flame size={22} />
           </div>
           <div className={styles.cardContent}>
             <span className={styles.cardLabel}>Daily Calories</span>
@@ -106,7 +116,7 @@ export default function NutritionRecommendation({ profile }) {
 
         <div className={styles.card}>
           <div className={styles.cardIcon}>
-            <Dumbbell size={24} />
+            <Dumbbell size={22} />
           </div>
           <div className={styles.cardContent}>
             <span className={styles.cardLabel}>Daily Protein</span>
@@ -119,7 +129,7 @@ export default function NutritionRecommendation({ profile }) {
 
         <div className={styles.card}>
           <div className={styles.cardIcon}>
-            <Droplets size={24} />
+            <Droplets size={22} />
           </div>
           <div className={styles.cardContent}>
             <span className={styles.cardLabel}>Water Intake</span>
@@ -129,42 +139,56 @@ export default function NutritionRecommendation({ profile }) {
         </div>
       </div>
 
-      {/* ── Weight-Based Formula Targets Table ── */}
+      {/* ── Weight-Based Calculation Targets Table ── */}
       {wbt && (
-        <div className={styles.formulaSection}>
-          <div className={styles.formulaSectionHeader}>
-            <span className={styles.formulaSectionIcon}>⚡</span>
+        <div className={styles.calcSection}>
+          <div className={styles.calcSectionHeader}>
+            <div className={styles.calcSectionIcon}>
+              <Scale size={20} />
+            </div>
             <div>
-              <h4 className={styles.formulaSectionTitle}>
-                Weight-Based Formula Targets
+              <h4 className={styles.calcSectionTitle}>
+                Weight-Proportional Calculation Breakdown
               </h4>
-              <p className={styles.formulaSectionSub}>
-                For your <strong>{wbt.bodyWeight} kg</strong> body weight
+              <p className={styles.calcSectionSub}>
+                Calibrated specifically for your <strong>{wbt.bodyWeight} kg</strong> body weight
               </p>
             </div>
           </div>
 
-          <div className={styles.formulaTable}>
-            {/* Table header */}
-            <div className={styles.formulaTableHead}>
-              <span className={styles.thNum}>#</span>
-              <span className={styles.thLabel}>Target</span>
-              <span className={styles.thFormula}>Formula</span>
-              <span className={styles.thTarget}>Your target</span>
+          <div className={styles.calcTable}>
+            {/* Table Header */}
+            <div className={styles.calcTableHead}>
+              <span className={styles.thIndex}>#</span>
+              <span className={styles.thMetric}>Metric</span>
+              <span className={styles.thBasis}>Calculation Basis</span>
+              <span className={styles.thTarget}>Target</span>
             </div>
 
-            {/* Table rows */}
-            {formulaRows.map((row, i) => (
-              <div
-                key={i}
-                className={`${styles.formulaRow} ${row.colorClass}`}
-              >
-                <span className={styles.rowNum}>
-                  {row.icon} {i + 1}.
-                </span>
-                <span className={styles.rowLabel}>{row.label}</span>
-                <span className={styles.rowFormula}>{row.formula}</span>
-                <span className={styles.rowTarget}>{row.target}</span>
+            {/* Table Rows */}
+            {calculationRows.map((row) => (
+              <div key={row.num} className={styles.calcRow}>
+                <div className={styles.calcRowMain}>
+                  <span className={styles.rowIndex}>{row.num}</span>
+                  <div className={styles.rowMetric}>
+                    <span className={styles.metricName}>{row.label}</span>
+                  </div>
+                  <div className={styles.rowBasis}>
+                    <code className={styles.basisCode}>{row.basis}</code>
+                  </div>
+                  <div className={styles.rowTarget}>
+                    <span className={styles.targetBadge}>{row.target}</span>
+                  </div>
+                </div>
+
+                {/* Explanation Sub-row */}
+                <div className={styles.calcRowWhy}>
+                  <div className={styles.whyLabel}>
+                    <Info size={13} className={styles.whyIcon} />
+                    <span>Why this calculation:</span>
+                  </div>
+                  <p className={styles.whyText}>{row.why}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -180,7 +204,7 @@ export default function NutritionRecommendation({ profile }) {
             <div className={styles.macroBar}>
               <div
                 className={styles.macroFill}
-                style={{ width: "30%", backgroundColor: "#000" }}
+                style={{ width: "30%", backgroundColor: "var(--color-accent-primary)" }}
               ></div>
             </div>
             <span className={styles.macroValue}>
@@ -192,7 +216,7 @@ export default function NutritionRecommendation({ profile }) {
             <div className={styles.macroBar}>
               <div
                 className={styles.macroFill}
-                style={{ width: "45%", backgroundColor: "#2b2b2b" }}
+                style={{ width: "45%", backgroundColor: "var(--color-accent-secondary)" }}
               ></div>
             </div>
             <span className={styles.macroValue}>
@@ -204,7 +228,7 @@ export default function NutritionRecommendation({ profile }) {
             <div className={styles.macroBar}>
               <div
                 className={styles.macroFill}
-                style={{ width: "25%", backgroundColor: "#555" }}
+                style={{ width: "25%", backgroundColor: "var(--color-text-secondary)" }}
               ></div>
             </div>
             <span className={styles.macroValue}>
@@ -218,10 +242,10 @@ export default function NutritionRecommendation({ profile }) {
         <div className={styles.tips}>
           <h4 className={styles.tipsTitle}>
             <Lightbulb
-              size={20}
-              style={{ display: "inline", marginRight: "8px" }}
+              size={18}
+              style={{ display: "inline", marginRight: "8px", verticalAlign: "middle" }}
             />
-            Tips for Your Goal
+            Recommendations For Your Goal
           </h4>
           <ul className={styles.tipsList}>
             {recommendations.tips.map((tip, idx) => (
