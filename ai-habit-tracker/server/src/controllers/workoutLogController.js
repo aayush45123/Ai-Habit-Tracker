@@ -147,8 +147,23 @@ function normalizeCompletionPayload(log, payload = {}, finalStatus) {
     ? [...new Set(payload.completedExerciseIds.map((id) => String(id)))]
     : log.completedExerciseIds || [];
 
-  const completedExercises = exerciseEntries.filter((exercise) =>
-    completedExerciseIds.includes(exercise.exerciseId),
+  exerciseEntries.forEach((exercise, index) => {
+    const idsToMatch = [
+      exercise.exerciseId,
+      exercise._id ? exercise._id.toString() : null,
+      exercise.name,
+      `${log.scheduledDay || "day"}-${index}`,
+    ].filter(Boolean);
+
+    const isDone = completedExerciseIds.some((id) =>
+      idsToMatch.includes(String(id)),
+    );
+    exercise.completed = isDone;
+    exercise.completedAt = isDone ? exercise.completedAt || new Date() : null;
+  });
+
+  const completedExercises = exerciseEntries.filter(
+    (exercise) => exercise.completed,
   );
 
   const totalExercises = exerciseEntries.length;
@@ -162,11 +177,6 @@ function normalizeCompletionPayload(log, payload = {}, finalStatus) {
       : finalStatus === "rest"
         ? 0
         : 100;
-
-  exerciseEntries.forEach((exercise) => {
-    exercise.completed = completedExerciseIds.includes(exercise.exerciseId);
-    exercise.completedAt = exercise.completed ? new Date() : null;
-  });
 
   return {
     completedExerciseIds,
@@ -425,7 +435,7 @@ function buildWorkoutAnalytics(timetable, logs) {
 
 export const getTodayWorkoutLog = async (req, res) => {
   try {
-    const { timetableId } = req.params;
+    const timetableId = req.params.timetableId || req.params.id;
     const date = req.query.date
       ? toISTDateString(req.query.date)
       : toISTDateString();
@@ -451,7 +461,7 @@ export const getTodayWorkoutLog = async (req, res) => {
 
 export const updateWorkoutLogDraft = async (req, res) => {
   try {
-    const { timetableId } = req.params;
+    const timetableId = req.params.timetableId || req.params.id;
     const {
       date,
       completedExerciseIds = [],
@@ -520,7 +530,7 @@ export const updateWorkoutLogDraft = async (req, res) => {
 
 export const finalizeWorkoutLog = async (req, res) => {
   try {
-    const { timetableId } = req.params;
+    const timetableId = req.params.timetableId || req.params.id;
     const {
       date,
       status,
@@ -591,7 +601,7 @@ export const finalizeWorkoutLog = async (req, res) => {
 
 export const getWorkoutLogAnalytics = async (req, res) => {
   try {
-    const { timetableId } = req.params;
+    const timetableId = req.params.timetableId || req.params.id;
 
     const timetable = await getTimetableOr404(req, res, timetableId);
     if (!timetable) return;
@@ -613,7 +623,7 @@ export const getWorkoutLogAnalytics = async (req, res) => {
 
 export const getWorkoutLogHistory = async (req, res) => {
   try {
-    const { timetableId } = req.params;
+    const timetableId = req.params.timetableId || req.params.id;
 
     const timetable = await getTimetableOr404(req, res, timetableId);
     if (!timetable) return;

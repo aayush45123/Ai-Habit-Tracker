@@ -38,7 +38,7 @@
 .badge {
   padding: 0.5rem 1rem;
   background-color: var(--color-accent-primary);
-  color: var(--color-bg-primary);
+  color: var(--color-text-on-dark);
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -69,8 +69,15 @@
 }
 
 .cardIcon {
-  font-size: 2rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background-color: var(--color-bg-secondary);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
 }
 
 .cardContent {
@@ -98,6 +105,218 @@
   color: var(--color-text-secondary);
 }
 
+/* ══════════════════════════════════════════
+   WEIGHT-BASED CALCULATION SECTION
+══════════════════════════════════════════ */
+
+.calcSection {
+  background: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.calcSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.calcSectionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-bg-secondary);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.calcSectionTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.calcSectionSub {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.calcSectionSub strong {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+/* ── Table Layout ── */
+.calcTable {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-primary);
+}
+
+.calcTableHead {
+  display: grid;
+  grid-template-columns: 48px 1.4fr 1.3fr 1.3fr;
+  align-items: center;
+  background: var(--color-bg-secondary);
+  padding: 0.65rem 1rem;
+  border-bottom: 2px solid var(--color-border);
+  gap: 1rem;
+}
+
+.thIndex,
+.thMetric,
+.thBasis,
+.thTarget {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.thTarget {
+  text-align: right;
+}
+
+/* ── Rows ── */
+.calcRow {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-bottom: 1.5px solid var(--color-border);
+  transition: background 0.15s;
+  background: var(--color-bg-primary);
+}
+
+.calcRow:last-child {
+  border-bottom: none;
+}
+
+.calcRow:hover {
+  background: var(--color-bg-secondary);
+}
+
+.calcRowMain {
+  display: grid;
+  grid-template-columns: 48px 1.4fr 1.3fr 1.3fr;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.rowIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--color-text-primary);
+}
+
+.rowMetric {
+  display: flex;
+  align-items: center;
+}
+
+.metricName {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rowBasis {
+  display: flex;
+  align-items: center;
+}
+
+.basisCode {
+  font-size: 0.8rem;
+  font-family: "Courier New", Courier, monospace;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  padding: 0.2rem 0.5rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  border-radius: 0;
+}
+
+.rowTarget {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.targetBadge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: 1.5px solid var(--color-border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Why Explanations ── */
+.calcRowWhy {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-secondary);
+  border-left: 3px solid var(--color-border);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin-left: 48px;
+}
+
+.whyLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.whyIcon {
+  color: var(--color-text-secondary);
+}
+
+.whyText {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+/* ── Macronutrient Breakdown ── */
 .breakdown {
   background-color: var(--color-bg-primary);
   border: 2px solid var(--color-border);
@@ -154,6 +373,7 @@
   color: var(--color-text-secondary);
 }
 
+/* ── Tips ── */
 .tips {
   background-color: var(--color-bg-primary);
   border: 2px solid var(--color-border);
@@ -165,6 +385,8 @@
   font-weight: 700;
   margin: 0 0 1rem 0;
   color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .tipsList {
@@ -192,6 +414,7 @@
   color: var(--color-accent-primary);
 }
 
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .container {
     padding: 1.5rem;
@@ -206,174 +429,30 @@
     align-items: flex-start;
     gap: 1rem;
   }
-}
 
-/* ══════════════════════════════════════════
-   WEIGHT-BASED FORMULA TABLE
-══════════════════════════════════════════ */
-
-.formulaSection {
-  background: var(--color-bg-primary);
-  border: 2px solid var(--color-border);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.formulaSection::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #6ee7b7, #60a5fa, #a78bfa, #f97316);
-}
-
-.formulaSectionHeader {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.875rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.formulaSectionIcon {
-  font-size: 1.5rem;
-  line-height: 1;
-  margin-top: 2px;
-}
-
-.formulaSectionTitle {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.formulaSectionSub {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.formulaSectionSub strong {
-  color: var(--color-text-primary);
-}
-
-/* ── Table layout ── */
-.formulaTable {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border: 1.5px solid var(--color-border);
-}
-
-.formulaTableHead {
-  display: grid;
-  grid-template-columns: 80px 1fr 1fr 1fr;
-  gap: 0;
-  background: var(--color-bg-secondary);
-  padding: 0.6rem 1rem;
-  border-bottom: 1.5px solid var(--color-border);
-}
-
-.thNum,
-.thLabel,
-.thFormula,
-.thTarget {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-secondary);
-}
-
-.thTarget {
-  text-align: right;
-}
-
-/* ── Data rows ── */
-.formulaRow {
-  display: grid;
-  grid-template-columns: 80px 1fr 1fr 1fr;
-  gap: 0;
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-  align-items: center;
-  transition: background 0.15s;
-}
-
-.formulaRow:last-child {
-  border-bottom: none;
-}
-
-.formulaRow:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.rowNum {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-.rowLabel {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.rowFormula {
-  font-size: 0.82rem;
-  color: var(--color-text-secondary);
-  font-family: "Courier New", monospace;
-  opacity: 0.85;
-}
-
-.rowTarget {
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-align: right;
-}
-
-/* ── Per-metric accent colors on target value ── */
-.rowSteps      .rowTarget { color: #6ee7b7; }
-.rowCalories   .rowTarget { color: #f97316; }
-.rowProtein    .rowTarget { color: #60a5fa; }
-.rowWater      .rowTarget { color: #38bdf8; }
-.rowWeightLoss .rowTarget { color: #a78bfa; }
-
-/* Left border accent per row */
-.rowSteps      { border-left: 3px solid #6ee7b7; }
-.rowCalories   { border-left: 3px solid #f97316; }
-.rowProtein    { border-left: 3px solid #60a5fa; }
-.rowWater      { border-left: 3px solid #38bdf8; }
-.rowWeightLoss { border-left: 3px solid #a78bfa; }
-
-/* ── Mobile ── */
-@media (max-width: 640px) {
-  .formulaTableHead {
-    display: none; /* hide column headings on mobile */
+  .calcTableHead {
+    display: none;
   }
 
-  .formulaRow {
-    grid-template-columns: 1fr;
-    gap: 0.2rem;
-    padding: 0.9rem 1rem;
+  .calcRowMain {
+    grid-template-columns: 36px 1fr;
+    gap: 0.5rem;
   }
 
-  .rowFormula {
-    font-size: 0.78rem;
+  .rowBasis {
+    grid-column: 2 / -1;
   }
 
   .rowTarget {
-    text-align: left;
-    font-size: 1rem;
+    grid-column: 2 / -1;
+    justify-content: flex-start;
+    margin-top: 0.25rem;
+  }
+
+  .calcRowWhy {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
