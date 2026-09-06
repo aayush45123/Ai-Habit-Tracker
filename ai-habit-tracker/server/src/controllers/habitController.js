@@ -237,6 +237,57 @@ export const addHabit = async (req, res) => {
 };
 
 // ----------------------------------------------------
+// ADD MULTIPLE HABITS (BULK)
+// ----------------------------------------------------
+export const addHabitsBulk = async (req, res) => {
+  try {
+    const { habits: habitsPayload } = req.body;
+
+    if (!Array.isArray(habitsPayload) || habitsPayload.length === 0) {
+      return res.status(400).json({ message: "habits array is required" });
+    }
+
+    const userId = req.user._id ? req.user._id.toString() : req.user.toString();
+    const today = getTodayIST();
+
+    const docs = habitsPayload.map(({ title, description, frequency }) => ({
+      userId: req.user,
+      title: title?.trim(),
+      description: description?.trim() || "",
+      frequency: frequency || "daily",
+      startDate: today,
+    }));
+
+    // Validate all titles present
+    for (const doc of docs) {
+      if (!doc.title) {
+        return res.status(400).json({ message: "Each habit must have a title" });
+      }
+    }
+
+    const habits = await Habit.insertMany(docs);
+
+    purgeUserDashboardCache(req.user);
+
+    // Emit a single dashboard update for all new habits
+    emitDashboardUpdate(userId, { type: "habit:added", habits });
+    emitNotification(userId, {
+      type: "success",
+      title: habits.length === 1 ? "Habit Created" : `${habits.length} Habits Created`,
+      message:
+        habits.length === 1
+          ? `"${habits[0].title}" has been added!`
+          : `${habits.length} new habits have been added to your dashboard!`,
+    });
+
+    res.status(201).json({ message: "Habits added", habits });
+  } catch (error) {
+    console.error("Error adding habits in bulk:", error);
+    res.status(500).json({ message: "Error adding habits" });
+  }
+};
+
+// ----------------------------------------------------
 // GET ALL HABITS
 // ----------------------------------------------------
 export const getAllHabits = async (req, res) => {

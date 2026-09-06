@@ -48,6 +48,128 @@
   gap: 1.5rem;
 }
 
+/* Page subtitle */
+.pageHeader {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.pageHeader h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.4rem 0;
+  font-family: var(--font-primary);
+}
+
+.pageSubtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Entries list */
+.entriesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Single habit entry card */
+.habitEntry {
+  background: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  box-shadow: 4px 4px 0 var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.entryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.entryNum {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.removeBtn {
+  background: none;
+  border: 1px solid var(--color-error, #ef4444);
+  color: var(--color-error, #ef4444);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.65rem;
+  font-family: var(--font-primary);
+  transition: background 0.15s, color 0.15s;
+}
+.removeBtn:hover {
+  background: var(--color-error, #ef4444);
+  color: #fff;
+}
+
+/* Add another habit button */
+.addMoreBtn {
+  padding: 0.875rem;
+  border: 2px dashed var(--color-accent-secondary, #60a5fa);
+  background: transparent;
+  color: var(--color-accent-secondary, #60a5fa);
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s, box-shadow 0.12s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.addMoreBtn:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.08);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--color-border);
+}
+.addMoreBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form action row */
+.formActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.cancelBtn {
+  padding: 1rem 1.75rem;
+  background: transparent;
+  border: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-speed) var(--transition-easing);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 4px 4px 0 var(--color-border);
+}
+.cancelBtn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--color-border);
+}
+
 .addForm label {
   font-size: 0.95rem;
   font-weight: 600;

@@ -9,6 +9,7 @@ import {
 } from "../validators/habit.validator.js";
 import {
   addHabit,
+  addHabitsBulk,
   getAllHabits,
   getHabitById,
   updateHabit,
@@ -24,6 +25,7 @@ router.use(authMiddleware);
 router.use(requireProfileCompleted);
 
 router.post("/add", validate(createHabitSchema), addHabit);
+router.post("/add-bulk", addHabitsBulk);
 router.get("/all", getAllHabits);
 router.get("/analytics/all", getAnalytics);
 router.get("/:id", getHabitById);
