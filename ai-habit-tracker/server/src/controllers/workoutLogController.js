@@ -38,7 +38,11 @@ const IST_OFFSET_MINUTES = 330;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 function toISTDateString(value = new Date()) {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+    return value.trim();
+  }
   const date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return new Date().toISOString().split("T")[0];
   const istDate = new Date(date.getTime() + IST_OFFSET_MINUTES * 60000);
   return istDate.toISOString().split("T")[0];
 }
@@ -102,7 +106,15 @@ function buildExerciseEntries(schedule = {}) {
 }
 
 function getScheduleForDate(timetable, dateString) {
-  const dayName = getISTDayName(new Date(`${dateString}T00:00:00Z`));
+  let dayName;
+  if (typeof dateString === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateString.trim())) {
+    const [y, m, d] = dateString.trim().split("-").map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    dayName = WEEKDAYS[dateObj.getDay()];
+  } else {
+    dayName = getISTDayName(new Date(`${dateString}T00:00:00Z`));
+  }
+
   const schedule =
     timetable.weeklySchedule.find((day) => day.day === dayName) ||
     timetable.weeklySchedule[0] ||
@@ -481,18 +493,14 @@ export const updateWorkoutLogDraft = async (req, res) => {
         .json({ message: "Rest day logs do not require exercise updates" });
     }
 
-    if (log.checkpoint?.submitted) {
-      return res.status(409).json({
-        message: "Workout log has already been submitted for this date",
-      });
-    }
-
     const normalizedIds = [
       ...new Set(completedExerciseIds.map((id) => String(id))),
     ];
     log.completedExerciseIds = normalizedIds;
-    log.actualDuration = Number(actualDuration) || 0;
-    log.checkpoint.note = note;
+    log.actualDuration = Number(actualDuration) || log.actualDuration || 0;
+    if (note !== undefined) {
+      log.checkpoint.note = note;
+    }
 
     const normalized = normalizeCompletionPayload(
       log,
@@ -502,13 +510,18 @@ export const updateWorkoutLogDraft = async (req, res) => {
     log.completedExercises = normalized.completedExercises;
     log.completionPercentage = normalized.completionPercentage;
     log.exerciseEntries = normalized.exerciseEntries;
-    log.status =
-      normalized.completedExercises === 0
-        ? "pending"
-        : log.status === "partial"
-          ? "partial"
-          : "pending";
-    log.checkpoint.submitted = false;
+
+    // Automatically update status based on progress:
+    if (log.status !== "rest") {
+      const total = log.totalExercises || normalized.exerciseEntries.length;
+      if (total > 0 && normalized.completedExercises >= total) {
+        log.status = "completed";
+      } else if (normalized.completedExercises > 0) {
+        log.status = "partial";
+      } else {
+        log.status = "pending";
+      }
+    }
     log.isExpired = false;
 
     await log.save();
@@ -551,13 +564,7 @@ export const finalizeWorkoutLog = async (req, res) => {
     const logDate = toISTDateString(date || new Date());
     const log = await getOrCreateWorkoutLog(timetable, logDate);
 
-    if (log.checkpoint?.submitted) {
-      return res.status(409).json({
-        message: "Workout log has already been submitted for this date",
-      });
-    }
-
-    const finalStatus = log.status === "rest" ? "rest" : status;
+    let finalStatus = log.status === "rest" ? "rest" : status;
     const normalized = normalizeCompletionPayload(
       log,
       {
@@ -567,14 +574,28 @@ export const finalizeWorkoutLog = async (req, res) => {
       finalStatus,
     );
 
+    if (finalStatus !== "rest") {
+      const total = log.totalExercises || normalized.exerciseEntries.length;
+      if (status === "completed" || (total > 0 && normalized.completedExercises >= total)) {
+        finalStatus = "completed";
+      } else if (status === "partial" || normalized.completedExercises > 0) {
+        finalStatus = "partial";
+      } else if (status === "missed") {
+        finalStatus = "missed";
+      } else {
+        finalStatus = "completed";
+      }
+    }
+
+    const wasAlreadySubmitted = !!log.checkpoint?.submitted;
     log.status = finalStatus;
     log.completedExerciseIds = normalized.completedExerciseIds;
     log.completedExercises = normalized.completedExercises;
     log.completionPercentage = normalized.completionPercentage;
     log.exerciseEntries = normalized.exerciseEntries;
-    log.actualDuration = Number(actualDuration) || 0;
+    log.actualDuration = Number(actualDuration) || log.actualDuration || 0;
     log.checkpoint.submitted = true;
-    log.checkpoint.note = note;
+    log.checkpoint.note = note !== undefined ? note : log.checkpoint.note;
     log.checkpoint.submittedAt = new Date();
     log.isExpired = false;
 
@@ -589,7 +610,9 @@ export const finalizeWorkoutLog = async (req, res) => {
       message:
         finalStatus === "rest"
           ? "Rest day recorded successfully"
-          : "Workout log saved successfully",
+          : wasAlreadySubmitted
+            ? "Workout log updated successfully"
+            : "Workout log saved successfully",
       workoutLog: buildWorkoutLogView(log, timetable),
       analytics: buildWorkoutAnalytics(timetable, logs),
     });

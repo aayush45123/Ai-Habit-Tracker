@@ -166,25 +166,50 @@ export default function TimetableCheckpointPanel({
             />
           </div>
 
+          {isFinalized && (
+            <div className={styles.finalizedNotice}>
+              <CheckCircle2 className={styles.finalizedNoticeIcon} />
+              <span>
+                Workout log submitted! You can modify duration, notes, or exercises and update anytime.
+              </span>
+            </div>
+          )}
+
           <button
             className={styles.submitButton}
             type="submit"
-            disabled={loading || isFinalized}
+            disabled={loading}
           >
             <Save className={styles.submitIcon} />
-            {isFinalized
-              ? "Workout Submitted"
-              : isRestDay
-                ? "Save Rest Day"
-                : "Complete Workout"}
+            {loading
+              ? "Saving Workout..."
+              : isFinalized
+                ? "Update Workout Log"
+                : isRestDay
+                  ? "Save Rest Day"
+                  : "Complete Workout"}
           </button>
         </div>
 
         <div className={styles.activityPanel}>
           <div className={styles.activityHeader}>
             <h4 className={styles.activityTitle}>Current Log Snapshot</h4>
-            <span className={styles.activityCount}>
-              {workoutLog?.status || status}
+            <span
+              className={`${styles.activityCount} ${
+                styles[
+                  `status_${
+                    workout?.isRestDay
+                      ? "rest"
+                      : completionPercentage >= 100
+                        ? "completed"
+                        : status
+                  }`
+                ] || ""
+              }`}
+            >
+              {isFinalized
+                ? `${(workout?.isRestDay ? "rest" : completionPercentage >= 100 ? "completed" : status).toUpperCase()} ✓`
+                : (workout?.isRestDay ? "rest" : completionPercentage >= 100 ? "completed" : status).toUpperCase()}
             </span>
           </div>
 
@@ -202,7 +227,9 @@ export default function TimetableCheckpointPanel({
               <div>
                 <strong className={styles.activityDay}>Status</strong>
                 <p className={styles.activityMeta}>
-                  {isRestDay ? "Rest day" : status.toUpperCase()}
+                  {isRestDay
+                    ? "Rest day"
+                    : (completionPercentage >= 100 ? "completed" : status).toUpperCase()}
                 </p>
               </div>
             </div>
