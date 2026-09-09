@@ -10,12 +10,24 @@ import { normalizeDateIST } from "../utils/getTodayIST.js";
 export const addFoodLog = async (req, res) => {
   try {
     const userId = req.user?._id;
-    const { foodName, calories, protein, imageUrl } = req.body;
+    const { foodName, calories, protein, imageUrl, date } = req.body;
 
     if (!foodName || !calories) {
       return res.status(400).json({
         message: "foodName and calories are required",
       });
+    }
+
+    // Determine the log date — default to today, allow past dates only
+    let logDate = normalizeDateIST(new Date());
+    if (date) {
+      const todayIST = normalizeDateIST(new Date());
+      if (date > todayIST) {
+        return res.status(400).json({
+          message: "Cannot log food for future dates",
+        });
+      }
+      logDate = normalizeDateIST(date);
     }
 
     const food = await FoodLog.create({
@@ -24,7 +36,7 @@ export const addFoodLog = async (req, res) => {
       calories: Number(calories),
       protein: Number(protein || 0),
       imageUrl,
-      date: normalizeDateIST(new Date()),
+      date: logDate,
     });
 
     res.json(food);

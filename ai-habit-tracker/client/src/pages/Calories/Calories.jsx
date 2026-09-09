@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Check, X } from "lucide-react";
+import { Edit2, Check, X, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
 import api from "../../utils/api";
 import { useAuth } from "../../context/AuthContext.jsx";
 import CalorieSummary from "../../components/CalorieSummary/CalorieSummary";
@@ -22,6 +22,9 @@ export default function Calories() {
     dailyGoal: 2000,
     proteinGoal: 100,
   });
+  const [showPastDate, setShowPastDate] = useState(false);
+  const [pastDate, setPastDate] = useState("");
+  const [addingPast, setAddingPast] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -87,6 +90,9 @@ export default function Calories() {
     setEditingGoals(false);
   }
 
+  // Get today's date string in YYYY-MM-DD (local) for max attr on date input
+  const todayStr = new Date().toLocaleDateString("en-CA"); // en-CA gives YYYY-MM-DD
+
   async function addFood() {
     if (!food.trim()) {
       alert("Please enter a food item");
@@ -95,10 +101,21 @@ export default function Calories() {
 
     if (!profile) {
       alert("Please set up your profile first");
-      setShowProfileForm(true);
       return;
     }
 
+    // Validate past date when toggled on
+    if (showPastDate && !pastDate) {
+      alert("Please select a past date to log food for.");
+      return;
+    }
+
+    if (showPastDate && pastDate >= todayStr) {
+      alert("Please select a date before today.");
+      return;
+    }
+
+    setAddingPast(true);
     try {
       const aiRes = await api.post("/calories/ai/estimate", {
         foodName: food.trim(),
@@ -108,14 +125,22 @@ export default function Calories() {
         foodName: food.trim(),
         calories: aiRes.data.calories,
         protein: aiRes.data.protein,
+        ...(showPastDate && pastDate ? { date: pastDate } : {}),
       });
 
       setFood("");
-      loadStatus();
-      setRefreshSummary((prev) => prev + 1);
+      // Only reload today's status if logging for today
+      if (!showPastDate) {
+        loadStatus();
+        setRefreshSummary((prev) => prev + 1);
+      } else {
+        alert(`✅ Food logged for ${new Date(pastDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} successfully!`);
+      }
     } catch (err) {
       console.error("Error adding food:", err);
       alert("Failed to add food. Please try again.");
+    } finally {
+      setAddingPast(false);
     }
   }
 
@@ -258,16 +283,62 @@ export default function Calories() {
             </div>
           )}
 
+          {/* Past-date logging toggle */}
+          <div className={styles.pastDateSection}>
+            <button
+              className={styles.pastDateToggle}
+              onClick={() => {
+                setShowPastDate((prev) => !prev);
+                setPastDate("");
+              }}
+            >
+              <CalendarDays size={16} />
+              Log food for a past date
+              {showPastDate ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showPastDate && (
+              <div className={styles.pastDatePicker}>
+                <label className={styles.pastDateLabel}>
+                  Select the date you want to add food to:
+                </label>
+                <input
+                  type="date"
+                  className={styles.dateInput}
+                  value={pastDate}
+                  max={new Date(new Date().setDate(new Date().getDate() - 1)).toLocaleDateString("en-CA")}
+                  onChange={(e) => setPastDate(e.target.value)}
+                />
+                {pastDate && (
+                  <span className={styles.pastDateBadge}>
+                    📅 Logging for:{" "}
+                    <strong>
+                      {new Date(pastDate + "T12:00:00").toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </strong>
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className={styles.inputSection}>
             <input
               value={food}
               onChange={(e) => setFood(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && addFood()}
-              placeholder="What did you eat?"
+              placeholder={showPastDate && pastDate ? `What did you eat on ${new Date(pastDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}?` : "What did you eat?"}
               className={styles.foodInput}
             />
-            <button onClick={addFood} className={styles.btnPrimary}>
-              Add
+            <button
+              onClick={addFood}
+              className={styles.btnPrimary}
+              disabled={addingPast}
+            >
+              {addingPast ? "Adding..." : showPastDate ? "Add to Past" : "Add"}
             </button>
           </div>
 
