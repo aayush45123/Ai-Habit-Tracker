@@ -31,7 +31,7 @@ const STREAK_MILESTONES = {
  */
 export async function processHabitCompletion({ userId, habitId, status, currentStreak }) {
   try {
-    if (status !== "completed") return;
+    if (status !== "completed" && status !== "done") return;
 
     const todayStr = new Date().toISOString().split("T")[0];
     const gam = await getOrCreateGamification(userId);
@@ -47,10 +47,14 @@ export async function processHabitCompletion({ userId, habitId, status, currentS
       metadata: { habitId, date: todayStr },
     });
 
-    // 2. Check if first habit ever
+    // 2. Fetch all user habits
+    const userHabits = await Habit.find({ userId, isActive: { $ne: false } }).select("_id streak longestStreak").lean();
+    const habitIds = userHabits.map((h) => h._id);
+
+    // Count all completions for this user
     const totalLogsCount = await HabitLog.countDocuments({
-      userId,
-      status: "completed",
+      habitId: { $in: habitIds },
+      status: "done",
     });
 
     if (totalLogsCount === 1) {
@@ -66,19 +70,18 @@ export async function processHabitCompletion({ userId, habitId, status, currentS
     }
 
     // 3. Check for Perfect Day (all active habits completed today)
-    const activeHabits = await Habit.find({ userId, isActive: { $ne: false } }).select("_id").lean();
-    if (activeHabits.length > 0) {
+    if (userHabits.length > 0) {
       const todayLogs = await HabitLog.find({
-        userId,
+        habitId: { $in: habitIds },
         date: {
           $gte: new Date(todayStr + "T00:00:00.000Z"),
           $lte: new Date(todayStr + "T23:59:59.999Z"),
         },
-        status: "completed",
+        status: "done",
       }).select("habitId").lean();
 
       const completedIds = new Set(todayLogs.map((l) => l.habitId.toString()));
-      const allDone = activeHabits.every((h) => completedIds.has(h._id.toString()));
+      const allDone = userHabits.every((h) => completedIds.has(h._id.toString()));
 
       if (allDone) {
         await awardXP({
@@ -88,7 +91,7 @@ export async function processHabitCompletion({ userId, habitId, status, currentS
           source: "perfect_day",
           refId: todayStr,
           idempotencyKey: `perfect_day_${userId}_${todayStr}`,
-          metadata: { date: todayStr, habitsCount: activeHabits.length },
+          metadata: { date: todayStr, habitsCount: userHabits.length },
         });
       }
     }
@@ -139,40 +142,42 @@ async function updateChallengeProgress(userId, habitId) {
     const activeChallenges = await UserChallenge.find({
       userId,
       status: "active",
-    }).populate("challengeId");
+    });
 
     for (const uc of activeChallenges) {
-      const chal = uc.challengeId;
-      if (!chal) continue;
+      const chal = await GamificationChallenge.findById(uc.challengeId);
+      if (!chal || !chal.isActive) continue;
 
-      // Increment progress
-      const targetCount = chal.requirements?.daysRequired || chal.requirements?.targetCount || 7;
-      const newProgress = Math.min(100, Math.round(((uc.progressCount || 0) + 1) / targetCount * 100));
-      const newCount = (uc.progressCount || 0) + 1;
+      // Increment progress count
+      uc.progressCount = (uc.progressCount || 0) + 1;
+      uc.progress = Math.min(100, Math.round((uc.progressCount / chal.targetCount) * 100));
 
-      uc.progress = newProgress;
-      uc.progressCount = newCount;
-
-      if (newCount >= targetCount && uc.status !== "completed") {
+      if (uc.progress >= 100) {
         uc.status = "completed";
         uc.completedAt = new Date();
 
-        // Award challenge XP + coins
-        if (chal.xpReward > 0 || chal.coinReward > 0) {
-          await awardXP({
-            userId,
-            amount: chal.xpReward || 0,
-            coins: chal.coinReward || 0,
-            source: "challenge_complete",
-            refId: chal._id.toString(),
-            idempotencyKey: `chal_${userId}_${chal._id}`,
-            metadata: { challengeTitle: chal.title },
-          });
+        // Award challenge rewards
+        await awardXP({
+          userId,
+          amount: chal.xpReward || 100,
+          coins: chal.coinReward || 25,
+          source: "challenge_complete",
+          refId: chal._id.toString(),
+          idempotencyKey: `challenge_${userId}_${chal._id}`,
+          metadata: { challengeTitle: chal.title },
+        });
+
+        // Grant badge if specified
+        if (chal.badgeKey) {
+          await UserGamification.updateOne(
+            { userId, featuredBadges: { $ne: chal.badgeKey } },
+            { $push: { featuredBadges: { $each: [chal.badgeKey], $slice: -3 } } }
+          );
         }
 
         emitNotification(userId, {
           type: "challenge_completed",
-          title: `?? Challenge Completed: ${chal.title}!`,
+          title: `🏆 Challenge Completed: ${chal.title}!`,
           message: `You earned ${chal.xpReward} XP and ${chal.coinReward} Coins!`,
           data: { challenge: chal },
         });
@@ -186,10 +191,49 @@ async function updateChallengeProgress(userId, habitId) {
 }
 
 /**
- * Get comprehensive gamification overview for dashboard & progression page
+ * Get comprehensive gamification overview for dashboard & profile page
  */
 export async function getGamificationOverview(userId) {
-  const gam = await getOrCreateGamification(userId);
+  let gam = await getOrCreateGamification(userId);
+
+  // Retroactive check: ensure user gets First Step and appropriate XP if they already completed habits
+  const userHabits = await Habit.find({ userId }).select("_id title category streak longestStreak").lean();
+  const habitIds = userHabits.map((h) => h._id);
+
+  const totalLogsCount = await HabitLog.countDocuments({
+    habitId: { $in: habitIds },
+    status: "done",
+  });
+
+  const maxStreak = userHabits.reduce(
+    (max, h) => Math.max(max, h.streak || 0, h.longestStreak || 0),
+    0
+  );
+
+  // If user completed at least 1 habit, evaluate achievements (e.g. first_habit, streak_3, etc.)
+  if (totalLogsCount > 0) {
+    // If totalXP is 0 despite completions, award first_habit + base completion XP catchup!
+    if (gam.totalXP === 0) {
+      await awardXP({
+        userId,
+        amount: 35, // 10 base + 25 first habit
+        coins: 7,
+        source: "habit_complete",
+        idempotencyKey: `init_habit_catchup_${userId}`,
+        metadata: { note: "Catchup XP for previous completion" },
+      });
+    }
+
+    await evaluateAchievements(userId, {
+      streak: maxStreak,
+      totalCompleted: totalLogsCount,
+      level: gam.level,
+    });
+
+    // Re-fetch fresh gamification document
+    gam = await UserGamification.findOne({ userId });
+  }
+
   const title = getLevelTitle(gam.level);
   const progressInfo = xpProgressInLevel(gam.totalXP);
 
@@ -207,6 +251,47 @@ export async function getGamificationOverview(userId) {
   // Fetch user redeemed rewards
   const userRewards = await UserReward.find({ userId }).lean();
 
+  // Fetch recent habit completions (last 10 done logs) for LeetCode recent activity tab
+  const recentDoneLogs = await HabitLog.find({
+    habitId: { $in: habitIds },
+    status: "done",
+  })
+    .sort({ date: -1, createdAt: -1 })
+    .limit(10)
+    .lean();
+
+  const habitMap = new Map();
+  userHabits.forEach((h) => habitMap.set(h._id.toString(), h));
+
+  const recentActivity = recentDoneLogs.map((log) => {
+    const habit = habitMap.get(log.habitId.toString());
+    return {
+      _id: log._id,
+      habitId: log.habitId,
+      habitTitle: habit?.title || "Habit",
+      category: habit?.category || "general",
+      date: log.date,
+      createdAt: log.createdAt || log.date,
+      status: log.status,
+    };
+  });
+
+  // Fetch year-round heatmap data (all completed logs in past 365 days)
+  const oneYearAgo = new Date();
+  oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+
+  const yearLogs = await HabitLog.find({
+    habitId: { $in: habitIds },
+    status: "done",
+    date: { $gte: oneYearAgo },
+  }).select("date").lean();
+
+  const activityHeatmap = {};
+  yearLogs.forEach((l) => {
+    const dStr = typeof l.date === "string" ? l.date.split("T")[0] : l.date.toISOString().split("T")[0];
+    activityHeatmap[dStr] = (activityHeatmap[dStr] || 0) + 1;
+  });
+
   return {
     profile: {
       userId: gam.userId,
@@ -217,8 +302,16 @@ export async function getGamificationOverview(userId) {
       streakFreezes: gam.streakFreezes,
       featuredBadges: gam.featuredBadges || [],
       ...progressInfo,
+      stats: {
+        totalHabits: userHabits.length,
+        totalCompletedLogs: totalLogsCount,
+        maxStreak,
+        activeDaysCount: Object.keys(activityHeatmap).length,
+      },
     },
     recentTransactions,
+    recentActivity,
+    activityHeatmap,
     activeChallenges: userChallenges.map((uc) => ({
       ...uc,
       challenge: uc.challengeId,

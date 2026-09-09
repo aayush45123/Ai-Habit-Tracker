@@ -1,4 +1,4 @@
-﻿// server/src/services/xp.service.js
+// server/src/services/xp.service.js
 // Centralized XP engine — level calc, XP awards, idempotency
 
 import UserGamification from "../models/UserGamification.js";
@@ -108,6 +108,7 @@ export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365];
 export async function awardXP({
   userId,
   xp,
+  amount,
   coins = 0,
   source,
   refId = null,
@@ -115,6 +116,8 @@ export async function awardXP({
   metadata = {},
 }) {
   try {
+    const actualXP = xp !== undefined ? xp : (amount !== undefined ? amount : 0);
+
     // Attempt idempotent insert
     if (idempotencyKey) {
       const exists = await XPTransaction.findOne({ idempotencyKey });
@@ -124,7 +127,7 @@ export async function awardXP({
     // Create transaction record
     const tx = await XPTransaction.create({
       userId,
-      amount: xp,
+      amount: actualXP,
       coinAmount: coins,
       source,
       refId: refId ? refId.toString() : null,
@@ -140,7 +143,7 @@ export async function awardXP({
     const gam = await UserGamification.findOneAndUpdate(
       { userId },
       {
-        $inc: { totalXP: xp, habitCoins: coins },
+        $inc: { totalXP: actualXP, habitCoins: coins },
         $setOnInsert: { userId },
       },
       { upsert: true, new: true }
@@ -155,7 +158,7 @@ export async function awardXP({
 
     return {
       tx,
-      xp,
+      xp: actualXP,
       coins,
       newTotalXP: gam.totalXP,
       newCoins: gam.habitCoins,
