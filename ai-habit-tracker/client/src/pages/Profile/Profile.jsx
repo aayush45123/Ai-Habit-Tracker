@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useGamification } from "../../context/GamificationContext.jsx";
 import api from "../../utils/api";
@@ -7,7 +7,6 @@ import GamificationIcon from "../../components/GamificationIcon/GamificationIcon
 import {
   FiUser,
   FiActivity,
-  FiTarget,
   FiAlertCircle,
   FiCheckCircle,
   FiCamera,
@@ -21,19 +20,12 @@ import {
   FiSettings,
   FiCheck,
   FiLock,
-  FiZap,
 } from "react-icons/fi";
 import {
-  Trophy,
   Flame,
+  Zap,
   Coins,
   Shield,
-  Calendar,
-  Sparkles,
-  ExternalLink,
-  CheckCircle2,
-  Layers,
-  TrendingUp,
 } from "lucide-react";
 import styles from "./Profile.module.css";
 
@@ -95,13 +87,11 @@ const Profile = () => {
   const [loadingAchievements, setLoadingAchievements] = useState(false);
   const [loadingRewards, setLoadingRewards] = useState(false);
   const [selectedBadgeFilter, setSelectedBadgeFilter] = useState("all");
-  const [selectedRewardCat, setSelectedRewardCat] = useState("all");
   const [redeemingKey, setRedeemingKey] = useState(null);
   const [rewardsFeedback, setRewardsFeedback] = useState(null);
 
   // User habits list for stats & category breakdown
   const [habits, setHabits] = useState([]);
-  const [loadingHabits, setLoadingHabits] = useState(false);
 
   // Profile Settings Form State
   const [formData, setFormData] = useState({
@@ -165,15 +155,12 @@ const Profile = () => {
   // Load Habits
   const loadHabits = async () => {
     try {
-      setLoadingHabits(true);
       const res = await api.get("/habits/all");
       if (res.data) {
         setHabits(Array.isArray(res.data) ? res.data : res.data.habits || []);
       }
     } catch (err) {
       console.error("Error loading habits:", err);
-    } finally {
-      setLoadingHabits(false);
     }
   };
 
@@ -787,7 +774,7 @@ const Profile = () => {
             {/* Heatmap Grid */}
             <div className={styles.heatmapGridWrapper}>
               <div className={styles.heatmapGrid}>
-                {heatmapData.days.map((d, i) => (
+                {heatmapData.days.map((d) => (
                   <div
                     key={d.date}
                     className={`${styles.heatmapCell} ${styles[`level${d.level}`]}`}
