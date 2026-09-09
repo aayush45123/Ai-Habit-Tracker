@@ -1,6 +1,6 @@
-// server/src/routes/gamificationRoutes.js
+﻿// server/src/routes/gamificationRoutes.js
 import express from "express";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 import {
   getOverview,
   getAchievements,
