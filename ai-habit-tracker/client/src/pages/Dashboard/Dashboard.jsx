@@ -5,6 +5,7 @@ import RiskAlerts from "../../components/RiskAlerts/RiskAlerts";
 import Recommendations from "../../components/Recommendations/Recommendations";
 import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
 import AddHabitModal from "../../components/AddHabitModal/AddHabitModal";
+import GamificationWidget from "../../components/GamificationWidget/GamificationWidget";
 import { FaRobot, FaWifi } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext";
 import styles from "./Dashboard.module.css";
@@ -295,6 +296,9 @@ export default function Dashboard() {
           <span className={styles.statLabel}>This Week</span>
         </div>
       </div>
+
+      {/* ── GAMIFICATION PROGRESSION WIDGET ── */}
+      <GamificationWidget />
 
       {/* ── MAIN CONTENT GRID ── */}
       <div className={styles.mainGrid}>

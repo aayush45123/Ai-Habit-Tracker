@@ -1,0 +1,383 @@
+.pageContainer {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.heroCard {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.heroMain {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.levelBadge {
+  width: 90px;
+  height: 90px;
+  background: var(--color-accent-primary, #000000);
+  color: var(--color-text-on-dark, #ffffff);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #000000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.levelPrefix {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+.levelNum {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.heroMeta {
+  flex: 1;
+  min-width: 280px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.heroTitle {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--color-text-primary, #000000);
+}
+
+.totalXPBadge {
+  padding: 0.3rem 0.65rem;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #18181b;
+}
+
+.heroSubtitle {
+  color: var(--color-text-secondary, #555555);
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+}
+
+.xpProgressWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.xpInfoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3f3f46;
+}
+
+.percentText {
+  font-weight: 700;
+}
+
+.xpTrack {
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.xpBar {
+  height: 100%;
+  background: var(--color-accent-primary, #000000);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.heroStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  border-top: 1px solid #e4e4e7;
+  padding-top: 1.5rem;
+}
+
+.statBox {
+  background: var(--color-bg-secondary, #f8f9fa);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  position: relative;
+}
+
+.statIconWrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.coinIcon {
+  color: #d97706;
+}
+
+.shieldIcon {
+  color: #0284c7;
+}
+
+.trophyIcon {
+  color: #7c3aed;
+}
+
+.statNum {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary, #000000);
+  line-height: 1.2;
+}
+
+.statName {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #666666);
+}
+
+.storeLink {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #000000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  text-decoration: none;
+}
+
+.storeLink:hover {
+  text-decoration: underline;
+}
+
+.freezeHint {
+  position: absolute;
+  bottom: 0.35rem;
+  right: 0.75rem;
+  font-size: 0.65rem;
+  color: #71717a;
+}
+
+.sectionRow {
+  margin-bottom: 2rem;
+}
+
+.calendarCol {
+  width: 100%;
+}
+
+.challengesSection {
+  margin-bottom: 2.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem;
+  color: var(--color-text-primary, #000000);
+}
+
+.sectionSubtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #666666);
+  margin: 0;
+}
+
+.aiButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.15rem;
+  background: #7c3aed;
+  color: #ffffff;
+  border: 1px solid #6d28d9;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+}
+
+.aiButton:hover:not(:disabled) {
+  background: #6d28d9;
+  transform: translateY(-1px);
+}
+
+.aiButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.challengesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.emptyCard {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 2.5rem;
+  text-align: center;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.historySection {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.historyTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.emptyHistory {
+  color: #71717a;
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+.txList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.txItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.txLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.txIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #000000;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.txZap {
+  color: #ffffff;
+}
+
+.txSource {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.txDate {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.txRight {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.txAmount {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.txCoins {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #d97706;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.cardSkeleton {
+  height: 160px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  animation: pulse 1.5s infinite;
+}

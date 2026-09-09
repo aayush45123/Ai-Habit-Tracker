@@ -26,6 +26,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 import journalRoutes from "./routes/journalRoutes.js";
+import gamificationRoutes from "./routes/gamificationRoutes.js";
+import { seedGamificationData } from "./seeds/gamificationSeed.js";
 
 // Import streak reset function
 import { scheduleDailyReminderCron, scheduleWeeklySummaryCron } from "./cron/emailReminder.cron.js";
@@ -104,6 +106,12 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/journal", journalRoutes);
+app.use("/api/gamification", gamificationRoutes);
+
+/* =======================
+   SEED GAMIFICATION CATALOG
+======================= */
+seedGamificationData().catch((err) => console.error("Gamification seed error:", err));
 
 /* =======================
    AUTOMATIC STREAK RESET - DAILY CRON JOB

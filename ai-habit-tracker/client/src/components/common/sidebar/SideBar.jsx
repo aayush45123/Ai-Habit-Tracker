@@ -20,6 +20,8 @@ import {
   FiLock,
   FiFileText,
   FiBookOpen,
+  FiAward,
+  FiGift,
 } from "react-icons/fi";
 import styles from "./SideBar.module.css";
 
@@ -90,6 +92,9 @@ function Sidebar() {
         {/* Navigation */}
         <nav className={styles.nav}>
           {renderNavLink("/dashboard", FiGrid, "Dashboard")}
+          {renderNavLink("/progression", FiZap, "Progression & XP")}
+          {renderNavLink("/achievements", FiAward, "Achievements")}
+          {renderNavLink("/rewards", FiGift, "Rewards Store")}
           {renderNavLink("/add", FiPlusCircle, "Add Habit")}
           {renderNavLink("/analytics", FiTrendingUp, "Analytics")}
           {renderNavLink("/dashboard/reports", FiFileText, "Reports")}

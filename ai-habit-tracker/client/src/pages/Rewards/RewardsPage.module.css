@@ -1,0 +1,270 @@
+.pageContainer {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.balanceHeader {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem;
+  color: var(--color-text-primary, #000000);
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary, #555555);
+  margin: 0;
+  max-width: 540px;
+}
+
+.balances {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.coinCard, .shieldCard {
+  background: var(--color-bg-secondary, #f8fafc);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 170px;
+}
+
+.coinIcon {
+  color: #d97706;
+}
+
+.shieldIcon {
+  color: #0284c7;
+}
+
+.coinVal, .shieldVal {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #09090b;
+  line-height: 1.1;
+}
+
+.coinLabel, .shieldLabel {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.feedbackBanner {
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.feedbackBanner.success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.feedbackBanner.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.tabsRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.tabBtn {
+  padding: 0.55rem 1rem;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #3f3f46;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  background: #e4e4e7;
+}
+
+.activeTab {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.rewardCard {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rewardCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.redeemedCard {
+  background: #fafafa;
+  border-color: #d4d4d8;
+  opacity: 0.8;
+}
+
+.itemTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.catTag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.costBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #09090b;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.iconCircle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem auto 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.itemEmoji {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.itemName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  text-align: center;
+  color: #09090b;
+}
+
+.itemDesc {
+  font-size: 0.85rem;
+  color: #52525b;
+  text-align: center;
+  margin: 0 0 1.25rem;
+  line-height: 1.45;
+  flex: 1;
+}
+
+.actionArea {
+  margin-top: auto;
+}
+
+.redeemBtn {
+  width: 100%;
+  padding: 0.65rem;
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.redeemBtn:hover:not(:disabled) {
+  background: #27272a;
+}
+
+.redeemBtn:disabled {
+  background: #e4e4e7;
+  color: #a1a1aa;
+  border-color: #d4d4d8;
+  cursor: not-allowed;
+}
+
+.ownedBtn {
+  width: 100%;
+  padding: 0.65rem;
+  background: #f4f4f5;
+  color: #71717a;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  cursor: default;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.cardSkeleton {
+  height: 240px;
+  background: #f1f5f9;
+  border-radius: 14px;
+  animation: pulse 1.5s infinite;
+}

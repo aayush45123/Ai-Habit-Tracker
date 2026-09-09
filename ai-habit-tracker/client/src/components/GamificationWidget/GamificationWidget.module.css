@@ -1,0 +1,153 @@
+.widgetCard {
+  background: var(--color-bg-secondary, #f8f9fa);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.widgetCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.levelBadgeSection {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.levelCircle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--color-accent-primary, #000000);
+  color: var(--color-text-on-dark, #ffffff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.lvlText {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+  line-height: 1;
+}
+
+.lvlNumber {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.levelDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.levelTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #000000);
+}
+
+.xpText {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #555555);
+}
+
+.statsRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.statPill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
+}
+
+.coinIcon {
+  color: #d97706;
+}
+
+.freezeIcon {
+  color: #0284c7;
+}
+
+.statValue {
+  font-weight: 700;
+  color: var(--color-text-primary, #000000);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #666666);
+}
+
+.progressionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--color-accent-primary, #000000);
+  color: var(--color-text-on-dark, #ffffff);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid #000000;
+  transition: all 0.2s ease;
+}
+
+.progressionLink:hover {
+  background: var(--color-accent-secondary, #2b2b2b);
+  transform: translateY(-1px);
+}
+
+.progressBarContainer {
+  margin-top: 0.85rem;
+  height: 8px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: var(--color-accent-primary, #000000);
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.widgetSkeleton {
+  height: 76px;
+  background: #f1f1f1;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  animation: pulse 1.5s infinite;
+}
