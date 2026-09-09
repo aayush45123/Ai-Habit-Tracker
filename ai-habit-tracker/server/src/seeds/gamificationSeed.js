@@ -1,4 +1,4 @@
-// server/src/seeds/gamificationSeed.js
+﻿// server/src/seeds/gamificationSeed.js
 import Achievement from "../models/Achievement.js";
 import Reward from "../models/Reward.js";
 import GamificationChallenge from "../models/GamificationChallenge.js";
@@ -8,7 +8,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "first_habit",
     name: "First Step",
     description: "Completed your first habit.",
-    icon: "??",
+    icon: "target",
     rarity: "common",
     category: "consistency",
     xpReward: 25,
@@ -20,7 +20,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "streak_3",
     name: "Getting Started",
     description: "Achieved a 3-day habit streak.",
-    icon: "??",
+    icon: "flame",
     rarity: "common",
     category: "streak",
     xpReward: 50,
@@ -32,7 +32,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "streak_7",
     name: "One Week Warrior",
     description: "Maintained habits for 7 consecutive days.",
-    icon: "?",
+    icon: "zap",
     rarity: "uncommon",
     category: "streak",
     xpReward: 100,
@@ -44,7 +44,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "streak_14",
     name: "Momentum Builder",
     description: "Crushed habits for 14 straight days.",
-    icon: "??",
+    icon: "rocket",
     rarity: "uncommon",
     category: "streak",
     xpReward: 200,
@@ -56,7 +56,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "streak_30",
     name: "Habit Master",
     description: "Built unbreakable discipline with a 30-day streak.",
-    icon: "??",
+    icon: "diamond",
     rarity: "rare",
     category: "streak",
     xpReward: 500,
@@ -68,7 +68,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "streak_60",
     name: "Consistency Champion",
     description: "60 days of absolute relentless consistency.",
-    icon: "??",
+    icon: "crown",
     rarity: "epic",
     category: "streak",
     xpReward: 750,
@@ -80,7 +80,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "streak_100",
     name: "Unstoppable Force",
     description: "Triple digits! 100 consecutive days of mastery.",
-    icon: "??",
+    icon: "sparkles",
     rarity: "legendary",
     category: "streak",
     xpReward: 1500,
@@ -92,7 +92,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "perfect_week",
     name: "Perfectionist",
     description: "Completed every single scheduled habit for 7 days in a row.",
-    icon: "??",
+    icon: "award",
     rarity: "rare",
     category: "consistency",
     xpReward: 150,
@@ -104,7 +104,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "level_5",
     name: "Consistent Contender",
     description: "Reached progression Level 5.",
-    icon: "?",
+    icon: "star",
     rarity: "common",
     category: "mastery",
     xpReward: 100,
@@ -116,7 +116,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "level_10",
     name: "Rising Star",
     description: "Reached progression Level 10.",
-    icon: "??",
+    icon: "trophy",
     rarity: "uncommon",
     category: "mastery",
     xpReward: 250,
@@ -128,7 +128,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "level_20",
     name: "Habit Strategist",
     description: "Ascended to progression Level 20.",
-    icon: "??",
+    icon: "compass",
     rarity: "rare",
     category: "mastery",
     xpReward: 500,
@@ -140,7 +140,7 @@ const DEFAULT_ACHIEVEMENTS = [
     key: "level_30",
     name: "Zenith Master",
     description: "Reached the pinnacle at progression Level 30.",
-    icon: "??",
+    icon: "crown",
     rarity: "legendary",
     category: "mastery",
     xpReward: 1000,
@@ -155,7 +155,7 @@ const DEFAULT_REWARDS = [
     key: "streak_freeze_pack",
     name: "Streak Shield (+1 Freeze)",
     description: "Add 1 streak freeze protection to your inventory (max 5).",
-    icon: "??",
+    icon: "shield",
     category: "functional",
     coinCost: 60,
     rarity: "common",
@@ -165,7 +165,7 @@ const DEFAULT_REWARDS = [
     key: "custom_title_focus",
     name: "'Focus Architect' Title",
     description: "Unlock and equip the exclusive 'Focus Architect' profile status title.",
-    icon: "???",
+    icon: "target",
     category: "recognition",
     coinCost: 150,
     rarity: "uncommon",
@@ -175,7 +175,7 @@ const DEFAULT_REWARDS = [
     key: "cyber_dark_theme",
     name: "Cyber Onyx Theme",
     description: "Unlock high-contrast neon accents and ultra-dark glassmorphism styling.",
-    icon: "??",
+    icon: "sparkles",
     category: "cosmetic",
     coinCost: 350,
     rarity: "rare",
@@ -185,7 +185,7 @@ const DEFAULT_REWARDS = [
     key: "golden_badge_frame",
     name: "Golden Aura Profile Ring",
     description: "Prestige animated golden border highlighting your avatar in challenges.",
-    icon: "?",
+    icon: "crown",
     category: "cosmetic",
     coinCost: 500,
     rarity: "epic",
@@ -195,7 +195,7 @@ const DEFAULT_REWARDS = [
     key: "deep_ai_analysis",
     name: "Executive AI Performance Audit",
     description: "Unlock an in-depth Groq-powered audit of habit drop-offs and optimal routines.",
-    icon: "??",
+    icon: "zap",
     category: "functional",
     coinCost: 750,
     rarity: "epic",
@@ -205,7 +205,7 @@ const DEFAULT_REWARDS = [
     key: "titan_title",
     name: "'Disciplined Titan' Hall of Fame Title",
     description: "Legendary title commemorating highest habit adherence tier.",
-    icon: "??",
+    icon: "award",
     category: "recognition",
     coinCost: 1200,
     rarity: "legendary",
@@ -254,35 +254,35 @@ const DEFAULT_CHALLENGES = [
 
 export async function seedGamificationData() {
   try {
-    // Seed achievements idempotently
+    // Seed achievements using $set to update existing icons cleanly
     for (const ach of DEFAULT_ACHIEVEMENTS) {
       await Achievement.updateOne(
         { key: ach.key },
-        { $setOnInsert: ach },
+        { $set: ach },
         { upsert: true }
       );
     }
 
-    // Seed rewards idempotently
+    // Seed rewards using $set to update existing icons cleanly
     for (const rew of DEFAULT_REWARDS) {
       await Reward.updateOne(
         { key: rew.key },
-        { $setOnInsert: rew },
+        { $set: rew },
         { upsert: true }
       );
     }
 
-    // Seed starter global challenges idempotently
+    // Seed starter global challenges
     for (const chal of DEFAULT_CHALLENGES) {
       await GamificationChallenge.updateOne(
         { title: chal.title },
-        { $setOnInsert: chal },
+        { $set: chal },
         { upsert: true }
       );
     }
 
-    console.log("? Gamification achievements, rewards, and challenges seeded successfully.");
+    console.log("Gamification catalog seeded and updated with icon identifiers successfully.");
   } catch (err) {
-    console.error("? Error seeding gamification data:", err);
+    console.error("Error seeding gamification data:", err);
   }
 }

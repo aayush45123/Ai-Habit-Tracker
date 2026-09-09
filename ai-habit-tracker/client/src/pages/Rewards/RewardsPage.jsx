@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import { useGamification } from "../../context/GamificationContext";
-import { Coins, Shield, Sparkles, Check, AlertCircle } from "lucide-react";
+import GamificationIcon from "../../components/GamificationIcon/GamificationIcon";
+import { Coins, Shield, Check, AlertCircle } from "lucide-react";
 import styles from "./RewardsPage.module.css";
 
 const CATEGORIES = [
@@ -61,32 +62,32 @@ export default function RewardsPage() {
   });
 
   return (
-    <div className={styles.pageContainer}>
-      {/* Balance Bar */}
-      <div className={styles.balanceHeader}>
-        <div>
-          <h1 className={styles.title}>Habit Rewards Store</h1>
+    <div className={styles.container}>
+      {/* Header */}
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
+          <h1 className={styles.title}>HABIT REWARDS STORE</h1>
           <p className={styles.subtitle}>
             Spend hard-earned Habit Coins on streak protections, prestige titles, and power features.
           </p>
         </div>
 
-        <div className={styles.balances}>
-          <div className={styles.coinCard}>
+        <div className={styles.balancesRow}>
+          <div className={styles.balanceBox}>
             <Coins className={styles.coinIcon} size={28} />
             <div>
-              <div className={styles.coinVal}>{overview?.profile?.habitCoins ?? userCoins}</div>
-              <div className={styles.coinLabel}>Available Coins</div>
+              <div className={styles.balanceVal}>{overview?.profile?.habitCoins ?? userCoins}</div>
+              <div className={styles.balanceLabel}>AVAILABLE COINS</div>
             </div>
           </div>
 
-          <div className={styles.shieldCard}>
-            <Shield className={styles.shieldIcon} size={26} />
+          <div className={styles.balanceBox}>
+            <Shield className={styles.shieldIcon} size={28} />
             <div>
-              <div className={styles.shieldVal}>
+              <div className={styles.balanceVal}>
                 {overview?.profile?.streakFreezes ?? userFreezes} / 5
               </div>
-              <div className={styles.shieldLabel}>Streak Freezes</div>
+              <div className={styles.balanceLabel}>STREAK FREEZES</div>
             </div>
           </div>
         </div>
@@ -131,18 +132,25 @@ export default function RewardsPage() {
             return (
               <div
                 key={item.key}
-                className={`${styles.rewardCard} ${isRedeemed ? styles.redeemedCard : ""}`}
+                className={`${styles.card} ${isRedeemed ? styles.redeemedCard : ""}`}
               >
-                <div className={styles.itemTop}>
+                <div className={styles.cardTop}>
                   <span className={styles.catTag}>{item.category}</span>
-                  <div className={styles.costBadge}>
+                  <div className={styles.costTag}>
                     <Coins size={14} className={styles.coinIcon} />
-                    <span>{item.coinCost}</span>
+                    <span>{item.coinCost} COINS</span>
                   </div>
                 </div>
 
-                <div className={styles.iconCircle}>
-                  <span className={styles.itemEmoji}>{item.icon || "??"}</span>
+                <div className={styles.iconBox}>
+                  <div className={styles.iconWrap}>
+                    <GamificationIcon
+                      name={item.icon}
+                      fallbackKey={item.key}
+                      size={36}
+                      className={styles.itemSvg}
+                    />
+                  </div>
                 </div>
 
                 <h3 className={styles.itemName}>{item.name}</h3>
@@ -151,11 +159,11 @@ export default function RewardsPage() {
                 <div className={styles.actionArea}>
                   {isRedeemed ? (
                     <button className={styles.ownedBtn} disabled>
-                      <Check size={16} /> Unlocked
+                      <Check size={16} /> UNLOCKED
                     </button>
                   ) : isFullFreezes ? (
                     <button className={styles.ownedBtn} disabled>
-                      Inventory Full (5/5)
+                      INVENTORY FULL (5/5)
                     </button>
                   ) : (
                     <button
@@ -164,10 +172,10 @@ export default function RewardsPage() {
                       onClick={() => handleRedeem(item.key)}
                     >
                       {redeemingKey === item.key
-                        ? "Redeeming..."
+                        ? "REDEEMING..."
                         : canAfford
-                        ? "Redeem Reward"
-                        : "Need More Coins"}
+                        ? "REDEEM REWARD"
+                        : "NEED MORE COINS"}
                     </button>
                   )}
                 </div>
