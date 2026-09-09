@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
-import { Trophy, Zap, Coins, Lock, CheckCircle, Filter } from "lucide-react";
+import GamificationIcon from "../../components/GamificationIcon/GamificationIcon";
+import { Trophy, Zap, Coins, Lock, CheckCircle } from "lucide-react";
 import styles from "./AchievementsPage.module.css";
 
 const CATEGORIES = [
@@ -10,19 +11,19 @@ const CATEGORIES = [
   { id: "mastery", label: "Levels & Mastery" },
 ];
 
-const RARITY_COLORS = {
-  common: { border: "#9ca3af", badge: "#6b7280", label: "COMMON" },
-  uncommon: { border: "#34d399", badge: "#059669", label: "UNCOMMON" },
-  rare: { border: "#60a5fa", badge: "#2563eb", label: "RARE" },
-  epic: { border: "#a78bfa", badge: "#7c3aed", label: "EPIC" },
-  legendary: { border: "#fbbf24", badge: "#d97706", label: "LEGENDARY" },
+const RARITY_INFO = {
+  common: { label: "COMMON", color: "#4b5563", border: "#000000" },
+  uncommon: { label: "UNCOMMON", color: "#059669", border: "#000000" },
+  rare: { label: "RARE", color: "#2563eb", border: "#000000" },
+  epic: { label: "EPIC", color: "#7c3aed", border: "#000000" },
+  legendary: { label: "LEGENDARY", color: "#d97706", border: "#000000" },
 };
 
 export default function AchievementsPage() {
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [filterUnlocked, setFilterUnlocked] = useState("all"); // 'all', 'unlocked', 'locked'
+  const [filterUnlocked, setFilterUnlocked] = useState("all");
 
   useEffect(() => {
     loadAchievements();
@@ -54,44 +55,36 @@ export default function AchievementsPage() {
   });
 
   return (
-    <div className={styles.pageContainer}>
-      {/* Header Banner */}
-      <div className={styles.headerCard}>
+    <div className={styles.container}>
+      {/* Header matching dashboard/calories header style */}
+      <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.trophyCircle}>
-            <Trophy size={36} className={styles.headerTrophy} />
-          </div>
-          <div>
-            <h1 className={styles.headerTitle}>Badge & Achievement Showcase</h1>
-            <p className={styles.headerSubtitle}>
-              Unlock milestones across streaks, mastery, and daily dedication.
-            </p>
-          </div>
+          <h1 className={styles.title}>BADGE & ACHIEVEMENT SHOWCASE</h1>
+          <p className={styles.subtitle}>
+            Unlock milestones automatically by maintaining streaks, consistency, and daily habits.
+          </p>
         </div>
 
-        <div className={styles.progressCard}>
-          <div className={styles.progressTop}>
-            <span className={styles.progressLabel}>Collection Progress</span>
+        <div className={styles.progressBox}>
+          <div className={styles.progressHeader}>
+            <span className={styles.progressLabel}>COLLECTION PROGRESS</span>
             <span className={styles.progressVal}>
-              {unlockedCount} / {totalCount} ({unlockedPercent}%)
+              {unlockedCount}/{totalCount} ({unlockedPercent}%)
             </span>
           </div>
           <div className={styles.progressTrack}>
-            <div
-              className={styles.progressBar}
-              style={{ width: `${unlockedPercent}%` }}
-            ></div>
+            <div className={styles.progressBar} style={{ width: `${unlockedPercent}%` }} />
           </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className={styles.filtersBar}>
-        <div className={styles.categoryTabs}>
+      {/* Filters Bar with Neo-brutalist buttons */}
+      <div className={styles.filtersRow}>
+        <div className={styles.categoryButtons}>
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
-              className={`${styles.tabBtn} ${selectedCategory === cat.id ? styles.activeTab : ""}`}
+              className={`${styles.filterBtn} ${selectedCategory === cat.id ? styles.activeFilter : ""}`}
               onClick={() => setSelectedCategory(cat.id)}
             >
               {cat.label}
@@ -99,21 +92,21 @@ export default function AchievementsPage() {
           ))}
         </div>
 
-        <div className={styles.statusFilters}>
+        <div className={styles.statusButtons}>
           <button
-            className={`${styles.pillBtn} ${filterUnlocked === "all" ? styles.activePill : ""}`}
+            className={`${styles.statusBtn} ${filterUnlocked === "all" ? styles.activeStatus : ""}`}
             onClick={() => setFilterUnlocked("all")}
           >
-            All
+            All ({totalCount})
           </button>
           <button
-            className={`${styles.pillBtn} ${filterUnlocked === "unlocked" ? styles.activePill : ""}`}
+            className={`${styles.statusBtn} ${filterUnlocked === "unlocked" ? styles.activeStatus : ""}`}
             onClick={() => setFilterUnlocked("unlocked")}
           >
             Unlocked ({unlockedCount})
           </button>
           <button
-            className={`${styles.pillBtn} ${filterUnlocked === "locked" ? styles.activePill : ""}`}
+            className={`${styles.statusBtn} ${filterUnlocked === "locked" ? styles.activeStatus : ""}`}
             onClick={() => setFilterUnlocked("locked")}
           >
             Locked ({totalCount - unlockedCount})
@@ -129,69 +122,71 @@ export default function AchievementsPage() {
           <div className={styles.cardSkeleton}></div>
         </div>
       ) : filtered.length === 0 ? (
-        <div className={styles.emptyState}>No achievements match the selected filters.</div>
+        <div className={styles.emptyCard}>No achievements found for this filter.</div>
       ) : (
         <div className={styles.grid}>
           {filtered.map((ach) => {
-            const rarity = RARITY_COLORS[ach.rarity] || RARITY_COLORS.common;
+            const rarity = RARITY_INFO[ach.rarity] || RARITY_INFO.common;
             return (
               <div
                 key={ach.key}
-                className={`${styles.badgeCard} ${ach.isUnlocked ? styles.unlockedCard : styles.lockedCard}`}
-                style={{
-                  borderColor: ach.isUnlocked ? rarity.border : "#e4e4e7",
-                }}
+                className={`${styles.card} ${ach.isUnlocked ? styles.unlockedCard : styles.lockedCard}`}
               >
-                <div className={styles.badgeTop}>
+                <div className={styles.cardTop}>
                   <span
-                    className={styles.rarityBadge}
-                    style={{ backgroundColor: rarity.badge }}
+                    className={styles.rarityTag}
+                    style={{ borderColor: rarity.color, color: rarity.color }}
                   >
                     {rarity.label}
                   </span>
 
                   {ach.isUnlocked ? (
-                    <div className={styles.unlockedIndicator}>
-                      <CheckCircle size={14} />
-                      <span>Unlocked</span>
+                    <div className={styles.statusUnlocked}>
+                      <CheckCircle size={15} />
+                      <span>UNLOCKED</span>
                     </div>
                   ) : (
-                    <div className={styles.lockedIndicator}>
-                      <Lock size={13} />
-                      <span>Locked</span>
+                    <div className={styles.statusLocked}>
+                      <Lock size={14} />
+                      <span>LOCKED</span>
                     </div>
                   )}
                 </div>
 
-                <div className={styles.iconArea}>
-                  <div className={`${styles.iconWrap} ${ach.isUnlocked ? styles.unlockedIconWrap : ""}`}>
-                    <span className={styles.badgeEmoji}>{ach.icon || "??"}</span>
+                <div className={styles.iconBox}>
+                  <div className={`${styles.iconWrap} ${ach.isUnlocked ? styles.iconWrapActive : ""}`}>
+                    <GamificationIcon
+                      name={ach.icon}
+                      fallbackKey={ach.key}
+                      size={34}
+                      className={ach.isUnlocked ? styles.activeIconSvg : styles.lockedIconSvg}
+                    />
                   </div>
                 </div>
 
-                <h3 className={styles.badgeTitle}>{ach.name}</h3>
+                <h3 className={styles.badgeName}>{ach.name}</h3>
                 <p className={styles.badgeDesc}>{ach.description}</p>
 
-                <div className={styles.rewardFooter}>
-                  {ach.xpReward > 0 && (
-                    <div className={styles.rewardTag}>
-                      <Zap size={13} className={styles.xpIcon} />
-                      <span>+{ach.xpReward} XP</span>
-                    </div>
-                  )}
-                  {ach.coinReward > 0 && (
-                    <div className={styles.rewardTag}>
-                      <Coins size={13} className={styles.coinIcon} />
-                      <span>+{ach.coinReward} Coins</span>
+                <div className={styles.cardBottom}>
+                  <div className={styles.rewardsRow}>
+                    {ach.xpReward > 0 && (
+                      <span className={styles.xpPill}>
+                        <Zap size={13} /> +{ach.xpReward} XP
+                      </span>
+                    )}
+                    {ach.coinReward > 0 && (
+                      <span className={styles.coinPill}>
+                        <Coins size={13} /> +{ach.coinReward} Coins
+                      </span>
+                    )}
+                  </div>
+
+                  {ach.unlockedAt && (
+                    <div className={styles.unlockedDate}>
+                      Achieved {new Date(ach.unlockedAt).toLocaleDateString()}
                     </div>
                   )}
                 </div>
-
-                {ach.unlockedAt && (
-                  <div className={styles.unlockDate}>
-                    Unlocked on {new Date(ach.unlockedAt).toLocaleDateString()}
-                  </div>
-                )}
               </div>
             );
           })}
