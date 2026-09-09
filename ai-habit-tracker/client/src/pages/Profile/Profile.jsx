@@ -61,8 +61,6 @@ function toLocalDateString(date) {
 const Profile = () => {
   const { user, profile, refreshProfile, refreshUser } = useAuth();
   const { overview, refreshOverview, redeemReward } = useGamification();
-  const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Active tab in the bottom card ("recent", "badges", "rewards", "settings")
