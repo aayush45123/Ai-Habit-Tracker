@@ -1,0 +1,315 @@
+.pageContainer {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.headerCard {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.trophyCircle {
+  width: 64px;
+  height: 64px;
+  background: #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.headerTrophy {
+  color: #f59e0b;
+}
+
+.headerTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem;
+  color: var(--color-text-primary, #000000);
+}
+
+.headerSubtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary, #555555);
+  margin: 0;
+}
+
+.progressCard {
+  background: var(--color-bg-secondary, #f8fafc);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 12px;
+  padding: 1.25rem;
+  min-width: 260px;
+}
+
+.progressTop {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.progressLabel {
+  color: #52525b;
+}
+
+.progressVal {
+  color: #09090b;
+}
+
+.progressTrack {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: #000000;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.filtersBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.categoryTabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tabBtn {
+  padding: 0.55rem 1rem;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #3f3f46;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  background: #e4e4e7;
+}
+
+.activeTab {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+.statusFilters {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.pillBtn {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: 1px solid #d4d4d8;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #52525b;
+  transition: all 0.15s;
+}
+
+.activePill {
+  background: #18181b;
+  color: #ffffff;
+  border-color: #18181b;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.badgeCard {
+  background: #ffffff;
+  border: 2px solid;
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.badgeCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.lockedCard {
+  opacity: 0.65;
+  background: #fafafa;
+}
+
+.badgeTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.rarityBadge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: #ffffff;
+}
+
+.unlockedIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.lockedIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #71717a;
+}
+
+.iconArea {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.iconWrap {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #f4f4f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e4e4e7;
+}
+
+.unlockedIconWrap {
+  background: #fefce8;
+  border-color: #fef08a;
+  box-shadow: 0 4px 12px rgba(250, 204, 21, 0.25);
+}
+
+.badgeEmoji {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.badgeTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  text-align: center;
+  color: #09090b;
+}
+
+.badgeDesc {
+  font-size: 0.85rem;
+  color: #52525b;
+  text-align: center;
+  margin: 0 0 1.25rem;
+  line-height: 1.45;
+  flex: 1;
+}
+
+.rewardFooter {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #e4e4e7;
+}
+
+.rewardTag {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f8fafc;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.xpIcon {
+  color: #7c3aed;
+}
+
+.coinIcon {
+  color: #d97706;
+}
+
+.unlockDate {
+  font-size: 0.7rem;
+  color: #10b981;
+  text-align: center;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: #71717a;
+  background: #ffffff;
+  border: 1px dashed #d4d4d8;
+  border-radius: 12px;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.cardSkeleton {
+  height: 220px;
+  background: #f1f5f9;
+  border-radius: 14px;
+  animation: pulse 1.5s infinite;
+}

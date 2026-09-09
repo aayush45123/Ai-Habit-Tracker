@@ -1,0 +1,91 @@
+.container {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #000000);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #666666);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid #000000;
+}
+
+.dot.completed {
+  background: #000000;
+}
+
+.dot.empty {
+  background: #f4f4f5;
+  border-color: #d4d4d8;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.dayBox {
+  aspect-ratio: 1;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  transition: transform 0.15s ease, background 0.15s ease;
+  cursor: default;
+}
+
+.dayBox:hover {
+  transform: scale(1.08);
+}
+
+.completedBox {
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.todayBox {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+
+.dayNum {
+  user-select: none;
+}

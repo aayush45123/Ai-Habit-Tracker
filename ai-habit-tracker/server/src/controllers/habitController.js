@@ -16,6 +16,7 @@ import {
   emitStreakUpdate,
   emitNotification,
 } from "../services/socket.service.js";
+import { processHabitCompletion } from "../services/gamification.service.js";
 
 const purgeUserDashboardCache = (user) => {
   if (!user) return;
@@ -448,6 +449,16 @@ export const logHabit = async (req, res) => {
         title: `🔥 ${currentStreak}-Day Streak!`,
         message: `Amazing! You've maintained a ${currentStreak}-day streak!`,
       });
+    }
+
+    // Gamification Hook (XP, streaks, challenges, achievements)
+    if (status === "done") {
+      processHabitCompletion({
+        userId,
+        habitId,
+        status: "completed",
+        currentStreak,
+      }).catch((gamErr) => console.error("Gamification hook error:", gamErr));
     }
 
     res.json({

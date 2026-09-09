@@ -29,6 +29,11 @@ const TimetablePage  = lazy(() => import("./pages/Timetable/TimetablePage"));
 const Profile        = lazy(() => import("./pages/Profile/Profile"));
 const Reports        = lazy(() => import("./pages/Reports/Reports"));
 const JournalPage    = lazy(() => import("./pages/Journal/JournalPage"));
+const ProgressionPage = lazy(() => import("./pages/Progression/ProgressionPage"));
+const AchievementsPage = lazy(() => import("./pages/Achievements/AchievementsPage"));
+const RewardsPage    = lazy(() => import("./pages/Rewards/RewardsPage"));
+
+import AchievementModal from "./components/AchievementModal/AchievementModal";
 
 // ─── Layout / Guards (small, loaded with shell) ──────────────────────────────
 import MainLayout from "./layout/MainLayout";
@@ -44,6 +49,7 @@ function App() {
       <ScrollToTop />
       <Analytics />
       <SpeedInsights />
+      <AchievementModal />
 
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -102,6 +108,9 @@ function App() {
                 <Route path="/calories" element={<Calories />} />
                 <Route path="/timetable" element={<TimetablePage />} />
                 <Route path="/dashboard/reports" element={<Reports />} />
+                <Route path="/progression" element={<ProgressionPage />} />
+                <Route path="/achievements" element={<AchievementsPage />} />
+                <Route path="/rewards" element={<RewardsPage />} />
 
                 {/* ADMIN ONLY */}
                 <Route

@@ -1,0 +1,199 @@
+.card {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #000000);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.completedCard {
+  background: #fafafa;
+  border-color: #d4d4d8;
+  opacity: 0.85;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.difficultyTag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.easy {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.medium {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.hard {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.categoryTag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.aiTag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rewards {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rewardItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.xpIcon {
+  color: #7c3aed;
+}
+
+.coinIcon {
+  color: #d97706;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  color: var(--color-text-primary, #000000);
+}
+
+.desc {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #555555);
+  margin: 0 0 1rem;
+  line-height: 1.45;
+}
+
+.progressSection {
+  margin-bottom: 1rem;
+}
+
+.progressLabelRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666666;
+  margin-bottom: 0.35rem;
+}
+
+.progressBar {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.progressFill {
+  height: 100%;
+  background: #000000;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.actionRow {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.joinBtn {
+  width: 100%;
+  padding: 0.55rem;
+  background: var(--color-accent-primary, #000000);
+  color: var(--color-text-on-dark, #ffffff);
+  border: 1px solid #000000;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.joinBtn:hover:not(:disabled) {
+  background: #27272a;
+}
+
+.joinBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.completedBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: #059669;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem;
+}
+
+.activeBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: #2563eb;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  background: #eff6ff;
+  border-radius: 8px;
+}
