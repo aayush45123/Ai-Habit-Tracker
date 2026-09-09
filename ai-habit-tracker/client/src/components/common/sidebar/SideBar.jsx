@@ -92,9 +92,6 @@ function Sidebar() {
         {/* Navigation */}
         <nav className={styles.nav}>
           {renderNavLink("/dashboard", FiGrid, "Dashboard")}
-          {renderNavLink("/progression", FiZap, "Progression & XP")}
-          {renderNavLink("/achievements", FiAward, "Achievements")}
-          {renderNavLink("/rewards", FiGift, "Rewards Store")}
           {renderNavLink("/add", FiPlusCircle, "Add Habit")}
           {renderNavLink("/analytics", FiTrendingUp, "Analytics")}
           {renderNavLink("/dashboard/reports", FiFileText, "Reports")}
@@ -105,7 +102,7 @@ function Sidebar() {
           {renderNavLink("/focus", FiTarget, "Focus")}
           {renderNavLink("/calories", FiActivity, "Calorie Tracker")}
           {renderNavLink("/timetable", FiClock, "Timetable Section")}
-          {renderNavLink("/profile", FiUser, "Profile Settings")}
+          {renderNavLink("/profile", FiUser, "Profile")}
           {renderNavLink("/about", FiInfo, "About Us")}
         </nav>
 
