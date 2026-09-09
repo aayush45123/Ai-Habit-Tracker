@@ -1,4 +1,4 @@
-// server/src/models/XPTransaction.js
+﻿// server/src/models/XPTransaction.js
 import mongoose from "mongoose";
 
 const xpTransactionSchema = new mongoose.Schema(
@@ -24,7 +24,7 @@ const xpTransactionSchema = new mongoose.Schema(
     },
     refId: { type: String, default: null },
     // Idempotency key prevents duplicate grants. Unique sparse index allows nulls.
-    idempotencyKey: { type: String, default: null, sparse: true },
+    idempotencyKey: { type: String, default: null },
     metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
