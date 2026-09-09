@@ -1,5 +1,5 @@
-// server/src/services/xp.service.js
-// Centralized XP engine — level calc, XP awards, idempotency
+ï»¿// server/src/services/xp.service.js
+// Centralized XP engine â€” level calc, XP awards, idempotency
 
 import UserGamification from "../models/UserGamification.js";
 import XPTransaction from "../models/XPTransaction.js";
@@ -65,6 +65,18 @@ export function getLevelInfo(totalXP) {
     xpNeededForNext,
     xpToNextLevel: nextLevelXP - totalXP,
     progressPercent,
+    };
+}
+
+export function xpProgressInLevel(totalXP) {
+  const info = getLevelInfo(totalXP);
+  return {
+    currentXPInLevel: info.xpIntoLevel,
+    xpForNextLevel: info.xpNeededForNext,
+    progressPercent: info.progressPercent,
+    currentLevelXP: info.currentLevelXP,
+    nextLevelXP: info.nextLevelXP,
+    totalXP: info.totalXP,
   };
 }
 
@@ -151,7 +163,7 @@ export async function awardXP({
       leveledUp: gam.level > prevLevel,
     };
   } catch (err) {
-    // Unique key violation = duplicate — swallow silently
+    // Unique key violation = duplicate â€” swallow silently
     if (err.code === 11000) return null;
     throw err;
   }
