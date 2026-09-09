@@ -406,6 +406,96 @@
   border-color: #000;
 }
 
+/* Past-date logging section */
+.pastDateSection {
+  margin-bottom: 12px;
+}
+
+.pastDateToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  border: 1.5px dashed var(--color-border, #d1d5db);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.pastDateToggle:hover {
+  color: var(--color-accent-primary, #000);
+  border-color: var(--color-accent-primary, #000);
+  background-color: var(--color-bg-secondary, #f9fafb);
+  transform: translateY(-1px);
+}
+
+.pastDatePicker {
+  margin-top: 10px;
+  padding: 1rem 1.25rem;
+  background-color: var(--color-bg-secondary, #fef9ec);
+  border: 2px solid var(--color-border, #d1d5db);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pastDateLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  white-space: nowrap;
+}
+
+.dateInput {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  background-color: var(--color-bg-primary, #fff);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: var(--color-accent-primary, #000);
+  box-shadow: 2px 2px 0 var(--color-border, #d1d5db);
+}
+
+.pastDateBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--color-accent-primary, #000);
+  color: var(--color-bg-primary, #fff);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  animation: popIn 0.18s ease;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* Input Section */
 .inputSection {
   display: flex;
