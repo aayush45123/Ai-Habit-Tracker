@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useGamification } from "../../context/GamificationContext.jsx";
 import api from "../../utils/api";
@@ -59,19 +59,36 @@ function toLocalDateString(date) {
 }
 
 const Profile = () => {
-  const { user, profile, refreshProfile, refreshUser } = useAuth();
+  const { user, profile, isProfileCompleted, refreshProfile, refreshUser } = useAuth();
   const { overview, refreshOverview, redeemReward } = useGamification();
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+
+  const isForceComplete = Boolean(
+    location.state?.forceComplete || (!isProfileCompleted && profile === null)
+  );
 
   // Active tab in the bottom card ("recent", "badges", "rewards", "settings")
-  const currentTabParam = searchParams.get("tab") || "recent";
+  const currentTabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(
-    ["recent", "badges", "rewards", "settings"].includes(currentTabParam)
+    currentTabParam && ["recent", "badges", "rewards", "settings"].includes(currentTabParam)
       ? currentTabParam
+      : isForceComplete
+      ? "settings"
       : "recent"
   );
 
   const settingsRef = useRef(null);
+
+  // Sync tab with URL and forceComplete
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["recent", "badges", "rewards", "settings"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    } else if (isForceComplete) {
+      setActiveTab("settings");
+    }
+  }, [searchParams, isForceComplete]);
 
   // Sync tab with URL
   const handleTabChange = (tab) => {
@@ -93,6 +110,7 @@ const Profile = () => {
 
   // Profile Settings Form State
   const [formData, setFormData] = useState({
+    name: user?.name || "",
     age: "",
     height: "",
     weight: "",
@@ -171,18 +189,29 @@ const Profile = () => {
   // Prepopulate form if profile details already exist
   useEffect(() => {
     if (profile) {
-      setFormData({
-        age: profile.age || "",
-        height: profile.height || "",
-        weight: profile.weight || "",
+      setFormData((prev) => ({
+        ...prev,
+        age: profile.age ?? "",
+        height: profile.height ?? "",
+        weight: profile.weight ?? "",
         gender: profile.gender || "male",
         activityLevel: profile.activityLevel || "moderate",
         goal: profile.goal || "maintain",
-        dailyGoal: profile.dailyGoal || "",
-        proteinGoal: profile.proteinGoal || "",
-      });
+        dailyGoal: profile.dailyGoal ?? "",
+        proteinGoal: profile.proteinGoal ?? "",
+      }));
     }
   }, [profile]);
+
+  // Prepopulate name from user document
+  useEffect(() => {
+    if (user?.name) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || user.name,
+      }));
+    }
+  }, [user?.name]);
 
   // Prepopulate reminder prefs from user document
   useEffect(() => {
@@ -254,6 +283,7 @@ const Profile = () => {
 
     try {
       const payload = {
+        name: formData.name?.trim(),
         age: parseInt(formData.age),
         height: parseInt(formData.height),
         weight: parseInt(formData.weight),
@@ -269,8 +299,11 @@ const Profile = () => {
 
       if (res.status === 200 || res.status === 201) {
         setMessage({ type: "success", text: "Profile configuration saved successfully!" });
-        await refreshProfile();
-        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+        await Promise.all([
+          refreshProfile(),
+          refreshUser ? refreshUser() : Promise.resolve(),
+        ]);
+        setTimeout(() => setMessage({ type: "", text: "" }), 3500);
       }
     } catch (err) {
       console.error("Error saving profile details:", err);
@@ -1035,6 +1068,15 @@ const Profile = () => {
               {/* ── TAB 4: EDIT PROFILE & EMAIL REMINDERS ── */}
               {activeTab === "settings" && (
                 <div className={styles.settingsTab}>
+                  {isForceComplete && !isProfileCompleted && (
+                    <div className={styles.forceCompleteBanner}>
+                      <FiAlertCircle size={20} className={styles.forceCompleteIcon} />
+                      <div className={styles.forceCompleteText}>
+                        <strong>Complete Your Profile:</strong> Please configure your physical attributes and fitness objectives below to unlock full dashboard access and personalized habit recommendations.
+                      </div>
+                    </div>
+                  )}
+
                   {message.text && (
                     <div className={`${styles.messageBox} ${styles[message.type]}`}>
                       {message.type === "success" ? (
@@ -1047,17 +1089,33 @@ const Profile = () => {
                   )}
 
                   <form onSubmit={handleSubmit} className={styles.profileForm}>
-                    {/* Account Read-only */}
+                    {/* Account Details */}
                     <div className={styles.formSection}>
                       <h4 className={styles.sectionTitle}>Account Details</h4>
-                      <div className={styles.readOnlyGrid}>
-                        <div className={styles.readOnlyItem}>
-                          <span className={styles.readOnlyLabel}>Name</span>
-                          <span className={styles.readOnlyValue}>{user?.name || "User"}</span>
+                      <div className={styles.inputsGrid}>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.label}>Full Name</label>
+                          <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="e.g. John Doe"
+                            required
+                            minLength={2}
+                            maxLength={50}
+                            className={styles.input}
+                          />
                         </div>
-                        <div className={styles.readOnlyItem}>
-                          <span className={styles.readOnlyLabel}>Email</span>
-                          <span className={styles.readOnlyValue}>{user?.email || "N/A"}</span>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.label}>Email Address (Read-Only)</label>
+                          <input
+                            type="email"
+                            value={user?.email || ""}
+                            disabled
+                            className={`${styles.input} ${styles.disabledInput}`}
+                            title="Email address cannot be changed"
+                          />
                         </div>
                       </div>
                     </div>
@@ -1240,7 +1298,7 @@ const Profile = () => {
 
                       <div className={styles.reminderToggleRow}>
                         <div className={styles.reminderToggleInfo}>
-                          <FiFlame size={18} className={styles.reminderIcon} />
+                          <Flame size={18} className={styles.reminderIcon} />
                           <div>
                             <div className={styles.reminderToggleLabel}>Daily Habit Reminders</div>
                             <div className={styles.reminderToggleSub}>Remind me to complete pending habits</div>

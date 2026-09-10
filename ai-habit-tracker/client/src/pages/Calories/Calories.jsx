@@ -164,7 +164,7 @@ export default function Calories() {
               </button>
               <button
                 className={styles.btnSecondary}
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate("/profile?tab=settings")}
               >
                 Edit Profile Details
               </button>

@@ -2,6 +2,7 @@
 import FoodLog from "../models/FoodLog.js";
 import CalorieProfile from "../models/CalorieProfile.js";
 import WeeklyCheckIn from "../models/WeeklyCheckIn.js";
+import User from "../models/User.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
 
 /* ============================
@@ -257,6 +258,7 @@ export const saveCalorieProfile = async (req, res) => {
   try {
     const userId = req.user?._id;
     const {
+      name,
       age,
       height,
       weight,
@@ -267,11 +269,17 @@ export const saveCalorieProfile = async (req, res) => {
       proteinGoal,
     } = req.body;
 
-    // Check if this is just a goal update (no age/height/weight changes)
+    // Update user display name if provided
+    if (name && typeof name === "string" && name.trim().length >= 2) {
+      await User.findByIdAndUpdate(userId, { name: name.trim() });
+    }
+
+    // Check if this is just a goal update (no age/height/weight changes, e.g. from Calories quick edit)
     const existingProfile = await CalorieProfile.findOne({ userId });
 
-    // If updating existing profile and only goals are provided
-    if (existingProfile && dailyGoal && proteinGoal) {
+    // If updating existing profile and ONLY goals are provided
+    const isOnlyGoalsUpdate = dailyGoal && proteinGoal && !age && !height && !weight;
+    if (existingProfile && isOnlyGoalsUpdate) {
       // Manual goal update - don't recalculate, just save the custom values
       console.log("Updating goals manually:", { dailyGoal, proteinGoal });
 
@@ -280,13 +288,6 @@ export const saveCalorieProfile = async (req, res) => {
         {
           dailyGoal: Number(dailyGoal),
           proteinGoal: Number(proteinGoal),
-          // Update other fields if they're provided
-          ...(age && { age: Number(age) }),
-          ...(height && { height: Number(height) }),
-          ...(weight && { weight: Number(weight) }),
-          ...(gender && { gender }),
-          ...(activityLevel && { activityLevel }),
-          ...(goal && { goal }),
         },
         { new: true },
       );
