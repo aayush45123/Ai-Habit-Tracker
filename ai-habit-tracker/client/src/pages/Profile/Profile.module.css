@@ -1282,6 +1282,38 @@
   box-shadow: 4px 4px 0 0 var(--color-border);
 }
 
+.disabledInput {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: var(--color-bg-secondary);
+}
+
+.forceCompleteBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  background-color: rgba(234, 179, 8, 0.12);
+  border: 2px solid #eab308;
+  padding: 1rem 1.25rem;
+  box-shadow: 3px 3px 0 0 var(--color-border);
+}
+
+.forceCompleteIcon {
+  color: #eab308;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.forceCompleteText {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+
+.forceCompleteText strong {
+  color: #ca8a04;
+}
+
 /* Reminder Preferences */
 .reminderSection {
   border: 2px solid var(--color-border);
