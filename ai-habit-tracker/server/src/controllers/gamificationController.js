@@ -2,6 +2,7 @@
 import {
   getGamificationOverview,
   redeemReward as redeemRewardService,
+  runRetroactiveBackfill,
 } from "../services/gamification.service.js";
 import { getUserAchievementsWithStatus } from "../services/achievement.service.js";
 import GamificationChallenge from "../models/GamificationChallenge.js";
@@ -317,6 +318,35 @@ export async function getXPHistory(req, res) {
     });
   } catch (error) {
     console.error("getXPHistory error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+/**
+ * POST /api/gamification/backfill-me
+ * Lets the authenticated user manually trigger a full retroactive XP + badge sync.
+ * Idempotent — safe to call multiple times.
+ */
+export async function backfillMe(req, res) {
+  try {
+    const userId = req.user._id || req.user.id;
+
+    // Run the full overview which includes the backfill logic
+    const overview = await getGamificationOverview(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Progress sync complete! Your XP, level, and badges have been updated.",
+      data: {
+        totalXP: overview.profile.totalXP,
+        level: overview.profile.level,
+        levelTitle: overview.profile.levelTitle,
+        habitCoins: overview.profile.habitCoins,
+        stats: overview.profile.stats,
+      },
+    });
+  } catch (error) {
+    console.error("backfillMe error:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }
