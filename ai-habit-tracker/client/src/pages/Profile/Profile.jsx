@@ -20,6 +20,7 @@ import {
   FiSettings,
   FiCheck,
   FiLock,
+  FiRefreshCw,
 } from "react-icons/fi";
 import {
   Flame,
@@ -104,6 +105,10 @@ const Profile = () => {
   const [selectedBadgeFilter, setSelectedBadgeFilter] = useState("all");
   const [redeemingKey, setRedeemingKey] = useState(null);
   const [rewardsFeedback, setRewardsFeedback] = useState(null);
+
+  // Sync / backfill state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState(null); // { type: "success"|"error", message }
 
   // User habits list for stats & category breakdown
   const [habits, setHabits] = useState([]);
@@ -349,6 +354,36 @@ const Profile = () => {
     setRedeemingKey(null);
   };
 
+  // Retroactive progress sync
+  const handleSyncProgress = async () => {
+    setIsSyncing(true);
+    setSyncFeedback(null);
+    try {
+      const res = await api.post("/gamification/backfill-me");
+      if (res.data?.success) {
+        // Refresh everything so the UI updates immediately
+        await Promise.all([
+          refreshOverview(),
+          loadAchievements(),
+        ]);
+        setSyncFeedback({
+          type: "success",
+          message: `Synced! Now at Level ${res.data.data?.level} — ${res.data.data?.totalXP} XP`,
+        });
+      } else {
+        setSyncFeedback({ type: "error", message: "Sync failed. Please try again." });
+      }
+    } catch (err) {
+      setSyncFeedback({
+        type: "error",
+        message: err.response?.data?.message || "Sync failed. Please try again.",
+      });
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncFeedback(null), 5000);
+    }
+  };
+
   // Compute stats
   const profileStats = overview?.profile?.stats || {};
   const totalHabitsCount = habits.length;
@@ -576,10 +611,31 @@ const Profile = () => {
               </div>
             </div>
 
+            {/* Sync My Progress Button */}
+            <div className={styles.syncProgressSection}>
+              <button
+                type="button"
+                className={`${styles.syncBtn} ${isSyncing ? styles.syncBtnLoading : ""}`}
+                onClick={handleSyncProgress}
+                disabled={isSyncing}
+                title="Retroactively sync all XP, badges, and levels from your habit history"
+              >
+                <FiRefreshCw size={14} className={isSyncing ? styles.spinIcon : ""} />
+                {isSyncing ? "Syncing..." : "Sync My Progress"}
+              </button>
+              {syncFeedback && (
+                <div className={`${styles.syncFeedback} ${styles[`syncFeedback_${syncFeedback.type}`]}`}>
+                  {syncFeedback.type === "success" ? <FiCheckCircle size={13} /> : <FiAlertCircle size={13} />}
+                  <span>{syncFeedback.message}</span>
+                </div>
+              )}
+            </div>
+
             <div className={styles.divider} />
 
             {/* Categories / Skills Breakdown */}
             <div className={styles.categoriesSection}>
+
               <h4 className={styles.sidebarSubheading}>Habit Categories</h4>
               {categoryCounts.length === 0 ? (
                 <p className={styles.emptyCategories}>No habits created yet.</p>

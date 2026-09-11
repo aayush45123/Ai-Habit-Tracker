@@ -1,4 +1,4 @@
-﻿// server/src/routes/gamificationRoutes.js
+// server/src/routes/gamificationRoutes.js
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
 import {
@@ -10,6 +10,7 @@ import {
   getRewards,
   redeemReward,
   getXPHistory,
+  backfillMe,
 } from "../controllers/gamificationController.js";
 
 const router = express.Router();
@@ -24,5 +25,6 @@ router.post("/challenges/ai-generate", generateAIChallenges);
 router.get("/rewards", getRewards);
 router.post("/rewards/:key/redeem", redeemReward);
 router.get("/history", getXPHistory);
+router.post("/backfill-me", backfillMe);
 
 export default router;

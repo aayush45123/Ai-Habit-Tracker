@@ -11,6 +11,7 @@ import {
   awardXP,
   getOrCreateGamification,
   getLevelTitle,
+  levelFromXP,
   totalXPForLevel,
   xpProgressInLevel,
 } from "./xp.service.js";
@@ -190,13 +191,154 @@ async function updateChallengeProgress(userId, habitId) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Streak milestone XP table (mirrors the live processHabitCompletion table)
+// ─────────────────────────────────────────────────────────────────────────────
+const RETRO_STREAK_MILESTONES = [
+  { days: 3,   xp: 50,   coins: 10  },
+  { days: 7,   xp: 100,  coins: 20  },
+  { days: 14,  xp: 200,  coins: 40  },
+  { days: 30,  xp: 500,  coins: 100 },
+  { days: 60,  xp: 750,  coins: 150 },
+  { days: 100, xp: 1000, coins: 200 },
+];
+
+/**
+ * Retroactively award all XP / coins a user should have earned from
+ * past habit completions, streak milestones, and perfect-day bonuses.
+ *
+ * Safe to call multiple times – every award uses an idempotency key so
+ * nothing is ever double-granted.
+ *
+ * @param {string|ObjectId} userId
+ * @param {Object}          opts
+ * @param {Array}           opts.userHabits     – lean Habit docs
+ * @param {Array}           opts.habitIds       – array of _id
+ * @param {number}          opts.totalLogsCount – pre-counted completed logs
+ * @param {number}          opts.maxStreak      – max streak across all habits
+ */
+export async function runRetroactiveBackfill(userId, { userHabits, habitIds, totalLogsCount, maxStreak } = {}) {
+  try {
+    // ── 1. Per-completion XP ────────────────────────────────────────────────
+    // Award 10 XP + 2 coins per completion that hasn't been counted yet.
+    // We use a single bulk idempotency key per user so we only run this once.
+    const completionKey = `retro_completions_v2_${userId}`;
+    const alreadyRan = await XPTransaction.findOne({ idempotencyKey: completionKey });
+    if (!alreadyRan && totalLogsCount > 0) {
+      const totalXpForCompletions = totalLogsCount * 10;
+      const totalCoinsForCompletions = totalLogsCount * 2;
+      await awardXP({
+        userId,
+        amount: totalXpForCompletions,
+        coins: totalCoinsForCompletions,
+        source: "retro_completions",
+        idempotencyKey: completionKey,
+        metadata: { totalLogsCount, note: "Retroactive backfill for all past habit completions" },
+      });
+    }
+
+    // ── 2. First-habit bonus ─────────────────────────────────────────────────
+    if (totalLogsCount > 0) {
+      await awardXP({
+        userId,
+        amount: 25,
+        coins: 5,
+        source: "first_habit",
+        idempotencyKey: `first_habit_${userId}`,
+        metadata: { note: "Retroactive first-habit bonus" },
+      });
+    }
+
+    // ── 3. Streak milestone bonuses ──────────────────────────────────────────
+    // Award every milestone the user's all-time best streak qualifies for.
+    for (const ms of RETRO_STREAK_MILESTONES) {
+      if (maxStreak >= ms.days) {
+        await awardXP({
+          userId,
+          amount: ms.xp,
+          coins: ms.coins,
+          source: "retro_streak_milestone",
+          refId: `${ms.days}`,
+          idempotencyKey: `retro_streak_${userId}_${ms.days}`,
+          metadata: { milestoneStreak: ms.days, note: "Retroactive streak milestone backfill" },
+        });
+      }
+    }
+
+    // ── 4. Perfect-day bonuses ───────────────────────────────────────────────
+    // For each calendar date where all active habits were completed, award
+    // 30 XP + 8 coins. We use per-date idempotency keys so live awards are
+    // never re-granted.
+    if (habitIds.length > 0 && userHabits.length > 0) {
+      // Fetch all done logs to find perfect days
+      const allDoneLogs = await HabitLog.find({
+        habitId: { $in: habitIds },
+        status: "done",
+      }).select("habitId date").lean();
+
+      // Group by date
+      const byDate = {};
+      for (const log of allDoneLogs) {
+        const dStr = typeof log.date === "string"
+          ? log.date.split("T")[0]
+          : new Date(log.date).toISOString().split("T")[0];
+        if (!byDate[dStr]) byDate[dStr] = new Set();
+        byDate[dStr].add(log.habitId.toString());
+      }
+
+      const allHabitIds = new Set(habitIds.map((id) => id.toString()));
+
+      for (const [dateStr, completedSet] of Object.entries(byDate)) {
+        // On that date, were ALL of the user's habits completed?
+        const allDone = [...allHabitIds].every((id) => completedSet.has(id));
+        if (allDone) {
+          await awardXP({
+            userId,
+            amount: 30,
+            coins: 8,
+            source: "perfect_day",
+            refId: dateStr,
+            idempotencyKey: `perfect_day_${userId}_${dateStr}`,
+            metadata: { date: dateStr, note: "Retroactive perfect-day backfill" },
+          });
+        }
+      }
+    }
+
+    // ── 5. Challenge completion XP ───────────────────────────────────────────
+    // Award XP for challenges the user has already completed but may not
+    // have received rewards for (e.g., if challenge was seeded after completion).
+    const completedChallenges = await UserChallenge.find({
+      userId,
+      status: "completed",
+    }).populate("challengeId").lean();
+
+    for (const uc of completedChallenges) {
+      const chal = uc.challengeId;
+      if (!chal) continue;
+      await awardXP({
+        userId,
+        amount: chal.xpReward || 100,
+        coins: chal.coinReward || 25,
+        source: "challenge_complete",
+        refId: chal._id ? chal._id.toString() : String(uc.challengeId),
+        idempotencyKey: `challenge_${userId}_${chal._id || uc.challengeId}`,
+        metadata: { challengeTitle: chal.title || "Challenge", note: "Retroactive challenge reward" },
+      });
+    }
+
+  } catch (err) {
+    console.error("runRetroactiveBackfill error:", err);
+  }
+}
+
 /**
  * Get comprehensive gamification overview for dashboard & profile page
  */
 export async function getGamificationOverview(userId) {
   let gam = await getOrCreateGamification(userId);
 
-  // Retroactive check: ensure user gets First Step and appropriate XP if they already completed habits
+  // ── Gather core stats ──────────────────────────────────────────────────────
   const userHabits = await Habit.find({ userId }).select("_id title category streak longestStreak").lean();
   const habitIds = userHabits.map((h) => h._id);
 
@@ -210,27 +352,32 @@ export async function getGamificationOverview(userId) {
     0
   );
 
-  // If user completed at least 1 habit, evaluate achievements (e.g. first_habit, streak_3, etc.)
+  // ── Retroactive backfill ───────────────────────────────────────────────────
+  // Run whenever the stored XP is below the minimum expected for completions.
+  // All awards are idempotent – safe to run on every overview load.
   if (totalLogsCount > 0) {
-    // If totalXP is 0 despite completions, award first_habit + base completion XP catchup!
-    if (gam.totalXP === 0) {
-      await awardXP({
-        userId,
-        amount: 35, // 10 base + 25 first habit
-        coins: 7,
-        source: "habit_complete",
-        idempotencyKey: `init_habit_catchup_${userId}`,
-        metadata: { note: "Catchup XP for previous completion" },
-      });
+    const expectedMinXP = totalLogsCount * 10; // floor: 10 XP per completion
+    if (gam.totalXP < expectedMinXP) {
+      await runRetroactiveBackfill(userId, { userHabits, habitIds, totalLogsCount, maxStreak });
     }
+
+    // Count completed challenges for badge evaluation
+    const completedChallengesCount = await UserChallenge.countDocuments({
+      userId,
+      status: "completed",
+    });
+
+    // Re-fetch after potential backfill to get accurate level
+    gam = await UserGamification.findOne({ userId });
 
     await evaluateAchievements(userId, {
       streak: maxStreak,
       totalCompleted: totalLogsCount,
-      level: gam.level,
+      level: gam ? gam.level : 1,
+      challengesCompleted: completedChallengesCount,
     });
 
-    // Re-fetch fresh gamification document
+    // Re-fetch after achievement evaluation (achievements may award XP → level up)
     gam = await UserGamification.findOne({ userId });
   }
 
