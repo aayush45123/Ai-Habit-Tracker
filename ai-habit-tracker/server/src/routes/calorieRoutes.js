@@ -16,6 +16,7 @@ import {
 import {
   estimateFoodCalories,
   getDailyCalorieSummary,
+  getAICalorieInsights,
 } from "../controllers/aiCalorieController.js";
 
 const router = express.Router();
@@ -41,5 +42,6 @@ router.post("/weekly-checkin", auth, saveWeeklyCheckIn);
 // AI routes
 router.post("/ai/estimate", auth, estimateFoodCalories);
 router.get("/ai/summary", auth, getDailyCalorieSummary);
+router.get("/ai/insights", auth, getAICalorieInsights);
 
 export default router;

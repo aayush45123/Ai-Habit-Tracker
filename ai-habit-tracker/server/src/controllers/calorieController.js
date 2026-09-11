@@ -420,9 +420,7 @@ export const getAnalytics = async (req, res) => {
     const profile = await CalorieProfile.findOne({ userId });
 
     if (!profile) {
-      return res.status(404).json({
-        message: "Profile not found",
-      });
+      return res.status(404).json({ message: "Profile not found" });
     }
 
     // Get last 30 days of data
@@ -432,17 +430,13 @@ export const getAnalytics = async (req, res) => {
     const logs = await FoodLog.find({
       userId,
       createdAt: { $gte: thirtyDaysAgo },
-    }).sort({ date: -1 });
+    }).sort({ date: 1 });
 
-    // Group by date
+    // ── Group by date ─────────────────────────────────────────────
     const dailyData = {};
     logs.forEach((log) => {
       if (!dailyData[log.date]) {
-        dailyData[log.date] = {
-          calories: 0,
-          protein: 0,
-          items: [],
-        };
+        dailyData[log.date] = { calories: 0, protein: 0, items: [] };
       }
       dailyData[log.date].calories += log.calories;
       dailyData[log.date].protein += log.protein;
@@ -455,16 +449,16 @@ export const getAnalytics = async (req, res) => {
         const caloriesPercent = (data.calories / profile.dailyGoal) * 100;
         const proteinPercent = (data.protein / profile.proteinGoal) * 100;
         const isOverGoal = data.calories > profile.dailyGoal;
-        const overBy = isOverGoal ? data.calories - profile.dailyGoal : 0;
+        const hitProteinGoal = data.protein >= profile.proteinGoal;
 
         return {
           date,
-          dateFormatted: new Date(date).toLocaleDateString("en-US", {
+          dateFormatted: new Date(date + "T12:00:00").toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
             year: "numeric",
           }),
-          dayOfWeek: new Date(date).toLocaleDateString("en-US", {
+          dayOfWeek: new Date(date + "T12:00:00").toLocaleDateString("en-US", {
             weekday: "short",
           }),
           calories: data.calories,
@@ -474,7 +468,9 @@ export const getAnalytics = async (req, res) => {
           caloriesPercent: Math.round(caloriesPercent),
           proteinPercent: Math.round(proteinPercent),
           isOverGoal,
-          overBy,
+          hitProteinGoal,
+          overBy: isOverGoal ? data.calories - profile.dailyGoal : 0,
+          items: data.items,
         };
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -487,13 +483,137 @@ export const getAnalytics = async (req, res) => {
       ? Math.round(dailyHistory.reduce((s, d) => s + d.protein, 0) / totalDays)
       : 0;
     const daysOverGoal = dailyHistory.filter((d) => d.isOverGoal).length;
+    const daysHitProtein = dailyHistory.filter((d) => d.hitProteinGoal).length;
+    const daysOnGoal = dailyHistory.filter((d) => !d.isOverGoal).length;
+
+    // ── Best & worst days ─────────────────────────────────────────
+    const bestDay = totalDays
+      ? dailyHistory.reduce((best, d) =>
+          Math.abs(d.calories - profile.dailyGoal) < Math.abs(best.calories - profile.dailyGoal)
+            ? d
+            : best
+        )
+      : null;
+    const worstDay = totalDays
+      ? dailyHistory.reduce((worst, d) =>
+          d.isOverGoal && d.overBy > (worst.overBy || 0) ? d : worst,
+          { overBy: 0 }
+        )
+      : null;
+
+    // ── Current & best streak (consecutive goal-hit days) ─────────
+    const sortedByDate = [...dailyHistory].sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+    let currentStreak = 0;
+    let bestStreak = 0;
+    let tempStreak = 0;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    for (const d of sortedByDate) {
+      if (!d.isOverGoal) {
+        tempStreak++;
+        if (tempStreak > bestStreak) bestStreak = tempStreak;
+        if (d.date === todayStr || sortedByDate.indexOf(d) === sortedByDate.length - 1) {
+          currentStreak = tempStreak;
+        }
+      } else {
+        tempStreak = 0;
+      }
+    }
+
+    // ── Top foods (most frequently logged) ────────────────────────
+    const foodCounts = {};
+    logs.forEach((log) => {
+      const key = log.foodName.toLowerCase().trim();
+      if (!foodCounts[key]) {
+        foodCounts[key] = {
+          name: log.foodName,
+          count: 0,
+          totalCalories: 0,
+          totalProtein: 0,
+        };
+      }
+      foodCounts[key].count++;
+      foodCounts[key].totalCalories += log.calories;
+      foodCounts[key].totalProtein += log.protein;
+    });
+    const topFoods = Object.values(foodCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+      .map((f) => ({
+        name: f.name,
+        count: f.count,
+        avgCalories: Math.round(f.totalCalories / f.count),
+        avgProtein: Math.round(f.totalProtein / f.count),
+        totalCalories: f.totalCalories,
+      }));
+
+    // ── Weekly buckets (last 4 weeks) ─────────────────────────────
+    const weeklyBuckets = [];
+    for (let w = 0; w < 4; w++) {
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - (w + 1) * 7);
+      const weekEnd = new Date();
+      weekEnd.setDate(weekEnd.getDate() - w * 7);
+      const weekStartStr = weekStart.toISOString().slice(0, 10);
+      const weekEndStr = weekEnd.toISOString().slice(0, 10);
+
+      const weekDays = dailyHistory.filter(
+        (d) => d.date >= weekStartStr && d.date < weekEndStr
+      );
+      const wDays = weekDays.length;
+      weeklyBuckets.unshift({
+        label: w === 0 ? "This week" : `${(w + 1)} wks ago`,
+        days: wDays,
+        avgCalories: wDays
+          ? Math.round(weekDays.reduce((s, d) => s + d.calories, 0) / wDays)
+          : 0,
+        avgProtein: wDays
+          ? Math.round(weekDays.reduce((s, d) => s + d.protein, 0) / wDays)
+          : 0,
+        daysOnGoal: weekDays.filter((d) => !d.isOverGoal).length,
+      });
+    }
+
+    // ── Macro breakdown estimate ───────────────────────────────────
+    // Protein cals = protein * 4; Fat ~25% of total; Carbs = rest
+    const avgProteinCals = avgProtein * 4;
+    const avgFatCals = Math.round(avgCalories * 0.25);
+    const avgCarbCals = Math.max(0, avgCalories - avgProteinCals - avgFatCals);
+    const macroBreakdown = {
+      protein: { cals: avgProteinCals, grams: avgProtein },
+      carbs: { cals: avgCarbCals, grams: Math.round(avgCarbCals / 4) },
+      fat: { cals: avgFatCals, grams: Math.round(avgFatCals / 9) },
+    };
+
+    // ── 14-day chart data (most recent) ───────────────────────────
+    const chartData = [...dailyHistory]
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(-14);
 
     res.json({
       totalDays,
       avgCalories,
       avgProtein,
       daysOverGoal,
+      daysOnGoal,
+      daysHitProtein,
+      currentStreak,
+      bestStreak,
+      bestDay: bestDay
+        ? { date: bestDay.dateFormatted, calories: bestDay.calories }
+        : null,
+      worstDay:
+        worstDay && worstDay.overBy > 0
+          ? { date: worstDay.dateFormatted, overBy: worstDay.overBy }
+          : null,
+      topFoods,
+      weeklyBuckets,
+      macroBreakdown,
+      chartData,
       dailyHistory,
+      calorieGoal: profile.dailyGoal,
+      proteinGoal: profile.proteinGoal,
     });
   } catch (err) {
     console.error("Error getting analytics:", err);
