@@ -1,6 +1,10 @@
 // server/src/services/achievement.service.js
 import Achievement from "../models/Achievement.js";
 import UserAchievement from "../models/UserAchievement.js";
+import Habit from "../models/Habit.js";
+import HabitLog from "../models/HabitLog.js";
+import UserGamification from "../models/UserGamification.js";
+import UserChallenge from "../models/UserChallenge.js";
 import { awardXP } from "./xp.service.js";
 import { emitNotification } from "./socket.service.js";
 
@@ -28,24 +32,43 @@ export async function evaluateAchievements(userId, context = {}) {
       let qualified = false;
       const crit = ach.criteria || {};
 
-      switch (crit.type) {
+      // Resilient fallback criteria detection
+      const critType = crit.type || (
+        ach.key === "first_habit" ? "first_habit" :
+        ach.key.startsWith("streak_") ? "streak" :
+        ach.key.startsWith("level_") ? "level" :
+        ach.key === "perfect_week" ? "perfect_week" :
+        ach.key === "perfect_month" ? "perfect_month" :
+        ""
+      );
+
+      const critThreshold = typeof crit.threshold === "number" ? crit.threshold : (
+        ach.key.startsWith("streak_") ? parseInt(ach.key.replace("streak_", ""), 10) :
+        ach.key.startsWith("level_") ? parseInt(ach.key.replace("level_", ""), 10) :
+        ach.key === "perfect_week" ? 7 :
+        ach.key === "perfect_month" ? 30 :
+        ach.key === "first_habit" ? 1 :
+        0
+      );
+
+      switch (critType) {
         case "first_habit":
-          if (context.totalCompleted >= 1) qualified = true;
+          if ((context.totalCompleted || 0) >= (critThreshold || 1)) qualified = true;
           break;
         case "streak":
-          if (context.streak >= crit.threshold) qualified = true;
+          if ((context.streak || 0) >= critThreshold) qualified = true;
           break;
         case "perfect_week":
-          if (context.perfectDaysStreak >= 7) qualified = true;
+          if ((context.perfectDaysStreak || 0) >= 7 || (context.streak || 0) >= 7) qualified = true;
           break;
         case "perfect_month":
-          if (context.perfectDaysStreak >= 30) qualified = true;
+          if ((context.perfectDaysStreak || 0) >= 30 || (context.streak || 0) >= 30) qualified = true;
           break;
         case "level":
-          if (context.level >= crit.threshold) qualified = true;
+          if ((context.level || 1) >= critThreshold) qualified = true;
           break;
         case "challenges_completed":
-          if (context.challengesCompleted >= crit.threshold) qualified = true;
+          if ((context.challengesCompleted || 0) >= critThreshold) qualified = true;
           break;
         default:
           break;
@@ -53,7 +76,7 @@ export async function evaluateAchievements(userId, context = {}) {
 
       if (qualified) {
         try {
-          const userAch = await UserAchievement.create({
+          await UserAchievement.create({
             userId,
             achievementKey: ach.key,
             unlockedAt: new Date(),
@@ -79,7 +102,7 @@ export async function evaluateAchievements(userId, context = {}) {
           try {
             emitNotification(userId, {
               type: "achievement_unlocked",
-              title: `?? Achievement Unlocked: ${ach.name}!`,
+              title: `🏆 Achievement Unlocked: ${ach.name}!`,
               message: ach.description,
               data: {
                 achievement: ach,
@@ -105,8 +128,41 @@ export async function evaluateAchievements(userId, context = {}) {
 
 /**
  * Get all achievements with user unlock status
+ * Automatically evaluates user achievements against their existing habit history
  */
 export async function getUserAchievementsWithStatus(userId) {
+  try {
+    // 1. Gather real user habit data to evaluate any unearned achievements
+    const [userHabits, userGamification, completedChallengesCount] = await Promise.all([
+      Habit.find({ userId }).select("_id streak longestStreak").lean(),
+      UserGamification.findOne({ userId }).lean(),
+      UserChallenge.countDocuments({ userId, status: "completed" }),
+    ]);
+
+    const habitIds = (userHabits || []).map((h) => h._id);
+    const totalCompleted = await HabitLog.countDocuments({
+      habitId: { $in: habitIds },
+      status: "done",
+    });
+
+    const maxStreak = (userHabits || []).reduce(
+      (max, h) => Math.max(max, h.streak || 0, h.longestStreak || 0),
+      0
+    );
+
+    const userLevel = userGamification?.level || 1;
+
+    // Run evaluation so any earned badges unlock automatically
+    await evaluateAchievements(userId, {
+      streak: maxStreak,
+      totalCompleted,
+      level: userLevel,
+      challengesCompleted: completedChallengesCount,
+    });
+  } catch (evalErr) {
+    console.warn("Auto-evaluating achievements in getUserAchievementsWithStatus failed:", evalErr.message);
+  }
+
   const [allAchievements, userUnlocks] = await Promise.all([
     Achievement.find({ isActive: { $ne: false } }).sort({ order: 1, xpReward: 1 }).lean(),
     UserAchievement.find({ userId }).lean(),

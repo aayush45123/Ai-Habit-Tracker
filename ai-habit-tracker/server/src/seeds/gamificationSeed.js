@@ -1,4 +1,4 @@
-﻿// server/src/seeds/gamificationSeed.js
+// server/src/seeds/gamificationSeed.js
 import Achievement from "../models/Achievement.js";
 import Reward from "../models/Reward.js";
 import GamificationChallenge from "../models/GamificationChallenge.js";
@@ -13,6 +13,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "consistency",
     xpReward: 25,
     coinReward: 5,
+    unlockCriteria: "Complete your very first habit log on the Dashboard.",
+    steps: [
+      "Navigate to your Dashboard.",
+      "Check off any habit as 'Done' for today.",
+      "Unlock your First Step badge instantly!"
+    ],
     criteria: { type: "first_habit", threshold: 1 },
     order: 1,
   },
@@ -25,6 +31,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "streak",
     xpReward: 50,
     coinReward: 10,
+    unlockCriteria: "Maintain an active streak of at least 3 consecutive days.",
+    steps: [
+      "Choose any habit to focus on.",
+      "Complete it today and continue for the next 2 consecutive days.",
+      "Reach Day 3 without missing a check-in."
+    ],
     criteria: { type: "streak", threshold: 3 },
     order: 2,
   },
@@ -37,6 +49,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "streak",
     xpReward: 100,
     coinReward: 20,
+    unlockCriteria: "Maintain an active habit streak of 7 consecutive days.",
+    steps: [
+      "Keep your daily check-in streak alive for a full week.",
+      "Use a Streak Shield from Rewards if you face emergencies.",
+      "Complete Day 7 to secure your Warrior badge."
+    ],
     criteria: { type: "streak", threshold: 7 },
     order: 3,
   },
@@ -49,6 +67,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "streak",
     xpReward: 200,
     coinReward: 40,
+    unlockCriteria: "Maintain an active habit streak of 14 continuous days.",
+    steps: [
+      "Push past the first week and lock in your daily routine.",
+      "Check in every single day through Day 14.",
+      "Reach two unbroken weeks of unstoppable momentum."
+    ],
     criteria: { type: "streak", threshold: 14 },
     order: 4,
   },
@@ -61,6 +85,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "streak",
     xpReward: 500,
     coinReward: 100,
+    unlockCriteria: "Build unbreakable discipline with a 30-day streak.",
+    steps: [
+      "Commit to daily habit check-ins for a full month (30 days).",
+      "Ensure check-ins are logged before midnight IST each day.",
+      "Cross the 30-day threshold to unlock Habit Master."
+    ],
     criteria: { type: "streak", threshold: 30 },
     order: 5,
   },
@@ -73,6 +103,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "streak",
     xpReward: 750,
     coinReward: 150,
+    unlockCriteria: "Log habits consistently across 60 consecutive days.",
+    steps: [
+      "Sustain your habits across two full months of commitment.",
+      "Use earned Streak Shields strategically to prevent resets.",
+      "Reach Day 60 to claim this epic achievement."
+    ],
     criteria: { type: "streak", threshold: 60 },
     order: 6,
   },
@@ -85,6 +121,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "streak",
     xpReward: 1500,
     coinReward: 300,
+    unlockCriteria: "Achieve an extraordinary 100-day consecutive habit streak.",
+    steps: [
+      "Check in daily for 100 unbroken days.",
+      "Master your habits as an ingrained daily identity.",
+      "Reach triple digits to claim legendary immortal status."
+    ],
     criteria: { type: "streak", threshold: 100 },
     order: 7,
   },
@@ -97,6 +139,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "consistency",
     xpReward: 150,
     coinReward: 30,
+    unlockCriteria: "Achieve 100% daily completion across all active habits for 7 consecutive days.",
+    steps: [
+      "Make sure you have at least one active habit scheduled.",
+      "Check off ALL active habits every single day (100% completion).",
+      "Repeat for 7 days in a row without leaving any habit incomplete."
+    ],
     criteria: { type: "perfect_week", threshold: 7 },
     order: 8,
   },
@@ -109,6 +157,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "mastery",
     xpReward: 100,
     coinReward: 20,
+    unlockCriteria: "Earn enough total XP to reach progression Level 5.",
+    steps: [
+      "Complete daily habits to earn +10 XP each.",
+      "Hit streak milestones and participate in challenges.",
+      "Reach Level 5 (500 XP) to unlock this badge."
+    ],
     criteria: { type: "level", threshold: 5 },
     order: 9,
   },
@@ -121,6 +175,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "mastery",
     xpReward: 250,
     coinReward: 50,
+    unlockCriteria: "Level up your account to progression Level 10.",
+    steps: [
+      "Build consistent habits and claim weekly challenge rewards.",
+      "Accumulate XP to climb the leaderboards and tiers.",
+      "Reach Level 10 (1,500 XP) to earn Rising Star."
+    ],
     criteria: { type: "level", threshold: 10 },
     order: 10,
   },
@@ -133,6 +193,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "mastery",
     xpReward: 500,
     coinReward: 100,
+    unlockCriteria: "Ascend through consistent habit mastery to Level 20.",
+    steps: [
+      "Maintain active streaks across multiple habit categories.",
+      "Redeem achievements and keep up long-term consistency.",
+      "Reach Level 20 (4,500 XP) to unlock Habit Strategist."
+    ],
     criteria: { type: "level", threshold: 20 },
     order: 11,
   },
@@ -145,6 +211,12 @@ const DEFAULT_ACHIEVEMENTS = [
     category: "mastery",
     xpReward: 1000,
     coinReward: 250,
+    unlockCriteria: "Reach the ultimate pinnacle of progression at Level 30.",
+    steps: [
+      "Demonstrate unwavering commitment across habits and challenges.",
+      "Unlock previous tiers and maintain high daily adherence.",
+      "Ascend to Level 30 (10,000+ XP) to become a Zenith Master."
+    ],
     criteria: { type: "level", threshold: 30 },
     order: 12,
   },

@@ -122,12 +122,24 @@ export async function processHabitCompletion({ userId, habitId, status, currentS
     // 6. Update user active challenges progress
     await updateChallengeProgress(userId, habitId);
 
+    // Compute highest streak across all user habits
+    const maxStreak = (userHabits || []).reduce(
+      (max, h) => Math.max(max, h.streak || 0, h.longestStreak || 0),
+      currentStreak || 0
+    );
+
+    const completedChallengesCount = await UserChallenge.countDocuments({
+      userId,
+      status: "completed",
+    });
+
     // 7. Evaluate achievements
     const freshGam = await UserGamification.findOne({ userId }).lean();
     await evaluateAchievements(userId, {
-      streak: currentStreak || 0,
+      streak: maxStreak,
       totalCompleted: totalLogsCount,
       level: freshGam ? freshGam.level : 1,
+      challengesCompleted: completedChallengesCount,
     });
 
   } catch (error) {
