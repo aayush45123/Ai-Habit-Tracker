@@ -59,6 +59,167 @@ function toLocalDateString(date) {
   return `${year}-${month}-${day}`;
 }
 
+// Step-by-step unlock guidance dictionary for each badge
+const BADGE_STEPS = {
+  first_habit: [
+    "Open your Dashboard from the navigation bar.",
+    "Find any active habit and click the checkmark to mark it 'Done' for today.",
+    "Your 'First Step' badge unlocks immediately with +25 XP!",
+  ],
+  streak_3: [
+    "Choose any habit you want to build consistency with.",
+    "Complete it today and maintain it for the next 2 consecutive days.",
+    "Reach Day 3 without breaking the streak to claim your badge.",
+  ],
+  streak_7: [
+    "Keep your daily check-in streak alive for 7 consecutive days.",
+    "You can equip a Streak Shield from the Rewards Store to protect against missed days.",
+    "Complete Day 7 to secure your One Week Warrior badge (+100 XP).",
+  ],
+  streak_14: [
+    "Push through the second week of your daily routine.",
+    "Log your habits every day before midnight IST without missing a day.",
+    "Hit 14 continuous days to unlock Momentum Builder (+200 XP).",
+  ],
+  streak_30: [
+    "Commit to daily habit check-ins for a full 30-day month.",
+    "Maintain daily discipline across all your active routines.",
+    "Cross the 30-day milestone to join the elite Habit Masters (+500 XP).",
+  ],
+  streak_60: [
+    "Sustain habit discipline across 60 consecutive days.",
+    "Use earned Streak Freezes strategically if life gets hectic.",
+    "Reach Day 60 to claim this epic Consistency Champion trophy (+750 XP).",
+  ],
+  streak_100: [
+    "Maintain unbroken daily habit consistency for 100 consecutive days.",
+    "Transform your habits into an automatic, permanent lifestyle.",
+    "Cross into triple digits to unlock Legendary status (+1,500 XP).",
+  ],
+  perfect_week: [
+    "Ensure you have at least one active habit scheduled on your Dashboard.",
+    "Complete ALL active habits every single day (100% daily completion).",
+    "Repeat for 7 days in a row without leaving any scheduled habit undone.",
+  ],
+  level_5: [
+    "Complete daily habits to earn +10 XP and +2 Coins each.",
+    "Hit streak milestones and participate in active weekly challenges.",
+    "Accumulate 500 total XP to advance to Level 5 and claim this badge.",
+  ],
+  level_10: [
+    "Build weekly habit consistency and complete challenge milestones.",
+    "Redeem bonus XP from challenges and milestone completions.",
+    "Reach Level 10 (1,500 XP) to unlock the Rising Star badge.",
+  ],
+  level_20: [
+    "Maintain active streaks across multiple habit categories.",
+    "Collect XP from all challenges, perfect days, and consistency goals.",
+    "Reach Level 20 (4,500 XP) to earn the Habit Strategist badge.",
+  ],
+  level_30: [
+    "Demonstrate supreme mastery across all your habits and challenges.",
+    "Accumulate XP through uninterrupted daily dedication and streaks.",
+    "Ascend to Level 30 (10,000+ XP) to become a legendary Zenith Master.",
+  ],
+  sprint_7: [
+    "Accept the 7-Day Sprint of Discipline challenge in Challenges.",
+    "Log at least one habit every day for 7 consecutive days.",
+    "Complete the sprint to earn this special challenge badge.",
+  ],
+  hydration_hero: [
+    "Create or track a daily hydration or wellness habit.",
+    "Log hydration consistently across 14 consecutive days.",
+    "Unlock the Hydration Hero badge and title.",
+  ],
+  titan_month: [
+    "Enroll in the Titan of the Month challenge.",
+    "Complete at least 25 habit logs across the month.",
+    "Claim the prestigious Titan Month badge and bonus XP.",
+  ],
+};
+
+// Helper: resolve clean steps for any badge
+function getBadgeSteps(badge) {
+  if (Array.isArray(badge?.steps) && badge.steps.length > 0) {
+    return badge.steps;
+  }
+  if (badge?.key && BADGE_STEPS[badge.key]) {
+    return BADGE_STEPS[badge.key];
+  }
+  if (badge?.unlockCriteria) {
+    return [
+      "Open your active habits on the Dashboard.",
+      badge.unlockCriteria,
+      "Complete the requirement to unlock this achievement.",
+    ];
+  }
+  return [
+    `Focus on: ${badge?.description || badge?.name || "Habit consistency"}`,
+    "Log your check-ins daily on the Dashboard.",
+    "Reach this milestone to claim your badge & XP reward!",
+  ];
+}
+
+// Helper: calculate live progress towards unlocking badge
+function getBadgeProgress(badge, stats = {}) {
+  const { maxStreak = 0, totalCompletedLogs = 0, userLevel = 1 } = stats;
+  const crit = badge?.criteria || {};
+  const critType = crit.type || (
+    badge?.key === "first_habit" ? "first_habit" :
+    badge?.key?.startsWith("streak_") ? "streak" :
+    badge?.key?.startsWith("level_") ? "level" :
+    badge?.key === "perfect_week" ? "perfect_week" :
+    ""
+  );
+
+  const threshold = typeof crit.threshold === "number" ? crit.threshold : (
+    badge?.key?.startsWith("streak_") ? parseInt(badge.key.replace("streak_", ""), 10) :
+    badge?.key?.startsWith("level_") ? parseInt(badge.key.replace("level_", ""), 10) :
+    badge?.key === "perfect_week" ? 7 :
+    badge?.key === "first_habit" ? 1 :
+    0
+  );
+
+  if (critType === "first_habit") {
+    const curr = totalCompletedLogs > 0 ? 1 : 0;
+    return {
+      text: `${curr} / 1 habit completed`,
+      percent: curr >= 1 ? 100 : 0,
+      done: curr >= 1,
+    };
+  }
+
+  if (critType === "streak" && threshold > 0) {
+    const percent = Math.min(100, Math.round((maxStreak / threshold) * 100));
+    return {
+      text: `${maxStreak} / ${threshold} days streak`,
+      percent,
+      done: maxStreak >= threshold,
+    };
+  }
+
+  if (critType === "level" && threshold > 0) {
+    const percent = Math.min(100, Math.round((userLevel / threshold) * 100));
+    return {
+      text: `Level ${userLevel} / Level ${threshold}`,
+      percent,
+      done: userLevel >= threshold,
+    };
+  }
+
+  if (critType === "perfect_week") {
+    const curr = Math.min(maxStreak, 7);
+    const percent = Math.min(100, Math.round((curr / 7) * 100));
+    return {
+      text: `${curr} / 7 days`,
+      percent,
+      done: maxStreak >= 7,
+    };
+  }
+
+  return null;
+}
+
 const Profile = () => {
   const { user, profile, isProfileCompleted, refreshProfile, refreshUser } = useAuth();
   const { overview, refreshOverview, redeemReward } = useGamification();
@@ -105,6 +266,10 @@ const Profile = () => {
   const [selectedBadgeFilter, setSelectedBadgeFilter] = useState("all");
   const [redeemingKey, setRedeemingKey] = useState(null);
   const [rewardsFeedback, setRewardsFeedback] = useState(null);
+
+  // Expanded badge key for mobile tap / hover step view
+  const [expandedBadgeKey, setExpandedBadgeKey] = useState(null);
+  const [activeShowcaseKey, setActiveShowcaseKey] = useState(null);
 
   // Sync / backfill state
   const [isSyncing, setIsSyncing] = useState(false);
@@ -800,19 +965,56 @@ const Profile = () => {
                     <p>Complete your first habit to unlock the "First Step" badge!</p>
                   </div>
                 ) : (
-                  unlockedBadges.slice(0, 4).map((b) => (
-                    <div
-                      key={b.key}
-                      className={styles.showcaseBadgeItem}
-                      title={`${b.name}: ${b.description}`}
-                      onClick={() => handleTabChange("badges")}
-                    >
-                      <div className={`${styles.badgeHexagon} ${styles[b.rarity || "common"]}`}>
-                        <GamificationIcon name={b.icon || b.key} size={26} />
+                  unlockedBadges.slice(0, 4).map((b) => {
+                    const bSteps = getBadgeSteps(b);
+                    const isShowcaseActive = activeShowcaseKey === b.key;
+
+                    return (
+                      <div
+                        key={b.key}
+                        className={`${styles.showcaseBadgeItem} ${isShowcaseActive ? styles.showcaseItemActive : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveShowcaseKey(isShowcaseActive ? null : b.key);
+                        }}
+                        onMouseEnter={() => setActiveShowcaseKey(b.key)}
+                        onMouseLeave={() => setActiveShowcaseKey(null)}
+                      >
+                        <div className={`${styles.badgeHexagon} ${styles[b.rarity || "common"]}`}>
+                          <GamificationIcon name={b.icon || b.key} size={26} />
+                        </div>
+                        <span className={styles.badgeItemName}>{b.name}</span>
+
+                        {/* Hover / Tap Popover with Steps */}
+                        <div className={styles.showcaseHoverPopover}>
+                          <div className={styles.showcasePopoverHeader}>
+                            <span className={`${styles.achRarityTag} ${styles[b.rarity || "common"]}`}>
+                              {b.rarity || "COMMON"}
+                            </span>
+                            <span className={styles.showcasePopoverXP}>+{b.xpReward} XP</span>
+                          </div>
+                          <div className={styles.showcasePopoverTitle}>{b.name}</div>
+                          <div className={styles.showcasePopoverDesc}>{b.description}</div>
+                          <div className={styles.showcasePopoverStepsHeading}>
+                            <span>Steps to Complete:</span>
+                          </div>
+                          <div className={styles.showcaseStepsList}>
+                            {bSteps.map((step, sIdx) => (
+                              <div key={sIdx} className={styles.showcaseStepRow}>
+                                <span className={styles.showcaseStepCheck}>✓</span>
+                                <span className={styles.showcaseStepText}>{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className={styles.showcasePopoverFooter}>
+                            <span className={styles.showcaseUnlockedTag}>
+                              <FiCheck size={12} /> Badge Unlocked
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <span className={styles.badgeItemName}>{b.name}</span>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
@@ -994,41 +1196,110 @@ const Profile = () => {
                       .filter((ach) =>
                         selectedBadgeFilter === "all" ? true : ach.category === selectedBadgeFilter
                       )
-                      .map((ach) => (
-                        <div
-                          key={ach.key}
-                          className={`${styles.achievementCard} ${
-                            ach.isUnlocked ? styles.unlockedCard : styles.lockedCard
-                          }`}
-                        >
-                          <div className={styles.achCardTop}>
-                            <div className={`${styles.achIconWrap} ${styles[ach.rarity || "common"]}`}>
-                              <GamificationIcon name={ach.icon || ach.key} size={28} />
+                      .map((ach) => {
+                        const steps = getBadgeSteps(ach);
+                        const progress = getBadgeProgress(ach, { maxStreak, totalCompletedLogs, userLevel });
+                        const isExpanded = expandedBadgeKey === ach.key;
+
+                        return (
+                          <div
+                            key={ach.key}
+                            className={`${styles.achievementCard} ${
+                              ach.isUnlocked ? styles.unlockedCard : styles.lockedCard
+                            } ${isExpanded ? styles.cardExpanded : ""}`}
+                            onClick={() => setExpandedBadgeKey(isExpanded ? null : ach.key)}
+                            tabIndex={0}
+                            role="button"
+                            aria-expanded={isExpanded}
+                            title="Hover or click to view step-by-step instructions"
+                          >
+                            <div className={styles.achCardTop}>
+                              <div className={`${styles.achIconWrap} ${styles[ach.rarity || "common"]}`}>
+                                <GamificationIcon name={ach.icon || ach.key} size={28} />
+                              </div>
+                              <div className={styles.achTopTags}>
+                                <span className={`${styles.achRarityTag} ${styles[ach.rarity || "common"]}`}>
+                                  {ach.rarity || "COMMON"}
+                                </span>
+                                <span className={styles.hoverHintBadge}>
+                                  Hover for Steps
+                                </span>
+                              </div>
                             </div>
-                            <span className={`${styles.achRarityTag} ${styles[ach.rarity || "common"]}`}>
-                              {ach.rarity || "COMMON"}
-                            </span>
-                          </div>
 
-                          <div className={styles.achInfo}>
-                            <h4 className={styles.achName}>{ach.name}</h4>
-                            <p className={styles.achDesc}>{ach.description}</p>
-                          </div>
+                            <div className={styles.achInfo}>
+                              <h4 className={styles.achName}>{ach.name}</h4>
+                              <p className={styles.achDesc}>{ach.description}</p>
+                            </div>
 
-                          <div className={styles.achFooter}>
-                            <span className={styles.achReward}>+{ach.xpReward} XP</span>
-                            {ach.isUnlocked ? (
-                              <span className={styles.unlockedTag}>
-                                <FiCheck size={13} /> Unlocked
-                              </span>
-                            ) : (
-                              <span className={styles.lockedTag}>
-                                <FiLock size={13} /> Locked
-                              </span>
-                            )}
+                            <div className={styles.achFooter}>
+                              <span className={styles.achReward}>+{ach.xpReward} XP</span>
+                              {ach.isUnlocked ? (
+                                <span className={styles.unlockedTag}>
+                                  <FiCheck size={13} /> Unlocked
+                                </span>
+                              ) : (
+                                <span className={styles.lockedTag}>
+                                  <FiLock size={13} /> Locked
+                                </span>
+                              )}
+                            </div>
+
+                            {/* HOVER / TAP OVERLAY: Steps to complete & progress */}
+                            <div className={styles.badgeStepsOverlay}>
+                              <div className={styles.stepsOverlayHeader}>
+                                <div className={styles.stepsOverlayTitleGroup}>
+                                  <span className={styles.stepsOverlayHeading}>Steps to Complete</span>
+                                  <span className={`${styles.achRarityTag} ${styles[ach.rarity || "common"]}`}>
+                                    {ach.rarity || "COMMON"}
+                                  </span>
+                                </div>
+                                <span className={styles.stepsOverlayReward}>+{ach.xpReward} XP</span>
+                              </div>
+
+                              {progress && (
+                                <div className={styles.stepsProgressBox}>
+                                  <div className={styles.stepsProgressHeader}>
+                                    <span className={styles.progressLabel}>Current Progress</span>
+                                    <span className={styles.progressVal}>{progress.text}</span>
+                                  </div>
+                                  <div className={styles.stepsProgressBar}>
+                                    <div
+                                      className={styles.stepsProgressFill}
+                                      style={{ width: `${progress.percent}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className={styles.stepsList}>
+                                {steps.map((step, idx) => (
+                                  <div key={idx} className={styles.stepItem}>
+                                    <span className={`${styles.stepNumber} ${ach.isUnlocked ? styles.stepNumberDone : ""}`}>
+                                      {ach.isUnlocked ? "✓" : idx + 1}
+                                    </span>
+                                    <span className={`${styles.stepContent} ${ach.isUnlocked ? styles.stepContentDone : ""}`}>
+                                      {step}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className={styles.stepsOverlayFooter}>
+                                {ach.isUnlocked ? (
+                                  <span className={styles.stepsUnlockedBanner}>
+                                    <FiCheck size={12} /> Badge Earned • Completed!
+                                  </span>
+                                ) : (
+                                  <span className={styles.stepsLockedBanner}>
+                                    <FiClock size={12} /> In Progress • Complete steps above
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 </div>
               )}
