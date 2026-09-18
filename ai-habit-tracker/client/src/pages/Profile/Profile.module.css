@@ -9,21 +9,27 @@
   font-family: var(--font-primary);
   color: var(--color-text-primary);
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* 2-Column LeetCode Layout */
 .leetcodeLayout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 1.75rem;
   max-width: 1440px;
   margin: 0 auto;
   align-items: start;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1080px) {
   .leetcodeLayout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -35,6 +41,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .identityCard {
@@ -44,6 +54,10 @@
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Avatar Section */
@@ -334,6 +348,9 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .physItem {
@@ -342,6 +359,8 @@
   padding: 0.45rem 0.6rem;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .physKey {
@@ -364,6 +383,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Top Row: Solved Card + Badges Showcase Card */
@@ -371,11 +394,15 @@
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
   .topCardsRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -388,6 +415,10 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 600px) {
@@ -467,12 +498,16 @@
   flex-direction: column;
   gap: 0.85rem;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .breakdownItem {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .breakdownHeader {
@@ -533,6 +568,10 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .badgesHeader {
@@ -582,6 +621,12 @@
   gap: 0.85rem;
   margin-bottom: 1rem;
   min-height: 70px;
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 0.25rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .noBadgesCallout {
@@ -820,6 +865,11 @@
   border: 2px solid var(--color-border);
   box-shadow: 4px 4px 0 0 var(--color-border);
   padding: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .heatmapHeader {
@@ -829,6 +879,8 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .heatmapTitle {
@@ -849,6 +901,7 @@
   gap: 0.65rem;
   font-size: 0.85rem;
   color: var(--color-text-secondary);
+  flex-wrap: wrap;
 }
 
 .metaDivider {
@@ -859,6 +912,10 @@
 .heatmapGridWrapper {
   overflow-x: auto;
   padding-bottom: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 .heatmapGrid {
@@ -911,6 +968,8 @@
   margin-top: 0.85rem;
   font-size: 0.75rem;
   color: var(--color-text-secondary);
+  min-width: max-content;
+  gap: 1.5rem;
 }
 
 .heatmapMonths {
@@ -944,6 +1003,11 @@
   background-color: var(--color-bg-primary);
   border: 2px solid var(--color-border);
   box-shadow: 4px 4px 0 0 var(--color-border);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .tabHeaders {
@@ -951,6 +1015,15 @@
   border-bottom: 2px solid var(--color-border);
   background-color: var(--color-bg-secondary);
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabHeaders::-webkit-scrollbar {
+  display: none;
 }
 
 .tabBtn {
@@ -967,6 +1040,7 @@
   white-space: nowrap;
   border-right: 1px solid #e5e7eb;
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .tabBtn:hover {
@@ -1882,17 +1956,17 @@
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN - Mobile First (320px → 1080px)
+   RESPONSIVE DESIGN (Mobile First / Adaptive)
    ========================================================================== */
 
 /* ── 1080px: Switch to single-column layout ── */
 @media (max-width: 1080px) {
   .profileContainer {
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0;
   }
 
   .leetcodeLayout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
   }
 
@@ -1900,22 +1974,11 @@
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 
-  /* On touch devices, always show overlay on tap — handled by cardExpanded class */
-  .achievementCard:hover .badgeStepsOverlay {
-    opacity: 0;
-    visibility: hidden;
-  }
-
+  /* On touch devices, tap triggers expanded card */
   .cardExpanded .badgeStepsOverlay {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-  }
-
-  /* Showcase popover should only show on active */
-  .showcaseBadgeItem:hover .showcaseHoverPopover {
-    opacity: 0;
-    visibility: hidden;
   }
 
   .showcaseItemActive .showcaseHoverPopover {
@@ -1925,27 +1988,68 @@
   }
 }
 
+/* ── 900px: Stack Top Cards ── */
+@media (max-width: 900px) {
+  .topCardsRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+}
+
 /* ── 768px: Tablet ── */
 @media (max-width: 768px) {
-  .profileContainer {
-    padding: 0.85rem 1rem;
+  .identityCard {
+    padding: 1.25rem;
   }
 
-  /* Top row cards become vertical */
-  .topRow {
-    flex-direction: column;
+  .solvedCard {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .badgesCard {
+    padding: 1.25rem;
+  }
+
+  .heatmapSection {
+    padding: 1.25rem;
+  }
+
+  .tabBody {
+    padding: 1.25rem;
+  }
+
+  .tabBtn {
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+  }
+
+  .rewardsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1rem;
   }
 
-  .solvedProgressCard,
-  .badgeShowcaseCard {
-    min-width: unset;
-    width: 100%;
+  .inputsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 
-  /* Identity card horizontal on tablet */
+  .showcaseHoverPopover {
+    position: fixed;
+    bottom: auto;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) !important;
+    width: min(90vw, 300px);
+    z-index: 200;
+    pointer-events: auto;
+  }
+}
+
+/* ── 600px: Mobile Large ── */
+@media (max-width: 600px) {
   .identityCard {
-    padding: 1.1rem;
+    padding: 1rem;
+    box-shadow: 3px 3px 0 0 var(--color-border);
   }
 
   .avatarWrapper {
@@ -1953,231 +2057,223 @@
     height: 80px;
   }
 
-  /* Stat rings: wrap and reduce */
-  .statsRingsRow {
+  .displayName {
+    font-size: 1.2rem;
+  }
+
+  .solvedCard {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+    gap: 1rem;
+    box-shadow: 3px 3px 0 0 var(--color-border);
+  }
+
+  .circleContainer {
+    width: 130px;
+    height: 130px;
+  }
+
+  .badgesCard {
+    padding: 1rem;
+    box-shadow: 3px 3px 0 0 var(--color-border);
+  }
+
+  .heatmapSection {
+    padding: 1rem;
+    box-shadow: 3px 3px 0 0 var(--color-border);
+  }
+
+  .heatmapHeader {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .heatmapTitle {
+    font-size: 0.92rem;
+  }
+
+  .heatmapMeta {
+    font-size: 0.8rem;
     flex-wrap: wrap;
+    gap: 0.4rem;
   }
 
-  .statRingItem {
-    flex: 1 1 calc(50% - 0.5rem);
-    min-width: 100px;
+  .tabsSection {
+    box-shadow: 3px 3px 0 0 var(--color-border);
   }
 
-  /* Badges grid: 2 columns */
-  .badgesGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+  .tabBtn {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.78rem;
+    gap: 0.35rem;
   }
 
-  /* Badge filter row: scroll horizontally */
+  .tabBody {
+    padding: 1rem;
+  }
+
+  .recentItem {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .recentHabitTitle {
+    font-size: 0.85rem;
+  }
+
+  .rewardsHeaderBar {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .rewardsBalanceBox {
+    padding: 0.75rem 1rem;
+  }
+
+  .rewardsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .rewardCard {
+    padding: 1rem;
+  }
+
   .badgesFilterRow {
     overflow-x: auto;
     flex-wrap: nowrap;
-    padding-bottom: 0.25rem;
-    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.35rem;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
+
   .badgesFilterRow::-webkit-scrollbar {
     display: none;
   }
 
   .badgeFilterBtn {
     flex-shrink: 0;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
   }
 
-  /* Showcase popover: full-width below badge */
-  .showcaseHoverPopover {
-    position: fixed;
-    bottom: auto;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: min(90vw, 280px);
-    z-index: 200;
-    pointer-events: auto;
-  }
-
-  .showcaseBadgeItem:hover .showcaseHoverPopover {
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .showcaseItemActive .showcaseHoverPopover {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, -50%);
-  }
-
-  /* Tab buttons: smaller text */
-  .tabBtn {
-    font-size: 0.78rem;
-    padding: 0.45rem 0.8rem;
-    gap: 0.3rem;
-  }
-
-  /* Rewards grid: 2 columns */
-  .rewardsGrid {
-    grid-template-columns: repeat(2, 1fr);
+  .badgesGrid {
+    grid-template-columns: 1fr;
     gap: 0.75rem;
   }
 
-  /* Challenges grid */
-  .challengesGrid {
+  .readOnlyGrid {
     grid-template-columns: 1fr;
+    gap: 0.65rem;
   }
 
-  /* Settings form */
-  .settingsSection {
+  .inputsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .reminderSection {
     padding: 1rem;
   }
-}
 
-/* ── 600px: Large Phone ── */
-@media (max-width: 600px) {
-  .profileContainer {
-    padding: 0.7rem 0.75rem;
-  }
-
-  /* Identity card: compact */
-  .avatarSection {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.9rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .avatarWrapper {
-    width: 70px;
-    height: 70px;
-    flex-shrink: 0;
-  }
-
-  .avatarFallback {
-    font-size: 1.4rem;
-  }
-
-  .avatarSection > div:last-child {
-    text-align: left;
-  }
-
-  /* Name and badges inline */
-  .userName {
-    font-size: 1.1rem;
-  }
-
-  .userHandle {
-    font-size: 0.78rem;
-  }
-
-  /* Stats rings: row of 3 or 4 */
-  .statsRingsRow {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-  }
-
-  /* Solved progress card */
-  .solvedRingWrap {
-    gap: 1rem;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  /* Badges grid: 2 columns on 600px */
-  .badgesGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  /* Tabs: show icons only below certain width */
-  .tabBtn span {
-    display: none;
-  }
-
-  .tabBtn {
-    padding: 0.5rem 0.75rem;
-    min-width: 44px;
-    justify-content: center;
-  }
-
-  /* Top row: stack cards */
-  .topRow {
-    gap: 0.75rem;
-  }
-
-  /* Rewards header: stack */
-  .rewardsHeaderBar {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .rewardsGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.6rem;
-  }
-
-  /* Achievement card: reduce padding */
-  .achievementCard {
-    padding: 0.85rem;
-  }
-
-  /* Badge overlay: always shown when expanded */
-  .badgeStepsOverlay {
-    padding: 0.75rem;
-  }
-
-  .showcaseHoverPopover {
-    width: min(92vw, 260px);
+  .primarySaveBtn {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 }
 
-/* ── 480px: Standard Phone ── */
+/* ── 480px: Mobile Standard ── */
 @media (max-width: 480px) {
   .profileContainer {
-    padding: 0.6rem 0.6rem;
+    padding: 0;
   }
 
   .identityCard {
-    padding: 0.9rem;
+    padding: 0.85rem;
   }
 
   .avatarWrapper {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
   }
 
-  .avatarFallback {
-    font-size: 1.25rem;
+  .displayName {
+    font-size: 1.15rem;
   }
 
-  /* Stats rings: 2×2 grid */
-  .statsRingsRow {
-    grid-template-columns: repeat(2, 1fr);
+  .username {
+    font-size: 0.8rem;
+  }
+
+  .rankBadge {
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+
+  .tierPill {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.35rem;
+  }
+
+  .followStats {
+    font-size: 0.78rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .editProfileBtn {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .statRow {
+    font-size: 0.8rem;
+  }
+
+  .syncBtn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .physGrid {
+    gap: 0.4rem;
+  }
+
+  .physItem {
+    padding: 0.35rem 0.5rem;
+  }
+
+  .physKey {
+    font-size: 0.65rem;
+  }
+
+  .physVal {
+    font-size: 0.8rem;
+  }
+
+  .circleContainer {
+    width: 120px;
+    height: 120px;
+  }
+
+  .circleNumber {
+    font-size: 1.35rem;
+  }
+
+  .recentItem {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.45rem;
   }
 
-  .statRingItem {
-    padding: 0.5rem 0.4rem;
+  .recentItemRight {
+    align-self: flex-end;
   }
 
-  .statLabel {
-    font-size: 0.62rem;
-  }
-
-  .statValue {
-    font-size: 1.05rem;
-  }
-
-  /* Badges grid: single column */
-  .badgesGrid {
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
-  }
-
-  /* Achievement card: horizontal layout */
   .achievementCard {
-    padding: 0.8rem;
-    gap: 0.5rem;
+    padding: 0.85rem;
   }
 
   .achIconWrap {
@@ -2193,268 +2289,63 @@
     font-size: 0.75rem;
   }
 
-  /* Tab buttons: icon only */
-  .tabBtn span {
-    display: none;
+  .reminderToggleRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
   }
 
-  .tabBtn {
-    padding: 0.5rem 0.6rem;
+  .reminderToggleRow > label {
+    align-self: flex-end;
   }
 
-  /* Rewards: 1 column */
-  .rewardsGrid {
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
+  .reminderTimeGrid {
+    gap: 0.35rem;
   }
 
-  /* Badge showcase row: reduce items shown */
-  .badgesShowcaseRow {
-    gap: 0.5rem;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .badgesShowcaseRow::-webkit-scrollbar {
-    display: none;
-  }
-
-  .badgeName {
-    font-size: 0.62rem;
-  }
-
-  /* Settings form */
-  .settingsSection {
-    padding: 0.85rem;
-  }
-
-  .formGroup label {
-    font-size: 0.78rem;
-  }
-
-  .formInput,
-  .formTextarea {
-    font-size: 0.85rem;
-  }
-
-  /* Tier header */
-  .identityTierBadge {
-    font-size: 0.68rem;
-    padding: 0.15rem 0.4rem;
-  }
-
-  /* Recent activity */
-  .activityItemText {
-    font-size: 0.8rem;
-  }
-
-  .activityMeta {
-    font-size: 0.68rem;
+  .reminderTimeBtn {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.75rem;
   }
 }
 
-/* ── 400px: Small Phone ── */
-@media (max-width: 400px) {
-  .profileContainer {
-    padding: 0.5rem 0.5rem;
-  }
-
+/* ── 360px: Small Screen (Galaxy Fold / compact) ── */
+@media (max-width: 360px) {
   .identityCard {
     padding: 0.75rem;
   }
 
   .avatarWrapper {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
   }
 
-  .avatarFallback {
-    font-size: 1rem;
-  }
-
-  .userName {
-    font-size: 1rem;
-  }
-
-  .userHandle {
-    font-size: 0.72rem;
-  }
-
-  /* Badges grid */
-  .badgesGrid {
+  .physGrid {
     grid-template-columns: 1fr;
   }
 
-  /* Achievement card: very compact */
-  .achievementCard {
-    padding: 0.7rem;
+  .circleContainer {
+    width: 105px;
+    height: 105px;
   }
 
-  .achIconWrap {
-    width: 34px;
-    height: 34px;
-  }
-
-  .achName {
-    font-size: 0.83rem;
-  }
-
-  /* Stats ring compact */
-  .statsRingsRow {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.35rem;
-  }
-
-  /* Tab bar */
-  .tabBar {
-    gap: 0.15rem;
+  .circleNumber {
+    font-size: 1.2rem;
   }
 
   .tabBtn {
-    padding: 0.45rem 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.55rem 0.65rem;
+    font-size: 0.72rem;
   }
 
-  /* Settings: tighten */
-  .settingsSection {
-    padding: 0.7rem;
-  }
-}
-
-/* ── 360px: Very Small Phone ── */
-@media (max-width: 360px) {
-  .profileContainer {
-    padding: 0.4rem;
+  .badgeHexagon {
+    width: 40px;
+    height: 40px;
   }
 
-  .identityCard {
-    padding: 0.65rem;
-  }
-
-  .avatarSection {
-    gap: 0.6rem;
-  }
-
-  .avatarWrapper {
-    width: 52px;
-    height: 52px;
-  }
-
-  .userName {
-    font-size: 0.95rem;
-  }
-
-  .statsRingsRow {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.3rem;
-  }
-
-  .achievementCard {
-    padding: 0.65rem;
-    gap: 0.4rem;
-  }
-
-  .badgeStepsOverlay {
-    padding: 0.6rem;
-    gap: 0.4rem;
-  }
-
-  .stepItem {
-    font-size: 0.68rem;
-  }
-
-  .stepNumber {
-    width: 16px;
-    height: 16px;
-    font-size: 0.55rem;
-  }
-
-  .tabBtn {
-    padding: 0.4rem 0.45rem;
-  }
-}
-
-/* ── 320px: Minimum Support ── */
-@media (max-width: 320px) {
-  .profileContainer {
-    padding: 0.35rem;
-  }
-
-  .identityCard {
-    padding: 0.55rem;
-  }
-
-  .avatarWrapper {
-    width: 48px;
-    height: 48px;
-  }
-
-  .avatarFallback {
-    font-size: 0.9rem;
-  }
-
-  .userName {
-    font-size: 0.9rem;
-  }
-
-  .userHandle {
-    font-size: 0.68rem;
-  }
-
-  .statsRingsRow {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.25rem;
-  }
-
-  .statValue {
-    font-size: 0.95rem;
-  }
-
-  .statLabel {
-    font-size: 0.58rem;
-  }
-
-  .tabBtn {
-    padding: 0.4rem 0.4rem;
-  }
-
-  .achievementCard {
-    padding: 0.55rem;
-    gap: 0.35rem;
-  }
-
-  .achIconWrap {
-    width: 30px;
-    height: 30px;
-  }
-
-  .achName {
-    font-size: 0.78rem;
-  }
-
-  .achDesc {
-    font-size: 0.68rem;
-  }
-
-  /* Overlay tightened */
-  .badgeStepsOverlay {
-    padding: 0.5rem;
-  }
-
-  .stepsOverlayHeading {
-    font-size: 0.6rem;
-  }
-
-  .stepItem {
-    font-size: 0.64rem;
-    gap: 0.3rem;
-  }
-
-  .stepNumber {
-    width: 14px;
-    height: 14px;
-    font-size: 0.5rem;
+  .badgeItemName {
+    font-size: 0.65rem;
+    max-width: 50px;
   }
 }
 
