@@ -4,11 +4,15 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-// Auto-attach JWT token to every request
+// Auto-attach JWT token and Session ID to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  const sessionId = localStorage.getItem("sessionId");
+  if (sessionId) {
+    config.headers["X-Session-Id"] = sessionId;
   }
   return config;
 });
@@ -23,6 +27,7 @@ api.interceptors.response.use(
       const hadToken = !!localStorage.getItem("token");
       if (hadToken) {
         localStorage.removeItem("token");
+        localStorage.removeItem("sessionId");
         window.location.href = "/login";
       }
     }

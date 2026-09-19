@@ -1,6 +1,7 @@
 // server/src/controllers/focusController.js
 import FocusLog from "../models/FocusLog.js";
 import { getTodayIST, normalizeDateIST } from "../utils/getTodayIST.js";
+import { recordActivityEvent } from "../services/activity.service.js";
 
 // POST /api/focus/log  (auth required)
 // body: { durationMin: number, sessionType?: string, status?: string }
@@ -24,6 +25,13 @@ export const logFocus = async (req, res) => {
       durationMin,
       sessionType,
       status,
+    });
+
+    recordActivityEvent({
+      userId,
+      eventType: "FOCUS_SESSION_COMPLETED",
+      metadata: { durationMin, sessionType, status },
+      req,
     });
 
     return res.status(201).json({ message: "Focus logged", log });

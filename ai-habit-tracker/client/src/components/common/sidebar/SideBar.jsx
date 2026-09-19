@@ -22,6 +22,7 @@ import {
   FiBookOpen,
   FiAward,
   FiGift,
+  FiShield,
 } from "react-icons/fi";
 import styles from "./SideBar.module.css";
 
@@ -104,6 +105,18 @@ function Sidebar() {
           {renderNavLink("/timetable", FiClock, "Timetable Section")}
           {renderNavLink("/profile", FiUser, "Profile")}
           {renderNavLink("/about", FiInfo, "About Us")}
+          {(user?.isAdmin || user?.role === "admin") && (
+            <NavLink
+              to="/admin"
+              onClick={closeSidebar}
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+              }
+            >
+              <FiShield className={styles.navIcon} />
+              <span>Admin Panel</span>
+            </NavLink>
+          )}
         </nav>
 
         {/* Footer */}

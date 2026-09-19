@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../services/email.service.js";
+import { createSession, recordActivityEvent } from "../services/activity.service.js";
 
 // Helper: Get base client URL
 const getClientUrl = () => {
@@ -209,9 +210,12 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    const { sessionId } = await createSession({ userId: user._id, req });
+
     res.json({
       message: "Login successful",
       token,
+      sessionId,
       user: {
         id: user._id,
         name: user.name,

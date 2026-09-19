@@ -4,6 +4,7 @@ import HabitLog from "../models/HabitLog.js";
 import CalorieProfile from "../models/CalorieProfile.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
 import { completeWithGroq, extractAndParseJSON } from "../utils/aiClient.js";
+import { recordActivityEvent } from "../services/activity.service.js";
 
 /* ─────────────────────────────────────────
    PRE-COMPUTE STATS
@@ -259,6 +260,13 @@ Required JSON schema:
         .filter(Boolean)
         .join(" ");
     }
+
+    recordActivityEvent({
+      userId: req.user._id || req.user,
+      eventType: "AI_INSIGHTS_GENERATED",
+      metadata: { type: "habits_insights" },
+      req,
+    });
 
     return res.json({ ai: parsed });
   } catch (err) {

@@ -46,13 +46,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = (newToken) => {
+  const login = (newToken, newSessionId) => {
     localStorage.setItem("token", newToken);
+    if (newSessionId) {
+      localStorage.setItem("sessionId", newSessionId);
+    }
     setToken(newToken);
   };
 
   const logout = () => {
+    const currentSessionId = localStorage.getItem("sessionId");
+    if (currentSessionId) {
+      api.post("/activity/session/logout", { sessionId: currentSessionId }).catch(() => {});
+    }
     localStorage.removeItem("token");
+    localStorage.removeItem("sessionId");
     setToken(null);
     setUser(null);
     setProfile(null);
