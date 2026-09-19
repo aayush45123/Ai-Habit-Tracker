@@ -36,7 +36,7 @@ function Login() {
       const res = await api.post("/auth/login", form);
 
       if (res.status === 200) {
-        login(res.data.token);
+        login(res.data.token, res.data.sessionId);
         navigate("/dashboard");
       }
     } catch (err) {

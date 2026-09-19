@@ -17,6 +17,7 @@ import {
   emitNotification,
 } from "../services/socket.service.js";
 import { processHabitCompletion } from "../services/gamification.service.js";
+import { recordActivityEvent } from "../services/activity.service.js";
 
 const purgeUserDashboardCache = (user) => {
   if (!user) return;
@@ -221,6 +222,13 @@ export const addHabit = async (req, res) => {
 
     purgeUserDashboardCache(req.user);
 
+    recordActivityEvent({
+      userId: req.user._id || req.user,
+      eventType: "HABIT_CREATED",
+      metadata: { category: habit.category, frequency: habit.frequency },
+      req,
+    });
+
     // Emit real-time event
     const userId = req.user._id ? req.user._id.toString() : req.user.toString();
     emitDashboardUpdate(userId, { type: "habit:added", habit });
@@ -373,6 +381,13 @@ export const deleteHabit = async (req, res) => {
 
     purgeUserDashboardCache(req.user);
 
+    recordActivityEvent({
+      userId: req.user._id || req.user,
+      eventType: "HABIT_DELETED",
+      metadata: { habitId: req.params.id },
+      req,
+    });
+
     // Emit real-time event
     const userId = req.user._id ? req.user._id.toString() : req.user.toString();
     emitDashboardUpdate(userId, { type: "habit:deleted", habitId: req.params.id });
@@ -458,6 +473,13 @@ export const logHabit = async (req, res) => {
         currentStreak,
       }).catch((gamErr) => console.error("Gamification hook error:", gamErr));
     }
+
+    recordActivityEvent({
+      userId,
+      eventType: "HABIT_COMPLETED",
+      metadata: { status, streak: currentStreak },
+      req,
+    });
 
     res.json({
       message: "Habit logged",

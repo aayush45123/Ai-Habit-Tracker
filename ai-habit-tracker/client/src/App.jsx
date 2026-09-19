@@ -22,6 +22,7 @@ const AIChat         = lazy(() => import("./pages/AIChat/AIChat"));
 const ChallengePage  = lazy(() => import("./pages/Challenge/ChallengePage"));
 const HabitTemplates = lazy(() => import("./pages/HabitTemplates/HabitTemplates"));
 const AdminTemplates = lazy(() => import("./pages/admin/AdminTemplates"));
+const AdminPortal    = lazy(() => import("./pages/admin/AdminPortal"));
 const Pomodoro       = lazy(() => import("./pages/Focus/Pomodoro"));
 const About          = lazy(() => import("./pages/About/About"));
 const Calories       = lazy(() => import("./pages/Calories/Calories"));
@@ -34,6 +35,8 @@ const AchievementsPage = lazy(() => import("./pages/Achievements/AchievementsPag
 const RewardsPage    = lazy(() => import("./pages/Rewards/RewardsPage"));
 
 import AchievementModal from "./components/AchievementModal/AchievementModal";
+import { useAuth } from "./context/AuthContext";
+import useActivityTracker from "./hooks/useActivityTracker";
 
 // ─── Layout / Guards (small, loaded with shell) ──────────────────────────────
 import MainLayout from "./layout/MainLayout";
@@ -44,6 +47,9 @@ import ProfileRequiredRoute from "./utils/ProfileRequiredRoute";
 import ScrollToTop from "./components/common/ScrollToTop/ScrollToTop";
 
 function App() {
+  const { token } = useAuth();
+  useActivityTracker({ isAuthenticated: !!token });
+
   return (
     <>
       <ScrollToTop />
@@ -118,6 +124,22 @@ function App() {
                   element={
                     <ProtectedAdminRoute>
                       <AdminTemplates />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedAdminRoute>
+                      <AdminPortal />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ProtectedAdminRoute>
+                      <AdminPortal />
                     </ProtectedAdminRoute>
                   }
                 />

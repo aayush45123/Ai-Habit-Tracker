@@ -9,6 +9,14 @@ import {
   createTemplate,
   deleteTemplate,
 } from "../controllers/adminController.js";
+import {
+  getAnalyticsOverview,
+  getAnalyticsUsers,
+  getAnalyticsUserById,
+  getAnalyticsActivity,
+  getDailyUsageAnalytics,
+  getFeatureUsageAnalytics,
+} from "../controllers/adminAnalyticsController.js";
 
 const router = express.Router();
 
@@ -25,5 +33,13 @@ router.delete("/users/:id", deleteUser);
 // Habit Templates Management
 router.post("/templates", createTemplate);
 router.delete("/templates/:id", deleteTemplate);
+
+// Analytics Routes (/api/admin/analytics/*)
+router.get("/analytics/overview", getAnalyticsOverview);
+router.get("/analytics/users", getAnalyticsUsers);
+router.get("/analytics/user/:id", getAnalyticsUserById);
+router.get("/analytics/activity", getAnalyticsActivity);
+router.get("/analytics/daily-usage", getDailyUsageAnalytics);
+router.get("/analytics/feature-usage", getFeatureUsageAnalytics);
 
 export default router;

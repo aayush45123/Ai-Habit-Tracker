@@ -1,7 +1,7 @@
-// server/src/controllers/challengeController.js (COMPLETE FIX WITH DEBUGGING)
 import Challenge from "../models/Challenge.js";
 import ChallengeLog from "../models/ChallengeLog.js";
 import { getTodayIST, normalizeDateIST } from "../utils/getTodayIST.js";
+import { recordActivityEvent } from "../services/activity.service.js";
 
 /* -----------------------------------------------------
    Convert "06:00 AM" → "06:00" (24-hour)
@@ -106,6 +106,13 @@ export const startChallenge = async (req, res) => {
       endDate: endDateISO,
       durationDays: totalDays,
       isActive: true,
+    });
+
+    recordActivityEvent({
+      userId: req.user._id || req.user,
+      eventType: "CHALLENGE_STARTED",
+      metadata: { durationDays: totalDays, habitCount: formattedHabits.length },
+      req,
     });
 
     res.json({ message: "Challenge started successfully!", challenge });
@@ -535,6 +542,13 @@ export const markHabitDone = async (req, res) => {
       { status: "done" },
       { upsert: true }
     );
+
+    recordActivityEvent({
+      userId: req.user._id || req.user,
+      eventType: "CHALLENGE_HABIT_COMPLETED",
+      metadata: { challengeId: id, habitIndex },
+      req,
+    });
 
     res.json({ message: "Habit marked done!" });
   } catch (err) {
