@@ -8,12 +8,14 @@ import NutritionRecommendation from "../../components/NutritionRecommendation/Nu
 import CalorieAnalytics from "../../components/CalorieAnalytics/CalorieAnalytics";
 import WeeklyCheckIn from "../../components/WeeklyCheckIn/WeeklyCheckIn";
 import styles from "./Calories.module.css";
+import { CaloriesSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 export default function Calories() {
   const navigate = useNavigate();
   const { profile, refreshProfile } = useAuth();
   const [food, setFood] = useState("");
   const [status, setStatus] = useState(null);
+  const [pageLoading, setPageLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [refreshSummary, setRefreshSummary] = useState(0);
   const [showWeeklyCheckIn, setShowWeeklyCheckIn] = useState(false);
@@ -38,10 +40,12 @@ export default function Calories() {
           dailyGoal: profile.dailyGoal || 2000,
           proteinGoal: profile.proteinGoal || 100,
         });
-        loadStatus();
+        await loadStatus();
       }
     } catch (err) {
       console.error("Error loading data:", err);
+    } finally {
+      setPageLoading(false);
     }
   }
 
@@ -148,6 +152,8 @@ export default function Calories() {
     setShowWeeklyCheckIn(false);
     loadData();
   }
+
+  if (pageLoading) return <CaloriesSkeleton />;
 
   return (
     <div className={styles.container}>

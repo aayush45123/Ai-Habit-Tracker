@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import { useGamification } from "../../context/GamificationContext";
 import GamificationIcon from "../../components/GamificationIcon/GamificationIcon";
 import { Coins, Shield, Check, AlertCircle } from "lucide-react";
 import styles from "./RewardsPage.module.css";
+import { RewardsSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 const CATEGORIES = [
   { id: "all", label: "All Items" },
@@ -115,11 +116,7 @@ export default function RewardsPage() {
 
       {/* Grid */}
       {loading ? (
-        <div className={styles.loadingGrid}>
-          <div className={styles.cardSkeleton}></div>
-          <div className={styles.cardSkeleton}></div>
-          <div className={styles.cardSkeleton}></div>
-        </div>
+        <RewardsSkeleton />
       ) : (
         <div className={styles.grid}>
           {filtered.map((item) => {

@@ -17,6 +17,7 @@ import {
   Calendar,
 } from "lucide-react";
 import styles from "./ProgressionPage.module.css";
+import { ProgressionSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 export default function ProgressionPage() {
   const {
@@ -74,6 +75,8 @@ export default function ProgressionPage() {
     await loadChallenges();
     setGeneratingAI(false);
   };
+
+  if (loading) return <ProgressionSkeleton />;
 
   const profile = overview?.profile || {
     level: 1,
@@ -191,10 +194,7 @@ export default function ProgressionPage() {
         </div>
 
         {loadingChallenges ? (
-          <div className={styles.loadingGrid}>
-            <div className={styles.cardSkeleton}></div>
-            <div className={styles.cardSkeleton}></div>
-          </div>
+          <ProgressionSkeleton />
         ) : challenges.length === 0 ? (
           <div className={styles.emptyCard}>
             <Sparkles size={24} />
