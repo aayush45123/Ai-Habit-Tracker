@@ -80,8 +80,6 @@ export default function useActivityTracker({ isAuthenticated }) {
     // Bootstrap
     resetInactivityTimer();
     startHeartbeat();
-    // Send first heartbeat immediately on mount (for session init)
-    sendHeartbeat();
 
     return () => {
       stopHeartbeat();
