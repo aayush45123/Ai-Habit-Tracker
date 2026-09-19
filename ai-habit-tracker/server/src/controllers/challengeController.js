@@ -241,15 +241,6 @@ export const getCurrentChallenge = async (req, res) => {
     const currentMinute = istNow.getUTCMinutes();
     const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
-    console.log("🕐 Current IST Time:", {
-      hour: currentHour,
-      minute: currentMinute,
-      totalMinutes: currentTimeInMinutes,
-      formatted: `${String(currentHour).padStart(2, "0")}:${String(
-        currentMinute
-      ).padStart(2, "0")}`,
-    });
-
     const logs = await ChallengeLog.find({ challengeId: challenge._id });
 
     const TOTAL_DAYS =
@@ -282,30 +273,14 @@ export const getCurrentChallenge = async (req, res) => {
           return log ? "done" : "expired";
         }
 
-        // ✅ Today - use the fixed function
+        // Today - status determination
         if (iso === todayISO) {
-          const status = getHabitStatusForToday(
+          return getHabitStatusForToday(
             currentTimeInMinutes,
             startTimeInMinutes,
             endTimeInMinutes,
             !!log
           );
-
-          // Debug log for the 7th habit (sleep)
-          if (index === 6) {
-            console.log(`🛏️ Habit #${index + 1} (${habit.title}):`, {
-              startTime: habit.startTime,
-              endTime: habit.endTime,
-              startMinutes: startTimeInMinutes,
-              endMinutes: endTimeInMinutes,
-              currentMinutes: currentTimeInMinutes,
-              isMidnightSpanning: startTimeInMinutes > endTimeInMinutes,
-              hasLog: !!log,
-              status,
-            });
-          }
-
-          return status;
         }
 
         // ✅ Future days

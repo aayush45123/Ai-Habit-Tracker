@@ -939,12 +939,8 @@ export default function TimetablePage() {
                 assessment={aiAssessment}
                 currentSchedule={activeTimetable.weeklySchedule}
                 timetableId={activeTimetable._id}
-                onApplySuggestion={(suggestion) => {
-                  console.log("Applied suggestion:", suggestion);
-                }}
-                onRejectSuggestion={(suggestion) => {
-                  console.log("Rejected suggestion:", suggestion);
-                }}
+                onApplySuggestion={() => {}}
+                onRejectSuggestion={() => {}}
               />
             )}
 

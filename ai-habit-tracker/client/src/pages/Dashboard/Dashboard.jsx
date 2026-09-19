@@ -57,7 +57,6 @@ export default function Dashboard() {
   // Real-time dashboard refresh via Socket.IO
   useEffect(() => {
     const unsubscribe = subscribe("dashboard:update", (data) => {
-      console.log("⚡ dashboard:update received:", data);
       // Perform silent refresh of habits list without triggering full component reload
       fetchHabits(false);
       if (data?.type !== "habit:logged") {
