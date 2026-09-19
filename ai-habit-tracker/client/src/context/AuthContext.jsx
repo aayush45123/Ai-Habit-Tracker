@@ -56,9 +56,27 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     const currentSessionId = localStorage.getItem("sessionId");
-    if (currentSessionId) {
-      api.post("/activity/session/logout", { sessionId: currentSessionId }).catch(() => {});
+    const currentToken = localStorage.getItem("token");
+
+    // Use native fetch with keepalive so it fires even during page unload,
+    // and bypasses the axios 401 interceptor entirely.
+    if (currentSessionId && currentToken) {
+      try {
+        fetch(`${import.meta.env.VITE_API_URL}/activity/session/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currentToken}`,
+            "X-Session-Id": currentSessionId,
+          },
+          body: JSON.stringify({ sessionId: currentSessionId }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {
+        // Silent — never block logout for analytics
+      }
     }
+
     localStorage.removeItem("token");
     localStorage.removeItem("sessionId");
     setToken(null);
