@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import GamificationIcon from "../../components/GamificationIcon/GamificationIcon";
 import { Trophy, Zap, Coins, Lock, CheckCircle } from "lucide-react";
 import styles from "./AchievementsPage.module.css";
+import { AchievementsSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 const CATEGORIES = [
   { id: "all", label: "All Badges" },
@@ -116,11 +117,7 @@ export default function AchievementsPage() {
 
       {/* Grid */}
       {loading ? (
-        <div className={styles.loadingGrid}>
-          <div className={styles.cardSkeleton}></div>
-          <div className={styles.cardSkeleton}></div>
-          <div className={styles.cardSkeleton}></div>
-        </div>
+        <AchievementsSkeleton />
       ) : filtered.length === 0 ? (
         <div className={styles.emptyCard}>No achievements found for this filter.</div>
       ) : (

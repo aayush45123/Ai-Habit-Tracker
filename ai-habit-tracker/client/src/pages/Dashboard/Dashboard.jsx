@@ -9,6 +9,7 @@ import GamificationWidget from "../../components/GamificationWidget/Gamification
 import { FaRobot, FaWifi } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext";
 import styles from "./Dashboard.module.css";
+import { DashboardSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 function formatDateISO(d = new Date()) {
   return d.toISOString().split("T")[0];
@@ -180,6 +181,8 @@ export default function Dashboard() {
     ? Math.round(weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length)
     : 0;
 
+  if (loading) return <DashboardSkeleton />;
+
   return (
     <div className={styles.dashRoot}>
       {/* ── PAGE HEADER ── */}
@@ -324,7 +327,7 @@ export default function Dashboard() {
             </div>
 
             {loading ? (
-              <div className={styles.muted}>Loading habits…</div>
+              <div className={styles.muted} style={{ textAlign: "center", padding: "2rem" }}>Loading habits…</div>
             ) : habits.length === 0 ? (
               <div className={styles.empty}>
                 <p>No habits yet.</p>

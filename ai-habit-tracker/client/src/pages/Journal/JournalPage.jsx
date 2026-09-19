@@ -7,6 +7,7 @@ import JournalCalendar from "../../components/Journal/JournalCalendar";
 import JournalAnalytics from "../../components/Journal/JournalAnalytics";
 import JournalReports from "../../components/Journal/JournalReports";
 import JournalTemplatesManager from "../../components/Journal/JournalTemplatesManager";
+import { JournalSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 import {
   FiBookOpen,
@@ -24,6 +25,7 @@ import {
 export default function JournalPage() {
   const [activeTab, setActiveTab] = useState("form");
   const [targetDate, setTargetDate] = useState(new Date().toISOString().split("T")[0]);
+  const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState({
     totalEntries: 0,
     currentStreak: 0,
@@ -43,6 +45,8 @@ export default function JournalPage() {
       }
     } catch (err) {
       console.error("Failed to load journal summary:", err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -50,6 +54,8 @@ export default function JournalPage() {
     setTargetDate(dateStr);
     setActiveTab("form");
   };
+
+  if (loading) return <JournalSkeleton />;
 
   return (
     <div className={styles.journalContainer}>

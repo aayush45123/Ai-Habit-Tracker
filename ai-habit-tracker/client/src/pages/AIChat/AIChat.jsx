@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./AIChat.module.css";
+import { AIChatSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 export default function AIChat() {
   const [insights, setInsights] = useState(null);
@@ -23,11 +24,7 @@ export default function AIChat() {
   }
 
   if (loading) {
-    return (
-      <div className={styles.aiLoading}>
-        Analyzing your habits and patterns…
-      </div>
-    );
+    return <AIChatSkeleton />;
   }
 
   if (!insights) {

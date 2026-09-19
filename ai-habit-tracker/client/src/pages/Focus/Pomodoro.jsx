@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import api from "../../utils/api";
 import styles from "./Pomodoro.module.css";
 import PomodoroAnalytics from "../../components/PomodoroAnalytics/PomodoroAnalytics";
+import { FocusSkeleton } from "../../components/Skeleton/Skeleton.jsx";
 
 const DEFAULTS = {
   focus: 25 * 60,
@@ -35,6 +36,7 @@ export default function Pomodoro() {
   const [completedToday, setCompletedToday] = useState(0);
   const [skippedToday, setSkippedToday] = useState(0);
   const [wasSkipped, setWasSkipped] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const tickRef = useRef(null);
   const audioRef = useRef(null);
 

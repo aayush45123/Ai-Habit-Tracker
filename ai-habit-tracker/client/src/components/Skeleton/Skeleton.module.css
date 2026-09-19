@@ -77,6 +77,7 @@
   flex-direction: column;
   gap: 1.5rem;
   overflow: hidden;
+  min-width: 0;
 }
 
 .appShellPageTitle {
@@ -114,4 +115,869 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+/* ============================================================
+   PAGE-SPECIFIC SKELETON WRAPPERS
+   ============================================================ */
+
+/* ── Dashboard Skeleton ── */
+.dashSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.dashSkeletonHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dashSkeletonHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.dashSkeletonStatsBar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  border: 2px solid var(--color-border);
+  overflow: hidden;
+}
+
+.dashSkeletonStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1rem 0.5rem;
+  border-right: 2px solid var(--color-border);
+}
+
+.dashSkeletonStat:last-child {
+  border-right: none;
+}
+
+.dashSkeletonGamification {
+  width: 100%;
+  height: 80px;
+  border-radius: 0;
+}
+
+.dashSkeletonGrid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.dashSkeletonHabitsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+.dashSkeletonPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashSkeletonProgressBar {
+  height: 6px;
+  width: 100%;
+  border-radius: 3px;
+}
+
+.dashSkeletonHabitList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.dashSkeletonHabitCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+}
+
+.dashSkeletonSidebarCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dashSkeletonSidePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+/* ── AIChat Skeleton ── */
+.aiChatSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.aiChatSkeletonHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.aiChatSkeletonSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+.aiChatSkeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.aiChatSkeletonStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 2px solid var(--color-border);
+  padding: 0.875rem;
+}
+
+.aiChatSkeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1rem;
+}
+
+/* ── Journal Skeleton ── */
+.journalSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.journalSkeletonHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.journalSkeletonStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.journalSkeletonStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 2px solid var(--color-border);
+  padding: 1rem;
+  align-items: center;
+}
+
+.journalSkeletonTabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 0.25rem;
+}
+
+.journalSkeletonContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+}
+
+.journalSkeletonInputArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Calories Skeleton ── */
+.caloriesSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.caloriesSkeletonHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.caloriesSkeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+.caloriesSkeletonStatusGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.caloriesSkeletonStatusItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.caloriesSkeletonInputRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* ── Progression Skeleton ── */
+.progressionSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.progressionSkeletonHero {
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.progressionSkeletonHeroMain {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.progressionSkeletonHeroMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.progressionSkeletonHeroStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.progressionSkeletonStatBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 2px solid var(--color-border);
+  padding: 0.875rem;
+}
+
+.progressionSkeletonSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.progressionSkeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.progressionSkeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+/* ── Focus/Pomodoro Skeleton ── */
+.focusSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.focusSkeletonHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.focusSkeletonTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.focusSkeletonControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.focusSkeletonStats {
+  display: flex;
+  gap: 1rem;
+}
+
+.focusSkeletonCard {
+  border: 2px solid var(--color-border);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.focusSkeletonTimer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.focusSkeletonActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.focusSkeletonAnalytics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.focusSkeletonAnalyticsCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 2px solid var(--color-border);
+  padding: 1rem;
+}
+
+/* ── Achievements Skeleton ── */
+.achievementsSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.achievementsSkeletonHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.achievementsSkeletonHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.achievementsSkeletonProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+  border: 2px solid var(--color-border);
+  padding: 0.875rem;
+}
+
+.achievementsSkeletonFilters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.achievementsSkeletonFilterGroup {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.achievementsSkeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.achievementsSkeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+/* ── Rewards Skeleton ── */
+.rewardsSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.rewardsSkeletonHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.rewardsSkeletonHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.rewardsSkeletonBalances {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rewardsSkeletonBalance {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 0.875rem 1.25rem;
+}
+
+.rewardsSkeletonTabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rewardsSkeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.rewardsSkeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+/* ── Challenge Skeleton ── */
+.challengeSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+}
+
+.challengeSkeletonHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.challengeSkeletonHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.challengeSkeletonDuration {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+}
+
+.challengeSkeletonDurationPills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.challengeSkeletonHabits {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.challengeSkeletonHabitRow {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-bg-tertiary);
+}
+
+/* ── Profile Skeleton ── */
+.profileSkeleton {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 100%;
+  min-height: 100vh;
+}
+
+.profileSkeletonSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profileSkeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+  align-items: center;
+}
+
+.profileSkeletonStats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.profileSkeletonStatRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profileSkeletonMain {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profileSkeletonHeatmap {
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profileSkeletonHeatmapGrid {
+  display: grid;
+  grid-template-columns: repeat(52, 1fr);
+  gap: 3px;
+  overflow: hidden;
+}
+
+.profileSkeletonHeatmapCell {
+  aspect-ratio: 1;
+  min-width: 10px;
+}
+
+.profileSkeletonTabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.profileSkeletonTabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 2px solid var(--color-border);
+  padding: 1.5rem;
+}
+
+.profileSkeletonActivityList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profileSkeletonActivityItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-bg-tertiary);
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE OVERRIDES  (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* App shell — hide sidebar on mobile */
+  .appShell {
+    flex-direction: column;
+  }
+
+  .appShellSidebar {
+    display: none;
+  }
+
+  .appShellMain {
+    padding: 1rem;
+  }
+
+  .appShellCardGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Dashboard */
+  .dashSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .dashSkeletonHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashSkeletonStatsBar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashSkeletonStat:nth-child(4),
+  .dashSkeletonStat:nth-child(5) {
+    border-right: none;
+  }
+
+  .dashSkeletonStat:nth-child(3) {
+    border-right: none;
+  }
+
+  .dashSkeletonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* AIChat */
+  .aiChatSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .aiChatSkeletonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Journal */
+  .journalSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .journalSkeletonStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .journalSkeletonTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.4rem;
+  }
+
+  /* Calories */
+  .caloriesSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .caloriesSkeletonHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .caloriesSkeletonStatusGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Progression */
+  .progressionSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .progressionSkeletonHeroMain {
+    flex-direction: column;
+  }
+
+  .progressionSkeletonHeroStats {
+    grid-template-columns: 1fr;
+  }
+
+  .progressionSkeletonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Focus */
+  .focusSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .focusSkeletonTop {
+    flex-direction: column;
+  }
+
+  .focusSkeletonControls {
+    flex-wrap: wrap;
+  }
+
+  .focusSkeletonAnalytics {
+    grid-template-columns: 1fr;
+  }
+
+  /* Achievements */
+  .achievementsSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .achievementsSkeletonHeader {
+    flex-direction: column;
+  }
+
+  .achievementsSkeletonProgress {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .achievementsSkeletonGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Rewards */
+  .rewardsSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .rewardsSkeletonHeader {
+    flex-direction: column;
+  }
+
+  .rewardsSkeletonGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Challenge */
+  .challengeSkeleton {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .challengeSkeletonHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .challengeSkeletonHabitRow {
+    grid-template-columns: 28px 1fr;
+    row-gap: 0.5rem;
+  }
+
+  /* Profile */
+  .profileSkeleton {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .profileSkeletonHeatmapGrid {
+    grid-template-columns: repeat(26, 1fr);
+  }
+}
+
+/* ── Narrow mobile ≤ 480px ── */
+@media (max-width: 480px) {
+  .dashSkeletonStatsBar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .journalSkeletonStats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .caloriesSkeletonStatusGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .achievementsSkeletonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rewardsSkeletonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileSkeletonHeatmapGrid {
+    grid-template-columns: repeat(18, 1fr);
+  }
 }
