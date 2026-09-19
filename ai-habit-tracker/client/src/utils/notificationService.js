@@ -29,14 +29,11 @@ class NotificationService {
       this.permission = permission;
 
       if (permission === "granted") {
-        console.log("Notification permission granted");
         await this.registerServiceWorker();
         return true;
       } else if (permission === "denied") {
-        console.warn("Notification permission denied");
         return false;
       } else {
-        console.log("Notification permission dismissed");
         return false;
       }
     } catch (error) {
@@ -57,11 +54,9 @@ class NotificationService {
         );
 
         this.serviceWorkerRegistration = registration;
-        console.log("Service Worker registered:", registration);
 
         // Wait for service worker to be ready
         await navigator.serviceWorker.ready;
-        console.log("Service Worker is ready");
 
         return registration;
       } catch (error) {
@@ -164,7 +159,6 @@ class NotificationService {
    */
   async startMonitoring(challenge, days) {
     if (!challenge || !days || days.length === 0) {
-      console.log("No active challenge to monitor");
       return;
     }
 
@@ -172,8 +166,6 @@ class NotificationService {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
     }
-
-    console.log("Starting habit monitoring for notifications...");
 
     // Check immediately
     this.checkHabitsAndNotify(challenge, days);
@@ -194,7 +186,6 @@ class NotificationService {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
-      console.log("Stopped habit monitoring");
     }
   }
 
@@ -227,8 +218,6 @@ class NotificationService {
             { action: "dismiss", title: "Dismiss" },
           ],
         });
-
-        console.log(`Sent reminder for: ${habit.title}`);
       }
 
       // Check for urgent 5-minute alert
@@ -247,8 +236,6 @@ class NotificationService {
             { action: "dismiss", title: "Dismiss" },
           ],
         });
-
-        console.log(`Sent urgent alert for: ${habit.title}`);
       }
     });
   }

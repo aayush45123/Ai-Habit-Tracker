@@ -413,7 +413,6 @@ export const logHabit = async (req, res) => {
       // Update existing log instead of creating duplicate
       existingLog.status = status;
       await existingLog.save();
-      console.log(`Updated existing log for ${todayISO} to ${status}`);
     } else {
       // Create new log
       await HabitLog.create({
@@ -421,7 +420,6 @@ export const logHabit = async (req, res) => {
         date: todayISO,
         status,
       });
-      console.log(`Created new log for ${todayISO} with status ${status}`);
     }
 
     // Recalculate streaks

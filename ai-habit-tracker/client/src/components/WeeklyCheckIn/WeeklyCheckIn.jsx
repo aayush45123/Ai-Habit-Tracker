@@ -61,8 +61,6 @@ export default function WeeklyCheckIn({ onComplete }) {
         }
       }
 
-      console.log("📤 Submitting check-in:", answers);
-
       const response = await api.post("/calories/weekly-checkin", {
         weightChange: answers.weightChange,
         feelingBetter: answers.feelingBetter,
@@ -70,8 +68,6 @@ export default function WeeklyCheckIn({ onComplete }) {
         updateProfile: answers.updateProfile,
         newWeight: answers.newWeight ? Number(answers.newWeight) : null,
       });
-
-      console.log("✅ Check-in submitted successfully:", response.data);
 
       // Show success message if profile was updated
       if (response.data.profileUpdated && response.data.newRecommendations) {

@@ -26,12 +26,11 @@ export function connectSocket(token) {
   });
 
   socket.on("connect", () => {
-    console.log("⚡ Socket connected:", socket.id);
     socket.emit("join:user");
   });
 
-  socket.on("disconnect", (reason) => {
-    console.log("⚡ Socket disconnected:", reason);
+  socket.on("disconnect", () => {
+    // Socket disconnected
   });
 
   socket.on("connect_error", (err) => {

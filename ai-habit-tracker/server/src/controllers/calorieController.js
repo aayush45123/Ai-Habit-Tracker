@@ -281,8 +281,6 @@ export const saveCalorieProfile = async (req, res) => {
     const isOnlyGoalsUpdate = dailyGoal && proteinGoal && !age && !height && !weight;
     if (existingProfile && isOnlyGoalsUpdate) {
       // Manual goal update - don't recalculate, just save the custom values
-      console.log("Updating goals manually:", { dailyGoal, proteinGoal });
-
       const updatedProfile = await CalorieProfile.findOneAndUpdate(
         { userId },
         {
@@ -319,15 +317,6 @@ export const saveCalorieProfile = async (req, res) => {
     const finalProteinGoal = proteinGoal
       ? Number(proteinGoal)
       : recommendations.protein;
-
-    console.log("Creating/updating profile with goals:", {
-      dailyGoal: finalDailyGoal,
-      proteinGoal: finalProteinGoal,
-      aiRecommended: {
-        calories: recommendations.calories,
-        protein: recommendations.protein,
-      },
-    });
 
     const profile = await CalorieProfile.findOneAndUpdate(
       { userId },
@@ -688,16 +677,7 @@ export const saveWeeklyCheckIn = async (req, res) => {
       newWeight,
     } = req.body;
 
-    console.log("Weekly check-in received:", {
-      weightChange,
-      feelingBetter,
-      energyLevel,
-      updateProfile,
-      newWeight,
-      userId,
-    });
-
-    // ✅ FIXED: Validate required fields
+    // Validate required fields
     if (!weightChange || !feelingBetter || !energyLevel) {
       console.error("Validation failed: Missing required fields");
       return res.status(400).json({
@@ -724,7 +704,7 @@ export const saveWeeklyCheckIn = async (req, res) => {
       }
     }
 
-    // ✅ Create check-in record
+    // Create check-in record
     const checkIn = await WeeklyCheckIn.create({
       userId,
       weightChange,
@@ -733,9 +713,7 @@ export const saveWeeklyCheckIn = async (req, res) => {
       updatedProfile: updateProfile === true,
     });
 
-    console.log("Check-in saved successfully:", checkIn._id);
-
-    // ✅ Update profile if requested AND newWeight is provided
+    // Update profile if requested AND newWeight is provided
     if (updateProfile === true && newWeight) {
       const profile = await CalorieProfile.findOne({ userId });
 
@@ -748,10 +726,7 @@ export const saveWeeklyCheckIn = async (req, res) => {
         });
       }
 
-      const oldWeight = profile.weight;
       const newWeightNum = Number(newWeight);
-
-      console.log(`Updating weight: ${oldWeight}kg → ${newWeightNum}kg`);
 
       // Update weight
       profile.weight = newWeightNum;
@@ -762,12 +737,6 @@ export const saveWeeklyCheckIn = async (req, res) => {
       profile.proteinGoal = recommendations.protein;
 
       await profile.save();
-
-      console.log("Profile updated:", {
-        weight: profile.weight,
-        dailyGoal: profile.dailyGoal,
-        proteinGoal: profile.proteinGoal,
-      });
 
       return res.json({
         message: "Check-in saved and profile updated successfully!",
@@ -781,8 +750,7 @@ export const saveWeeklyCheckIn = async (req, res) => {
       });
     }
 
-    // ✅ Success without profile update
-    console.log("Check-in completed without profile update");
+    // Success without profile update
     res.json({
       message: "Check-in saved successfully!",
       checkIn,
