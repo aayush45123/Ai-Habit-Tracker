@@ -72,14 +72,23 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Session-Id"],
+    exposedHeaders: ["X-Session-Id"],
   }),
 );
 
 /* =======================
    ✅ PREFLIGHT FIX (NODE 22 SAFE)
 ======================= */
-app.options(/.*/, cors());
+app.options(
+  /.*/,
+  cors({
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Session-Id"],
+    exposedHeaders: ["X-Session-Id"],
+  })
+);
 
 /* =======================
    ROUTES - FIXED CALORIE PATH
