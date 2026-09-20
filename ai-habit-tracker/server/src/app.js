@@ -28,6 +28,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import journalRoutes from "./routes/journalRoutes.js";
 import gamificationRoutes from "./routes/gamificationRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
+import visitorRoutes from "./routes/visitorRoutes.js";
 import { seedGamificationData } from "./seeds/gamificationSeed.js";
 
 // Import streak reset function
@@ -118,6 +119,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/journal", journalRoutes);
 app.use("/api/gamification", gamificationRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/visitors", visitorRoutes);
 
 /* =======================
    SEED GAMIFICATION CATALOG

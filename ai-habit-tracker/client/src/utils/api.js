@@ -25,6 +25,7 @@ const SILENT_401_PATHS = [
   "/activity/heartbeat",
   "/activity/session/logout",
   "/activity/session/init",
+  "/visitors/track",
 ];
 
 // Prevent multiple rapid redirects (e.g. parallel requests all returning 401)

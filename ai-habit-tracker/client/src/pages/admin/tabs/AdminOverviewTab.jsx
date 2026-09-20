@@ -39,6 +39,26 @@ function BarChartBlock({ data, dataKey, label }) {
   );
 }
 
+function MultiTrendChart({ data, lines }) {
+  if (!data || data.length === 0) return <div className={styles.emptyState}>No data</div>;
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="2 2" stroke="#e6e6e6" />
+        <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
+        <YAxis tick={{ fontSize: 10 }} />
+        <Tooltip
+          labelStyle={{ fontFamily: "Sora, sans-serif", fontSize: 11 }}
+          contentStyle={{ border: "2px solid #000", borderRadius: 0, fontFamily: "Sora, sans-serif", fontSize: 11 }}
+        />
+        {lines.map((l) => (
+          <Line key={l.key} type="monotone" dataKey={l.key} name={l.label} stroke={l.color} strokeWidth={2} dot={false} strokeDasharray={l.dash} />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
 function fmtTime(seconds) {
   if (!seconds) return "0m";
   const h = Math.floor(seconds / 3600);
@@ -76,6 +96,10 @@ export default function AdminOverviewTab({ onNavigate }) {
   const summaryCards = [
     { label: "Total Users",         value: summary.totalUsers,                     unit: "registered" },
     { label: "Active Today (DAU)",  value: summary.dau,                            unit: "users" },
+    { label: "Visitors Today",      value: summary.visitorsToday ?? 0,             unit: `${summary.guestVisitorsToday ?? 0} guests` },
+    { label: "Total Web Visitors",  value: summary.totalVisitors ?? 0,             unit: `${summary.guestVisitorsTotal ?? 0} guests` },
+    { label: "Views Today",         value: summary.pageViewsToday ?? 0,            unit: "pageviews" },
+    { label: "Total Page Views",    value: summary.totalPageViews ?? 0,            unit: "all-time" },
     { label: "Active This Month",   value: summary.mau,                            unit: "MAU" },
     { label: "Logins Today",        value: summary.loginsToday,                    unit: "sessions" },
     { label: "Live Sessions",       value: summary.activeSessionsCount,            unit: "right now" },
@@ -112,6 +136,21 @@ export default function AdminOverviewTab({ onNavigate }) {
 
       {/* Charts Row */}
       <div className={styles.chartsGrid}>
+        {/* Web Visitors Trend */}
+        <div className={styles.chartCard}>
+          <div className={styles.chartTitle}>Web Page Visitors & Guests (14 days)</div>
+          <div className={styles.chartWrapper}>
+            <MultiTrendChart
+              data={dailyTrend}
+              lines={[
+                { key: "visitors", label: "Total Visitors", color: "#000000" },
+                { key: "guestVisitors", label: "Guest Visitors", color: "#888888", dash: "3 3" },
+                { key: "pageViews", label: "Page Views", color: "#2563eb" },
+              ]}
+            />
+          </div>
+        </div>
+
         {/* DAU Trend */}
         <div className={styles.chartCard}>
           <div className={styles.chartTitle}>Daily Active Users (14 days)</div>

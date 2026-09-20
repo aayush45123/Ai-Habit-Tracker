@@ -37,6 +37,7 @@ const RewardsPage    = lazy(() => import("./pages/Rewards/RewardsPage"));
 import AchievementModal from "./components/AchievementModal/AchievementModal";
 import { useAuth } from "./context/AuthContext";
 import useActivityTracker from "./hooks/useActivityTracker";
+import useVisitorTracker from "./hooks/useVisitorTracker";
 
 // ─── Layout / Guards (small, loaded with shell) ──────────────────────────────
 import MainLayout from "./layout/MainLayout";
@@ -49,6 +50,7 @@ import ScrollToTop from "./components/common/ScrollToTop/ScrollToTop";
 function App() {
   const { token } = useAuth();
   useActivityTracker({ isAuthenticated: !!token });
+  useVisitorTracker();
 
   return (
     <>

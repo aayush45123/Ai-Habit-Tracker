@@ -16,6 +16,7 @@ import {
   getAnalyticsActivity,
   getDailyUsageAnalytics,
   getFeatureUsageAnalytics,
+  getVisitorAnalytics,
 } from "../controllers/adminAnalyticsController.js";
 
 const router = express.Router();
@@ -41,5 +42,6 @@ router.get("/analytics/user/:id", getAnalyticsUserById);
 router.get("/analytics/activity", getAnalyticsActivity);
 router.get("/analytics/daily-usage", getDailyUsageAnalytics);
 router.get("/analytics/feature-usage", getFeatureUsageAnalytics);
+router.get("/analytics/visitors", getVisitorAnalytics);
 
 export default router;
