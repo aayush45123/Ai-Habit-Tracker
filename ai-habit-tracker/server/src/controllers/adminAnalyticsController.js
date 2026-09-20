@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import UserSession from "../models/UserSession.js";
 import ActivityEvent from "../models/ActivityEvent.js";
+import VisitorLog from "../models/VisitorLog.js";
 
 /**
  * Helper to get date at 00:00:00 in UTC/IST
@@ -69,6 +70,27 @@ export async function getAnalyticsOverview(req, res) {
     const totalActiveSeconds = sessionAgg[0]?.totalDuration || 0;
     const totalSessions = sessionAgg[0]?.totalSessions || 0;
     const avgSessionSeconds = Math.round(sessionAgg[0]?.avgDuration || 0);
+
+    // 6b. Web Page Visitor Metrics (includes non-logged in guest visitors)
+    const [
+      allTimeVisitors,
+      allTimeGuests,
+      todayVisitors,
+      todayGuests,
+      pageViewsToday,
+      totalPageViews,
+    ] = await Promise.all([
+      VisitorLog.distinct("visitorId"),
+      VisitorLog.distinct("visitorId", { isGuest: true }),
+      VisitorLog.distinct("visitorId", { timestamp: { $gte: todayStart } }),
+      VisitorLog.distinct("visitorId", { timestamp: { $gte: todayStart }, isGuest: true }),
+      VisitorLog.countDocuments({ timestamp: { $gte: todayStart } }),
+      VisitorLog.countDocuments(),
+    ]);
+    const totalVisitors = allTimeVisitors.length;
+    const guestVisitorsTotal = allTimeGuests.length;
+    const visitorsToday = todayVisitors.length;
+    const guestVisitorsToday = todayGuests.length;
 
     // 7. Feature Usage Breakdown (Past 30 days)
     const featureUsageRaw = await ActivityEvent.aggregate([
@@ -138,7 +160,15 @@ export async function getAnalyticsOverview(req, res) {
 
       const dateStr = dayStart.toISOString().split("T")[0];
 
-      const [dayActiveUsers, daySessions, dayLogins, dayEvents] = await Promise.all([
+      const [
+        dayActiveUsers,
+        daySessions,
+        dayLogins,
+        dayEvents,
+        dayVisitors,
+        dayGuestVisitors,
+        dayViews,
+      ] = await Promise.all([
         ActivityEvent.distinct("userId", { timestamp: { $gte: dayStart, $lte: dayEnd } }),
         UserSession.aggregate([
           { $match: { loginAt: { $gte: dayStart, $lte: dayEnd } } },
@@ -151,6 +181,9 @@ export async function getAnalyticsOverview(req, res) {
         ActivityEvent.countDocuments({
           timestamp: { $gte: dayStart, $lte: dayEnd },
         }),
+        VisitorLog.distinct("visitorId", { timestamp: { $gte: dayStart, $lte: dayEnd } }),
+        VisitorLog.distinct("visitorId", { timestamp: { $gte: dayStart, $lte: dayEnd }, isGuest: true }),
+        VisitorLog.countDocuments({ timestamp: { $gte: dayStart, $lte: dayEnd } }),
       ]);
 
       dailyTrend.push({
@@ -159,6 +192,9 @@ export async function getAnalyticsOverview(req, res) {
         activeMinutes: Math.round((daySessions[0]?.totalSeconds || 0) / 60),
         logins: dayLogins,
         events: dayEvents,
+        visitors: dayVisitors.length,
+        guestVisitors: dayGuestVisitors.length,
+        pageViews: dayViews,
       });
     }
 
@@ -172,6 +208,12 @@ export async function getAnalyticsOverview(req, res) {
         totalActiveMinutes: Math.round(totalActiveSeconds / 60),
         avgSessionDurationSeconds: avgSessionSeconds,
         totalSessions,
+        totalVisitors,
+        visitorsToday,
+        guestVisitorsToday,
+        guestVisitorsTotal,
+        pageViewsToday,
+        totalPageViews,
       },
       featureUsage,
       deviceBreakdown: deviceBreakdown.map((d) => ({ name: d._id || "unknown", count: d.count })),
@@ -487,7 +529,15 @@ export async function getDailyUsageAnalytics(req, res) {
       dayEnd.setHours(23, 59, 59, 999);
       const dateStr = dayStart.toISOString().split("T")[0];
 
-      const [dauUsers, sessionData, logins, events] = await Promise.all([
+      const [
+        dauUsers,
+        sessionData,
+        logins,
+        events,
+        dayVisitors,
+        dayGuestVisitors,
+        dayViews,
+      ] = await Promise.all([
         ActivityEvent.distinct("userId", { timestamp: { $gte: dayStart, $lte: dayEnd } }),
         UserSession.aggregate([
           { $match: { loginAt: { $gte: dayStart, $lte: dayEnd } } },
@@ -500,6 +550,9 @@ export async function getDailyUsageAnalytics(req, res) {
         ActivityEvent.countDocuments({
           timestamp: { $gte: dayStart, $lte: dayEnd },
         }),
+        VisitorLog.distinct("visitorId", { timestamp: { $gte: dayStart, $lte: dayEnd } }),
+        VisitorLog.distinct("visitorId", { timestamp: { $gte: dayStart, $lte: dayEnd }, isGuest: true }),
+        VisitorLog.countDocuments({ timestamp: { $gte: dayStart, $lte: dayEnd } }),
       ]);
 
       result.push({
@@ -508,6 +561,9 @@ export async function getDailyUsageAnalytics(req, res) {
         activeMinutes: Math.round((sessionData[0]?.totalSeconds || 0) / 60),
         logins,
         events,
+        visitors: dayVisitors.length,
+        guestVisitors: dayGuestVisitors.length,
+        pageViews: dayViews,
       });
     }
 
@@ -541,5 +597,86 @@ export async function getFeatureUsageAnalytics(req, res) {
   } catch (error) {
     console.error("Feature usage error:", error);
     return res.status(500).json({ message: "Failed to fetch feature usage" });
+  }
+}
+
+/**
+ * GET /api/admin/analytics/visitors
+ * Detailed web visitor traffic, top visited pages, device & browser breakdowns
+ */
+export async function getVisitorAnalytics(req, res) {
+  try {
+    const { days = 14 } = req.query;
+    const daysNum = Math.min(90, Math.max(1, parseInt(days, 10)));
+    const startDate = getStartOfDay(daysNum);
+    const todayStart = getStartOfDay(0);
+
+    const [
+      allTimeVisitors,
+      allTimeGuests,
+      allTimeViews,
+      todayVisitors,
+      todayGuests,
+      todayViews,
+      periodVisitors,
+      periodGuests,
+      periodViews,
+      topPagesRaw,
+      deviceBreakdown,
+      browserBreakdown,
+    ] = await Promise.all([
+      VisitorLog.distinct("visitorId"),
+      VisitorLog.distinct("visitorId", { isGuest: true }),
+      VisitorLog.countDocuments(),
+      VisitorLog.distinct("visitorId", { timestamp: { $gte: todayStart } }),
+      VisitorLog.distinct("visitorId", { timestamp: { $gte: todayStart }, isGuest: true }),
+      VisitorLog.countDocuments({ timestamp: { $gte: todayStart } }),
+      VisitorLog.distinct("visitorId", { timestamp: { $gte: startDate } }),
+      VisitorLog.distinct("visitorId", { timestamp: { $gte: startDate }, isGuest: true }),
+      VisitorLog.countDocuments({ timestamp: { $gte: startDate } }),
+      VisitorLog.aggregate([
+        { $match: { timestamp: { $gte: startDate } } },
+        { $group: { _id: "$path", count: { $sum: 1 }, uniqueVisitors: { $addToSet: "$visitorId" } } },
+        { $project: { _id: 1, count: 1, uniqueVisitorsCount: { $size: "$uniqueVisitors" } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 },
+      ]),
+      VisitorLog.aggregate([
+        { $match: { timestamp: { $gte: startDate } } },
+        { $group: { _id: "$deviceType", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      VisitorLog.aggregate([
+        { $match: { timestamp: { $gte: startDate } } },
+        { $group: { _id: "$browser", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+    ]);
+
+    const topPages = topPagesRaw.map((p) => ({
+      path: p._id || "/",
+      views: p.count,
+      uniqueVisitors: p.uniqueVisitorsCount,
+    }));
+
+    return res.json({
+      summary: {
+        totalVisitors: allTimeVisitors.length,
+        totalGuests: allTimeGuests.length,
+        totalPageViews: allTimeViews,
+        todayVisitors: todayVisitors.length,
+        todayGuests: todayGuests.length,
+        todayPageViews: todayViews,
+        periodVisitors: periodVisitors.length,
+        periodGuests: periodGuests.length,
+        periodPageViews: periodViews,
+      },
+      topPages,
+      deviceBreakdown: deviceBreakdown.map((d) => ({ name: d._id || "unknown", count: d.count })),
+      browserBreakdown: browserBreakdown.map((b) => ({ name: b._id || "Other", count: b.count })),
+    });
+  } catch (error) {
+    console.error("Visitor analytics error:", error);
+    return res.status(500).json({ message: "Failed to fetch visitor analytics" });
   }
 }
