@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import api from "../../../utils/api";
 import styles from "../AdminDashboard.module.css";
 
@@ -24,7 +24,9 @@ export default function AdminUsersTab({ onSelectUser }) {
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage]         = useState(1);
   const [pagination, setPagination] = useState({ total: 0, pages: 1, limit: 15 });
+  const [onlineCount, setOnlineCount] = useState(0);
   const LIMIT = 15;
+  const refreshTimerRef = useRef(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -40,7 +42,9 @@ export default function AdminUsersTab({ onSelectUser }) {
       if (role) params.set("role", role);
 
       const res = await api.get(`/admin/analytics/users?${params}`);
-      setUsers(res.data.users || []);
+      const fetchedUsers = res.data.users || [];
+      setUsers(fetchedUsers);
+      setOnlineCount(fetchedUsers.filter((u) => u.isOnline).length);
       setPagination(res.data.pagination || { total: 0, pages: 1, limit: LIMIT });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load users");
@@ -52,6 +56,14 @@ export default function AdminUsersTab({ onSelectUser }) {
   useEffect(() => {
     const id = setTimeout(fetchUsers, 300);
     return () => clearTimeout(id);
+  }, [fetchUsers]);
+
+  // Auto-refresh every 30 seconds to keep online status live
+  useEffect(() => {
+    refreshTimerRef.current = setInterval(() => {
+      fetchUsers();
+    }, 30000);
+    return () => clearInterval(refreshTimerRef.current);
   }, [fetchUsers]);
 
   const handleSort = (field) => {
@@ -73,7 +85,34 @@ export default function AdminUsersTab({ onSelectUser }) {
     <div>
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>User Analytics</h2>
-        <span className={styles.sectionBadge}>{pagination.total} total</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {onlineCount > 0 && (
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "rgba(16,185,129,0.12)",
+              border: "1px solid rgba(16,185,129,0.35)",
+              color: "#10b981",
+              borderRadius: "20px",
+              padding: "3px 10px",
+              fontSize: "12px",
+              fontWeight: 600,
+              letterSpacing: "0.3px",
+            }}>
+              <span style={{
+                width: "7px", height: "7px",
+                borderRadius: "50%",
+                background: "#10b981",
+                display: "inline-block",
+                boxShadow: "0 0 6px #10b981",
+                animation: "pulse 1.5s ease-in-out infinite",
+              }} />
+              {onlineCount} Online Now
+            </span>
+          )}
+          <span className={styles.sectionBadge}>{pagination.total} total</span>
+        </div>
       </div>
 
       {/* Filters */}
@@ -138,8 +177,31 @@ export default function AdminUsersTab({ onSelectUser }) {
                         </span>
                       </td>
                       <td>
-                        <span className={`${styles.statusDot} ${u.isActive !== false ? styles.active : styles.inactive}`} />
-                        {u.isActive !== false ? "Active" : "Inactive"}
+                        {u.isOnline ? (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span style={{
+                              width: "8px", height: "8px",
+                              borderRadius: "50%",
+                              background: "#10b981",
+                              display: "inline-block",
+                              boxShadow: "0 0 8px rgba(16,185,129,0.8)",
+                              animation: "pulse 1.5s ease-in-out infinite",
+                              flexShrink: 0,
+                            }} />
+                            <span style={{ color: "#10b981", fontWeight: 600, fontSize: "13px" }}>Online</span>
+                          </span>
+                        ) : (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span style={{
+                              width: "8px", height: "8px",
+                              borderRadius: "50%",
+                              background: "#6b7280",
+                              display: "inline-block",
+                              flexShrink: 0,
+                            }} />
+                            <span style={{ color: "#6b7280", fontSize: "13px" }}>Offline</span>
+                          </span>
+                        )}
                       </td>
                       <td>{fmtDuration(u.totalActiveDurationSeconds)}</td>
                       <td>{u.totalSessions || 0}</td>
