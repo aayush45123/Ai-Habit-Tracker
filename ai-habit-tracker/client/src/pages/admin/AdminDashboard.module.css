@@ -2,6 +2,12 @@
    Follows existing Nihilism Monochrome theme: sharp borders, pure black/white,
    Sora font, high contrast. No Tailwind. */
 
+/* ─── ANIMATIONS ─────────────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(1.25); }
+}
+
 /* ─── PORTAL SHELL ───────────────────────────────────────── */
 .portal {
   min-height: 100vh;

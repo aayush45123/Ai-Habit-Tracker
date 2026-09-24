@@ -246,6 +246,9 @@ export async function getAnalyticsUsers(req, res) {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
     const skip = (pageNum - 1) * limitNum;
 
+    // A user is considered "online" if they have an active session touched within 5 minutes
+    const onlineThreshold = new Date(Date.now() - 5 * 60 * 1000);
+
     // Filter Query for Users
     const matchQuery = {};
     if (role && ["user", "admin"].includes(role)) {
@@ -286,6 +289,26 @@ export async function getAnalyticsUsers(req, res) {
           lastActivityAt: {
             $ifNull: [{ $max: "$sessions.lastActivityAt" }, "$createdAt"],
           },
+          // isOnline: true if any session is active AND had activity within last 5 minutes
+          isOnline: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$sessions",
+                    as: "s",
+                    cond: {
+                      $and: [
+                        { $eq: ["$$s.status", "active"] },
+                        { $gte: ["$$s.lastActivityAt", onlineThreshold] },
+                      ],
+                    },
+                  },
+                },
+              },
+              0,
+            ],
+          },
         },
       },
       {
@@ -296,6 +319,7 @@ export async function getAnalyticsUsers(req, res) {
           role: 1,
           isAdmin: 1,
           isActive: 1,
+          isOnline: 1,
           createdAt: 1,
           totalSessions: 1,
           totalActiveDurationSeconds: 1,
@@ -305,7 +329,7 @@ export async function getAnalyticsUsers(req, res) {
       },
     ];
 
-    // Sorting
+    // Sorting: always put online users first, then apply the requested sort
     const sortDirection = sortOrder === "asc" ? 1 : -1;
     const sortField =
       ["lastActivityAt", "lastLoginAt", "totalActiveDurationSeconds", "createdAt", "name"].includes(
@@ -314,7 +338,8 @@ export async function getAnalyticsUsers(req, res) {
         ? sortBy
         : "lastActivityAt";
 
-    pipeline.push({ $sort: { [sortField]: sortDirection } });
+    // isOnline: -1 ensures online users always float to the top
+    pipeline.push({ $sort: { isOnline: -1, [sortField]: sortDirection } });
 
     // Total Count
     const totalUsers = await User.countDocuments(matchQuery);
