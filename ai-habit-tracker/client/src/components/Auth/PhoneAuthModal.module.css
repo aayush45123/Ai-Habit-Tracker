@@ -1,0 +1,223 @@
+/* PhoneAuthModal.module.css */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background-color: var(--color-bg-primary);
+  border: 3px solid var(--color-border);
+  box-shadow: 8px 8px 0 0 var(--color-border);
+  width: 100%;
+  max-width: 440px;
+  padding: 2rem;
+  position: relative;
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: color 0.15s ease;
+}
+
+.closeBtn:hover {
+  color: var(--color-text-primary);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.iconWrap {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  box-shadow: 3px 3px 0 0 var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.title {
+  font-family: var(--font-primary);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.35rem;
+}
+
+.errorBox {
+  background-color: #fee2e2;
+  border: 2px solid #ef4444;
+  color: #b91c1c;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-primary);
+}
+
+.phoneInputGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.countryCodeSelect {
+  background-color: var(--color-bg-primary);
+  border: 2px solid var(--color-border);
+  padding: 0.65rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.input {
+  flex: 1;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.input:focus {
+  box-shadow: 2px 2px 0 0 var(--color-border);
+}
+
+.otpInput {
+  font-size: 1.35rem;
+  letter-spacing: 8px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.submitBtn {
+  margin-top: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-accent-primary, #6366f1);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 4px 4px 0 0 var(--color-border);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--color-border);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.linkBtn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+.linkBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
+}

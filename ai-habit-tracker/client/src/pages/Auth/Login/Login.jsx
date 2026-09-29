@@ -4,6 +4,7 @@ import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
+import SocialAuthButtons from "../../../components/Auth/SocialAuthButtons";
 
 function Login() {
   const navigate = useNavigate();
@@ -144,6 +145,8 @@ function Login() {
             </button>
           </div>
         )}
+
+        <SocialAuthButtons mode="login" onError={setError} />
 
         <form onSubmit={handleSubmit} className={styles.authForm}>
           <div className={styles.inputGroup}>

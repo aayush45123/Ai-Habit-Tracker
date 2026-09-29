@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../services/email.service.js";
 import { createSession, recordActivityEvent } from "../services/activity.service.js";
+import { verifyFirebaseIdToken } from "../services/firebaseAuth.service.js";
 
 // Helper: Get base client URL
 const getClientUrl = () => {
@@ -161,7 +162,9 @@ export const me = async (req, res) => {
   res.json({
     id: user._id,
     name: user.name,
-    email: user.email,
+    email: user.email || "",
+    phoneNumber: user.phoneNumber || "",
+    authProvider: user.authProvider || "local",
     role: user.role || (user.isAdmin ? "admin" : "user"),
     isAdmin: user.isAdmin === true || user.role === "admin",
     profileImage: user.profileImage || "",
@@ -260,3 +263,115 @@ export const updateReminderPreferences = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// ---------------- FIREBASE AUTH (GOOGLE & PHONE NUMBER) ----------------
+export const firebaseAuth = async (req, res) => {
+  try {
+    const { idToken, name: customName } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ message: "ID token is required" });
+    }
+
+    const decoded = await verifyFirebaseIdToken(idToken);
+    const { uid, email, phoneNumber, name, picture, signInProvider } = decoded;
+
+    if (!email && !phoneNumber) {
+      return res.status(400).json({ message: "Firebase user profile has neither email nor phone number" });
+    }
+
+    let user = null;
+    const isGoogle = (signInProvider && signInProvider.includes("google")) || (email && !phoneNumber);
+
+    if (email) {
+      const normalizedEmail = email.toLowerCase().trim();
+      user = await User.findOne({
+        $or: [{ email: normalizedEmail }, { googleId: uid }],
+      });
+
+      if (user) {
+        // Update user if needed
+        if (!user.googleId && isGoogle) user.googleId = uid;
+        if (!user.profileImage && picture) user.profileImage = picture;
+        // Never ask email verification for Google or phone login/signup:
+        user.isEmailVerified = true;
+        if (phoneNumber && !user.phoneNumber) user.phoneNumber = phoneNumber;
+        await user.save();
+      } else {
+        // Create new user (automatically verified, no email verification needed)
+        user = await User.create({
+          name: customName || name || normalizedEmail.split("@")[0],
+          email: normalizedEmail,
+          googleId: isGoogle ? uid : undefined,
+          phoneNumber: phoneNumber || undefined,
+          profileImage: picture || "",
+          authProvider: isGoogle ? "google" : "local",
+          isEmailVerified: true, // Verification automatically granted!
+          role: "user",
+          isAdmin: false,
+          isActive: true,
+        });
+      }
+    } else if (phoneNumber) {
+      user = await User.findOne({ phoneNumber });
+
+      if (user) {
+        // Never ask email verification for phone user
+        user.isEmailVerified = true;
+        if (customName && (!user.name || user.name.startsWith("User "))) {
+          user.name = customName;
+        }
+        await user.save();
+      } else {
+        // Create new user with phone number (email verification bypassed)
+        user = await User.create({
+          name: customName || name || `User ${phoneNumber.slice(-4)}`,
+          phoneNumber,
+          authProvider: "phone",
+          isEmailVerified: true, // Verification automatically granted!
+          role: "user",
+          isAdmin: false,
+          isActive: true,
+        });
+      }
+    }
+
+    if (!user) {
+      return res.status(400).json({ message: "Failed to authenticate user" });
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({ message: "Account is disabled. Please contact administrator." });
+    }
+
+    const userRole = user.role || (user.isAdmin ? "admin" : "user");
+
+    const token = jwt.sign(
+      { userId: user._id, role: userRole, email: user.email || user.phoneNumber },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const { sessionId } = await createSession({ userId: user._id, req });
+
+    return res.json({
+      message: "Authentication successful",
+      token,
+      sessionId,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email || "",
+        phoneNumber: user.phoneNumber || "",
+        authProvider: user.authProvider || (isGoogle ? "google" : "phone"),
+        role: userRole,
+        isAdmin: user.isAdmin === true || userRole === "admin",
+        profileImage: user.profileImage || "",
+      },
+    });
+  } catch (error) {
+    console.error("Firebase auth controller error:", error);
+    return res.status(500).json({ message: error.message || "Authentication failed" });
+  }
+};
+

@@ -11,6 +11,7 @@ import {
   Check,
   X,
 } from "lucide-react";
+import SocialAuthButtons from "../../../components/Auth/SocialAuthButtons";
 
 // Password rules must match backend (auth.validator.js)
 const passwordRules = [
@@ -175,6 +176,8 @@ function Signup() {
             <p className={styles.errorText}>{error}</p>
           </div>
         )}
+
+        <SocialAuthButtons mode="signup" onError={setError} />
 
         <form onSubmit={handleSubmit} className={styles.authForm}>
           {/* Name */}

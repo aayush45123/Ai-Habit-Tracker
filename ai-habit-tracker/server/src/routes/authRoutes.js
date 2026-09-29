@@ -6,6 +6,7 @@ import {
   verifyEmail,
   resendVerification,
   updateReminderPreferences,
+  firebaseAuth,
 } from "../controllers/authController.js";
 import auth from "../middleware/authMiddleware.js";
 import validate from "../middleware/validate.middleware.js";
@@ -15,6 +16,11 @@ const router = express.Router();
 
 router.post("/signup", validate(signupSchema), signup);
 router.post("/login", validate(loginSchema), login);
+
+// OAuth / Firebase authentication (Google & Phone) — email verification bypassed
+router.post("/firebase", firebaseAuth);
+router.post("/google", firebaseAuth);
+router.post("/phone", firebaseAuth);
 
 // Email verification routes
 router.get("/verify-email/:token", verifyEmail);
