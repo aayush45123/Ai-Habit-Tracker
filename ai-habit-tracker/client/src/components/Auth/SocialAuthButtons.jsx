@@ -45,6 +45,12 @@ export default function SocialAuthButtons({ mode = "login", onError }) {
         errorMsg = "Google sign-in popup was closed before completing.";
       } else if (err.code === "auth/cancelled-popup-request") {
         errorMsg = "Popup request cancelled.";
+      } else if (err.code === "auth/configuration-not-found") {
+        errorMsg = "Google Sign-In is not enabled in Firebase Console. Please enable Google under Authentication > Sign-in method.";
+      } else if (err.code === "auth/unauthorized-domain") {
+        errorMsg = "This domain is not authorized. Please add this domain to Firebase Console > Authentication > Settings > Authorized domains.";
+      } else if (err.code === "auth/operation-not-allowed") {
+        errorMsg = "Google sign-in is disabled in your Firebase project. Please enable it in the Firebase Console.";
       } else if (err.response?.data?.message) {
         errorMsg = err.response.data.message;
       } else if (err.message) {

@@ -94,6 +94,10 @@ export default function PhoneAuthModal({ isOpen, onClose, mode = "login" }) {
         msg = "Too many requests. Please try again later.";
       } else if (err.code === "auth/captcha-check-failed") {
         msg = "reCAPTCHA verification failed. Please try again.";
+      } else if (err.code === "auth/configuration-not-found" || err.code === "auth/operation-not-allowed") {
+        msg = "Phone Auth is not enabled in Firebase Console. Please enable Phone provider under Authentication > Sign-in method.";
+      } else if (err.code === "auth/unauthorized-domain") {
+        msg = "This domain is not authorized in Firebase Console > Authentication > Settings > Authorized domains.";
       } else if (err.message) {
         msg = err.message;
       }
