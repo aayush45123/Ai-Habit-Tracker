@@ -1,18 +1,68 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
-import { FiSearch, FiTrash2, FiDownload, FiEdit3, FiZap, FiBook, FiMoon, FiDroplet, FiAward, FiBookOpen, FiActivity } from "react-icons/fi";
+import JournalEntryDetail, { getTemplateDisplayName, getFieldLabel } from "./JournalEntryDetail";
+import {
+  FiSearch,
+  FiTrash2,
+  FiDownload,
+  FiEdit3,
+  FiCalendar,
+  FiSmile,
+  FiThumbsUp,
+  FiMeh,
+  FiThumbsDown,
+  FiAlertCircle,
+} from "react-icons/fi";
+
+const MOOD_META = {
+  great: { label: "Great", color: "#10b981", bg: "#d1fae5", icon: <FiThumbsUp size={13} /> },
+  good: { label: "Good", color: "#3b82f6", bg: "#dbeafe", icon: <FiSmile size={13} /> },
+  neutral: { label: "Neutral", color: "#f59e0b", bg: "#fef3c7", icon: <FiMeh size={13} /> },
+  bad: { label: "Bad", color: "#ef4444", bg: "#fee2e2", icon: <FiThumbsDown size={13} /> },
+  terrible: { label: "Terrible", color: "#991b1b", bg: "#fee2e2", icon: <FiAlertCircle size={13} /> },
+};
+
+function formatDateNice(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 export default function JournalFeed({ onSelectEdit }) {
   const [entries, setEntries] = useState([]);
+  const [templates, setTemplates] = useState({ systemTemplates: [], customTemplates: [] });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [moodFilter, setMoodFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("");
 
   useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  useEffect(() => {
     fetchFeed();
   }, [search, moodFilter, tagFilter]);
+
+  async function fetchTemplates() {
+    try {
+      const res = await api.get("/journal/templates");
+      setTemplates(res.data || { systemTemplates: [], customTemplates: [] });
+    } catch (err) {
+      console.error("Failed to load templates:", err);
+    }
+  }
 
   async function fetchFeed() {
     try {
@@ -43,19 +93,42 @@ export default function JournalFeed({ onSelectEdit }) {
 
   function exportMarkdown() {
     const mdContent = entries
-      .map(
-        (e) => `# Journal Entry - ${e.date}
-**Title:** ${e.title || "Untitled"}
-**Mood:** ${e.mood} | **Energy:** ${e.energyLevel}/5 | **Stress:** ${e.stressLevel}/5
-**Productivity:** ${e.productivityHours} hrs | **Study:** ${e.learningHours} hrs | **Sleep:** ${e.sleepHours} hrs
+      .map((e) => {
+        const priorities = Array.isArray(e.topPriorities)
+          ? e.topPriorities.filter(Boolean)
+          : typeof e.topPriorities === "string"
+          ? e.topPriorities.split("\n").filter(Boolean)
+          : [];
 
-${e.content ? `## Notes\n${e.content}\n` : ""}
-${e.biggestAchievement ? `**Biggest Achievement:** ${e.biggestAchievement}\n` : ""}
-${e.learningLog ? `**Learning Log:** ${e.learningLog}\n` : ""}
-${e.lessonsLearned ? `**Lessons Learned:** ${e.lessonsLearned}\n` : ""}
+        const gratitudeList = Array.isArray(e.gratitude)
+          ? e.gratitude.filter(Boolean)
+          : typeof e.gratitude === "string"
+          ? e.gratitude.split("\n").filter(Boolean)
+          : [];
+
+        const customLines =
+          e.customFieldsData && typeof e.customFieldsData === "object"
+            ? Object.entries(e.customFieldsData)
+                .filter(([_, v]) => v !== undefined && v !== null && v !== "")
+                .map(([k, v]) => `**${getFieldLabel(k, templates)}:** ${v}`)
+                .join("\n")
+            : "";
+
+        return `# Journal Entry - ${e.date} (${formatDateNice(e.date)})
+**Title:** ${e.title || "Untitled"}
+**Template:** ${getTemplateDisplayName(e, templates)}
+**Mood:** ${e.mood} (${e.moodScore || 4}/5) | **Energy:** ${e.energyLevel || 3}/5 | **Stress:** ${e.stressLevel || 2}/5
+**Productivity:** ${e.productivityHours || 0} hrs | **Study:** ${e.learningHours || 0} hrs | **Sleep:** ${e.sleepHours || 0} hrs
+${e.waterIntake ? `**Water Intake:** ${e.waterIntake} L\n` : ""}${e.weight ? `**Weight:** ${e.weight} kg\n` : ""}${e.steps ? `**Steps:** ${e.steps}\n` : ""}${e.caloriesBurned ? `**Calories Burned:** ${e.caloriesBurned} kcal\n` : ""}
+${e.todayGoal ? `## Today's Goal\n${e.todayGoal}\n` : ""}
+${priorities.length > 0 ? `## Top Priorities\n${priorities.map((p) => `- [ ] ${p}`).join("\n")}\n` : ""}
+${e.content ? `## Notes & Reflections\n${e.content}\n` : ""}
+${e.biggestAchievement ? `**Biggest Achievement:** ${e.biggestAchievement}\n` : ""}${e.learningLog ? `**Learning Log:** ${e.learningLog}\n` : ""}${e.lessonsLearned ? `**Lessons Learned:** ${e.lessonsLearned}\n` : ""}${e.mistakesMade ? `**Mistakes Made:** ${e.mistakesMade}\n` : ""}${e.challengesFaced ? `**Challenges Faced:** ${e.challengesFaced}\n` : ""}${e.workoutSummary ? `**Workout:** ${e.workoutSummary}\n` : ""}${gratitudeList.length > 0 ? `**Gratitude:**\n${gratitudeList.map((g) => `- ${g}`).join("\n")}\n` : ""}${e.tomorrowsFocus ? `**Tomorrow's Focus:** ${e.tomorrowsFocus}\n` : ""}
+${customLines ? `## Template Specific Details\n${customLines}\n` : ""}
+${e.tags && e.tags.length > 0 ? `**Tags:** ${e.tags.map((t) => `#${t}`).join(" ")}\n` : ""}
 ---
-`
-      )
+`;
+      })
       .join("\n\n");
 
     const blob = new Blob([mdContent], { type: "text/markdown" });
@@ -118,87 +191,69 @@ ${e.lessonsLearned ? `**Lessons Learned:** ${e.lessonsLearned}\n` : ""}
         </div>
       ) : (
         <div className={styles.feedGrid}>
-          {entries.map((e) => (
-            <div key={e._id} className={styles.feedCard}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h3 style={{ margin: "0 0 0.25rem 0" }}>{e.title || `Entry for ${e.date}`}</h3>
-                  <span className={styles.subtitle}>{e.date} • Template: {e.templateType}</span>
-                </div>
-                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                  <span className={styles.badge}>{e.mood || "good"}</span>
-                  <button
-                    className={styles.tabBtn}
-                    style={{ padding: "0.4rem 0.6rem" }}
-                    onClick={() => onSelectEdit(e.date)}
-                    title="Edit Entry"
-                  >
-                    <FiEdit3 size={14} />
-                  </button>
-                  <button
-                    className={styles.tabBtn}
-                    style={{ padding: "0.4rem 0.6rem", background: "#ef4444", color: "#fff" }}
-                    onClick={() => handleDelete(e._id)}
-                    title="Delete Entry"
-                  >
-                    <FiTrash2 size={14} />
-                  </button>
-                </div>
-              </div>
+          {entries.map((e) => {
+            const moodInfo = MOOD_META[e.mood] || MOOD_META.good;
+            const tplName = getTemplateDisplayName(e, templates);
 
-              {/* Metrics Summary Strip */}
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.85rem", fontWeight: 700, alignItems: "center" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiZap size={13} /> Productivity: {e.productivityHours || 0}h</span>
-                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiBook size={13} /> Study: {e.learningHours || 0}h</span>
-                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiMoon size={13} /> Sleep: {e.sleepHours || 0}h</span>
-                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiDroplet size={13} /> Water: {e.waterIntake || 0}L</span>
-                {e.weight > 0 && <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiActivity size={13} /> Weight: {e.weight}kg</span>}
-                {e.steps > 0 && <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><FiActivity size={13} /> Steps: {e.steps}</span>}
-              </div>
+            return (
+              <div key={e._id} className={styles.feedCard}>
+                {/* Header */}
+                <div className={styles.cardHeader}>
+                  <div>
+                    <h3 style={{ margin: "0 0 0.35rem 0", fontSize: "1.3rem" }}>
+                      {e.title || `Journal Entry - ${e.date}`}
+                    </h3>
+                    <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+                      <span
+                        className={styles.subtitle}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontWeight: 600 }}
+                      >
+                        <FiCalendar size={13} /> {formatDateNice(e.date)}
+                      </span>
+                      <span className={styles.subtitle} style={{ fontWeight: 600 }}>
+                        • Template: <strong>{tplName}</strong>
+                      </span>
+                    </div>
+                  </div>
 
-              {/* Text content preview */}
-              {e.content && (
-                <div style={{ background: "var(--color-bg-primary)", padding: "1rem", border: "1px solid var(--color-border)" }}>
-                  <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{e.content}</p>
-                </div>
-              )}
-
-              {/* Highlights */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem", fontSize: "0.85rem" }}>
-                {e.biggestAchievement && (
-                  <div>
-                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiAward size={13} /> Achievement:</strong> {e.biggestAchievement}
-                  </div>
-                )}
-                {e.learningLog && (
-                  <div>
-                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiBook size={13} /> Learning:</strong> {e.learningLog}
-                  </div>
-                )}
-                {e.workoutSummary && (
-                  <div>
-                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiActivity size={13} /> Workout:</strong> {e.workoutSummary}
-                  </div>
-                )}
-                {e.lessonsLearned && (
-                  <div>
-                    <strong style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}><FiBookOpen size={13} /> Lesson:</strong> {e.lessonsLearned}
-                  </div>
-                )}
-              </div>
-
-              {/* Tags */}
-              {e.tags && e.tags.length > 0 && (
-                <div className={styles.tagList}>
-                  {e.tags.map((t, idx) => (
-                    <span key={idx} className={styles.tagItem}>
-                      #{t}
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <span
+                      className={styles.badge}
+                      style={{
+                        background: moodInfo.color,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.3rem",
+                      }}
+                    >
+                      {moodInfo.icon}
+                      {moodInfo.label} {e.moodScore ? `(${e.moodScore}/5)` : ""}
                     </span>
-                  ))}
+
+                    <button
+                      className={styles.tabBtn}
+                      style={{ padding: "0.45rem 0.65rem" }}
+                      onClick={() => onSelectEdit(e.date)}
+                      title="Edit Entry"
+                    >
+                      <FiEdit3 size={15} />
+                    </button>
+                    <button
+                      className={styles.tabBtn}
+                      style={{ padding: "0.45rem 0.65rem", background: "#ef4444", color: "#fff" }}
+                      onClick={() => handleDelete(e._id)}
+                      title="Delete Entry"
+                    >
+                      <FiTrash2 size={15} />
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Proper full content details */}
+                <JournalEntryDetail entry={e} templates={templates} />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

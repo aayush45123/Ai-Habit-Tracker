@@ -20,7 +20,6 @@ const journalEntrySchema = new mongoose.Schema(
     },
     templateType: {
       type: String,
-      enum: ["default", "student", "developer", "fitness", "business", "personal", "custom"],
       default: "default",
     },
     title: {

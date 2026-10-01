@@ -99,7 +99,9 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
           tags: Array.isArray(e.tags) ? e.tags.join(", ") : e.tags || "",
           customFieldsData: e.customFieldsData || {},
         });
-        if (e.templateType) {
+        if (e.templateId) {
+          setSelectedTemplate(e.templateId);
+        } else if (e.templateType) {
           setSelectedTemplate(`sys_${e.templateType}`);
         }
       }
@@ -130,6 +132,7 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
       const payload = {
         ...form,
         date,
+        templateId: selectedTemplate.startsWith("sys_") ? null : selectedTemplate,
         templateType: selectedTemplate.startsWith("sys_") ? selectedTemplate.replace("sys_", "") : "custom",
         topPriorities: form.topPriorities.split("\n").filter(Boolean),
         gratitude: form.gratitude.split("\n").filter(Boolean),

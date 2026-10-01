@@ -1,24 +1,88 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
-import { FiChevronLeft, FiChevronRight, FiCalendar, FiSmile, FiMeh, FiThumbsUp, FiThumbsDown, FiAlertCircle, FiFileText, FiZap } from "react-icons/fi";
+import JournalEntryDetail, { getTemplateDisplayName } from "./JournalEntryDetail";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiCalendar,
+  FiSmile,
+  FiMeh,
+  FiThumbsUp,
+  FiThumbsDown,
+  FiAlertCircle,
+  FiFileText,
+  FiZap,
+  FiBook,
+  FiEdit3,
+  FiTrash2,
+  FiPlus,
+  FiX,
+  FiTarget,
+} from "react-icons/fi";
 
-const MOOD_ICONS = {
-  great: <FiThumbsUp size={14} color="#10b981" />,
-  good: <FiSmile size={14} color="#3b82f6" />,
-  neutral: <FiMeh size={14} color="#f59e0b" />,
-  bad: <FiThumbsDown size={14} color="#ef4444" />,
-  terrible: <FiAlertCircle size={14} color="#991b1b" />,
+const MOOD_META = {
+  great: { label: "Great", color: "#10b981", icon: <FiThumbsUp size={14} color="#10b981" /> },
+  good: { label: "Good", color: "#3b82f6", icon: <FiSmile size={14} color="#3b82f6" /> },
+  neutral: { label: "Neutral", color: "#f59e0b", icon: <FiMeh size={14} color="#f59e0b" /> },
+  bad: { label: "Bad", color: "#ef4444", icon: <FiThumbsDown size={14} color="#ef4444" /> },
+  terrible: { label: "Terrible", color: "#991b1b", icon: <FiAlertCircle size={14} color="#991b1b" /> },
 };
+
+function formatDateNice(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 export default function JournalCalendar({ onSelectDate }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [entriesMap, setEntriesMap] = useState({});
+  const [templates, setTemplates] = useState({ systemTemplates: [], customTemplates: [] });
   const [loading, setLoading] = useState(true);
+
+  // Selected date modal state
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
 
   useEffect(() => {
     fetchMonthEntries();
   }, [currentMonth]);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  async function fetchTemplates() {
+    try {
+      const res = await api.get("/journal/templates");
+      setTemplates(res.data || { systemTemplates: [], customTemplates: [] });
+    } catch (err) {
+      console.error("Failed to load templates:", err);
+    }
+  }
 
   async function fetchMonthEntries() {
     try {
@@ -54,6 +118,37 @@ export default function JournalCalendar({ onSelectDate }) {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
+  const handleCellClick = (dateStr) => {
+    setSelectedDate(dateStr);
+    const entry = entriesMap[dateStr] || null;
+    setSelectedEntry(entry);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedDate(null);
+    setSelectedEntry(null);
+  };
+
+  const handleDeleteEntry = async () => {
+    if (!selectedEntry) return;
+    if (!window.confirm(`Delete journal entry for ${selectedDate}?`)) return;
+
+    try {
+      await api.delete(`/journal/entries/${selectedEntry._id}`);
+      setEntriesMap((prev) => {
+        const next = { ...prev };
+        delete next[selectedDate];
+        return next;
+      });
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Failed to delete entry:", err);
+      alert("Failed to delete entry. Please try again.");
+    }
+  };
+
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const firstDayIndex = new Date(year, month, 1).getDay();
@@ -71,13 +166,15 @@ export default function JournalCalendar({ onSelectDate }) {
     calendarCells.push({ day: d, dateStr });
   }
 
+  const todayStr = new Date().toISOString().split("T")[0];
+
   return (
     <div className={styles.formCard}>
-      {/* Header */}
+      {/* ── HEADER ── */}
       <div className={styles.formHeader}>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <FiCalendar size={22} />
-          <h2 style={{ margin: 0 }}>{monthName}</h2>
+          <h2 style={{ margin: 0, fontSize: "1.5rem" }}>{monthName}</h2>
         </div>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button className={styles.tabBtn} onClick={prevMonth}>
@@ -106,47 +203,216 @@ export default function JournalCalendar({ onSelectDate }) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.5rem" }}>
             {calendarCells.map((cell, idx) => {
               if (!cell) {
-                return <div key={`empty_${idx}`} style={{ minHeight: "80px", background: "rgba(0,0,0,0.02)" }} />;
+                return <div key={`empty_${idx}`} style={{ minHeight: "95px", background: "rgba(0,0,0,0.02)" }} />;
               }
 
               const entry = entriesMap[cell.dateStr];
-              const isToday = cell.dateStr === new Date().toISOString().split("T")[0];
+              const isToday = cell.dateStr === todayStr;
+              const moodInfo = entry ? MOOD_META[entry.mood] || MOOD_META.good : null;
 
               return (
                 <div
                   key={cell.dateStr}
-                  onClick={() => onSelectDate(cell.dateStr)}
+                  onClick={() => handleCellClick(cell.dateStr)}
+                  className={styles.calendarCellActive}
                   style={{
-                    minHeight: "85px",
-                    padding: "0.5rem",
-                    border: isToday ? "3px solid var(--color-accent-primary)" : "2px solid var(--color-border)",
-                    background: entry ? "var(--color-bg-secondary)" : "var(--color-bg-primary)",
-                    cursor: "pointer",
+                    minHeight: "95px",
+                    padding: "0.6rem",
+                    border: isToday
+                      ? "3px solid var(--color-accent-primary, #10b981)"
+                      : entry
+                      ? "2px solid var(--color-border, #000)"
+                      : "1.5px solid var(--color-border, #000)",
+                    background: entry ? "var(--color-bg-secondary, #ffffff)" : "var(--color-bg-primary, #f9fafb)",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    transition: "transform 0.15s ease",
+                    gap: "0.35rem",
                   }}
-                  title={entry ? `Logged: ${entry.title || "Entry"}` : `Click to create entry for ${cell.dateStr}`}
+                  title={
+                    entry
+                      ? `Click to view entry for ${cell.dateStr}: ${entry.title || "Logged"}`
+                      : `Click to log entry for ${cell.dateStr}`
+                  }
                 >
+                  {/* Top row: day number + mood icon */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontWeight: 800, fontSize: "0.9rem" }}>{cell.day}</span>
-                    {entry && <span style={{ fontSize: "1rem", display: "flex", alignItems: "center" }}>{MOOD_ICONS[entry.mood] || <FiFileText size={14} />}</span>}
+                    <span
+                      style={{
+                        fontWeight: isToday ? 900 : 800,
+                        fontSize: "0.95rem",
+                        color: isToday ? "var(--color-accent-primary, #10b981)" : "inherit",
+                      }}
+                    >
+                      {cell.day}
+                    </span>
+
+                    {entry && moodInfo && (
+                      <span
+                        style={{
+                          fontSize: "0.85rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.2rem",
+                        }}
+                        title={`Mood: ${moodInfo.label}`}
+                      >
+                        {moodInfo.icon}
+                      </span>
+                    )}
                   </div>
 
+                  {/* Middle / Bottom info */}
                   {entry ? (
-                    <div style={{ fontSize: "0.75rem", display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span style={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {entry.title || "Logged"}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "3px", fontSize: "0.74rem" }}>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {entry.title || "Daily Log"}
                       </span>
-                      <span style={{ display: "flex", alignItems: "center", gap: "2px" }}><FiZap size={10} /> {entry.productivityHours}h prod</span>
+
+                      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", alignItems: "center" }}>
+                        {entry.productivityHours > 0 && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "2px", fontWeight: 700 }}>
+                            <FiZap size={10} color="#10b981" /> {entry.productivityHours}h
+                          </span>
+                        )}
+                        {entry.learningHours > 0 && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "2px", fontWeight: 700 }}>
+                            <FiBook size={10} color="#3b82f6" /> {entry.learningHours}h
+                          </span>
+                        )}
+                        {entry.content && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "2px", color: "var(--color-text-secondary)" }}>
+                            <FiFileText size={10} /> note
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ) : (
-                    <span style={{ fontSize: "0.7rem", color: "var(--color-text-secondary)" }}>+ Add</span>
+                    <span style={{ fontSize: "0.72rem", color: "var(--color-text-secondary)", alignSelf: "flex-start" }}>
+                      + Add
+                    </span>
                   )}
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ── DAY DETAILS MODAL ── */}
+      {isModalOpen && (
+        <div className={styles.modalOverlay} onClick={handleCloseModal}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className={styles.modalHeader}>
+              <div>
+                <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.25rem" }}>
+                  {selectedEntry
+                    ? selectedEntry.title || `Journal Entry - ${selectedDate}`
+                    : `Journal for ${formatDateNice(selectedDate)}`}
+                </h3>
+                <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                  <span className={styles.subtitle} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontWeight: 600 }}>
+                    <FiCalendar size={13} /> {formatDateNice(selectedDate)}
+                  </span>
+                  {selectedEntry && (
+                    <span className={styles.subtitle} style={{ fontWeight: 600 }}>
+                      • Template: <strong>{getTemplateDisplayName(selectedEntry, templates)}</strong>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                {selectedEntry && (
+                  <span
+                    className={styles.badge}
+                    style={{
+                      background: (MOOD_META[selectedEntry.mood] || MOOD_META.good).color,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.3rem",
+                    }}
+                  >
+                    {(MOOD_META[selectedEntry.mood] || MOOD_META.good).icon}
+                    {(MOOD_META[selectedEntry.mood] || MOOD_META.good).label}
+                    {selectedEntry.moodScore ? ` (${selectedEntry.moodScore}/5)` : ""}
+                  </span>
+                )}
+                <button className={styles.closeBtn} onClick={handleCloseModal} title="Close modal">
+                  <FiX size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className={styles.modalBody}>
+              {selectedEntry ? (
+                /* Full details of everything noted */
+                <JournalEntryDetail entry={selectedEntry} templates={templates} />
+              ) : (
+                /* Empty state */
+                <div style={{ textAlign: "center", padding: "2rem 1rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+                  <div style={{ fontSize: "2.5rem" }}>📝</div>
+                  <h3 style={{ margin: 0 }}>No Journal Entry for this Date</h3>
+                  <p className={styles.subtitle} style={{ maxWidth: "420px" }}>
+                    You haven't logged notes, reflections, or habits for {formatDateNice(selectedDate)}.
+                  </p>
+                  <button
+                    className={`${styles.tabBtn} ${styles.tabActive}`}
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      onSelectDate(selectedDate);
+                    }}
+                  >
+                    <FiPlus size={16} /> Write Daily Journal Entry
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className={styles.modalFooter}>
+              {selectedEntry ? (
+                <>
+                  <button
+                    className={styles.tabBtn}
+                    style={{ background: "#ef4444", color: "#ffffff" }}
+                    onClick={handleDeleteEntry}
+                  >
+                    <FiTrash2 size={15} /> Delete Entry
+                  </button>
+
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button className={styles.tabBtn} onClick={handleCloseModal}>
+                      Close
+                    </button>
+                    <button
+                      className={`${styles.tabBtn} ${styles.tabActive}`}
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        onSelectDate(selectedDate);
+                      }}
+                    >
+                      <FiEdit3 size={15} /> Edit in Daily Journal
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div style={{ width: "100%", display: "flex", justifyContent: "flex-end" }}>
+                  <button className={styles.tabBtn} onClick={handleCloseModal}>
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
