@@ -216,7 +216,7 @@ export default function JournalEntryDetail({ entry, templates }) {
         )}
         {entry.caloriesBurned !== undefined && Number(entry.caloriesBurned) > 0 && (
           <span className={styles.metricPill} title="Calories Burned">
-            <FiFlame size={14} color="#f97316" /> Burned: {entry.caloriesBurned} kcal
+            <FiTrendingUp size={14} color="#f97316" /> Burned: {entry.caloriesBurned} kcal
           </span>
         )}
       </div>
