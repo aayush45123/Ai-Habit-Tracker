@@ -8,7 +8,7 @@ import {
   FiActivity,
   FiBatteryCharging,
   FiHeart,
-  FiFlame,
+  FiTrendingUp,
   FiTarget,
   FiCheckSquare,
   FiAward,
