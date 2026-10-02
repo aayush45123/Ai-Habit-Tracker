@@ -3,164 +3,257 @@ import {
   NUTRITION_DATABASE,
   STANDARD_PORTION_CONVERSIONS,
   findNutritionDatabaseEntry,
+  calculateNutrition,
 } from "./nutritionDatabase.js";
 
 /**
- * Builds the high-accuracy Groq system prompt for Indian and global meal analysis.
- * Uses structured JSON schema where AI extracts items and portions,
- * and the backend calculates numbers deterministically.
+ * Builds the Groq system prompt for food PARSING only.
+ * Groq's ONLY job: identify items, quantities, units, preparation.
+ * Backend calculates ALL nutrition from the verified database.
+ * Groq must NEVER invent calorie/protein numbers.
  */
 export function buildNutritionGroqPrompt(userMemoryContext = "") {
-  return `You are an elite clinical nutritionist and food-portion analysis AI specialized in Indian, Asian, and international cuisines.
-Your goal is to parse EVERY food component, portion size, and cooking method from the meal description into structured items.
+  const examples = `
+Input: "10 ragda puri"
+{"items":[{"name":"ragda puri","canonical_key":"ragda_puri","quantity":10,"unit":"piece","preparation":"fried","is_fried":true,"is_bone_in":false,"confidence":"high"}],"assumptions":["10 pieces ragda puri as stated"],"confidence":"high"}
 
-MANDATORY RULES:
-1. EXTRACT EVERY SINGLE FOOD ITEM SEPARATELY:
-   - If the meal mentions chicken, gravy, chapati, and rice, you MUST output an item for EACH of them. Never output only one item.
-   - Never skip carbohydrates, sides, or small portions (e.g. "50g rice" MUST be an item).
-   - "4 chapati" -> quantity: 4, unit: "piece". (Never quantity: 1).
-   - "10 puri" -> quantity: 10, unit: "piece". (Never quantity: 1).
-   - "2 boiled eggs" -> quantity: 2, unit: "piece".
-   - "chicken gravy" -> separate into:
-     (a) chicken meat (curry portion ~100g or the specified piece count)
-     (b) chicken gravy (curry sauce base with cooking oil/spices, 1 bowl)
-   - "chicken gravy (4 pieces of small boned chicken)" -> separate into:
-     (a) 4 small bone-in chicken pieces (is_bone_in: true, edible_grams: 120)
-     (b) chicken gravy sauce (1 bowl)
-   - "handful roasted chana and peanuts" -> separate into:
-     (a) 1 handful roasted chana (~25g)
-     (b) 1 handful peanuts (~28g)
-   - "10 ragda puri" -> quantity: 10, unit: "piece", canonical_key: "ragda_puri".
-   - "fried chicken leg + small fried liver" -> separate into:
-     (a) fried chicken leg (quantity: 1, unit: "piece", is_fried: true, is_bone_in: true)
-     (b) fried liver (quantity: 1, unit: "piece" or 50g, is_fried: true)
+Input: "chicken gravy with 4 chapati and 50 grams rice"
+{"items":[{"name":"chicken gravy","canonical_key":"chicken_gravy","quantity":1,"unit":"bowl","preparation":"curry","is_fried":false,"is_bone_in":false,"confidence":"high"},{"name":"chapati","canonical_key":"chapati","quantity":4,"unit":"piece","preparation":"plain","is_fried":false,"is_bone_in":false,"confidence":"high"},{"name":"cooked rice","canonical_key":"rice_cooked","quantity":50,"unit":"g","preparation":"boiled","is_fried":false,"is_bone_in":false,"confidence":"high"}],"assumptions":["chicken gravy only=sauce, no explicit chicken pieces","4 standard chapatis","50g cooked rice"],"confidence":"high"}
 
-2. ACCURATE UNITS & PREPARATION:
-   - Units: "piece", "g", "bowl", "plate", "handful", "cup", "tbsp".
-   - Preparation: "plain", "boiled", "fried", "deep_fried", "curry", "roasted", "grilled".
-   - Distinguish COOKED vs UNCOOKED rice. Default to cooked rice.
-   - Bone-in meat: bones are not edible, estimate edible_grams as ~65% of piece weight.
+Input: "fried chicken leg and one fried liver"
+{"items":[{"name":"fried chicken leg","canonical_key":"chicken_fried","quantity":1,"unit":"piece","preparation":"fried","is_fried":true,"is_bone_in":true,"confidence":"high"},{"name":"fried liver","canonical_key":"chicken_liver_fried","quantity":1,"unit":"piece","preparation":"fried","is_fried":true,"is_bone_in":false,"confidence":"high"}],"assumptions":["fried chicken leg=chicken_fried entry","fried liver=chicken_liver_fried entry"],"confidence":"high"}
 
-3. FEW-SHOT EXAMPLES:
+Input: "handful of roasted chana and peanuts"
+{"items":[{"name":"roasted chana","canonical_key":"roasted_chana","quantity":1,"unit":"handful","preparation":"roasted","is_fried":false,"is_bone_in":false,"confidence":"high"},{"name":"peanuts","canonical_key":"peanuts","quantity":1,"unit":"handful","preparation":"roasted","is_fried":false,"is_bone_in":false,"confidence":"high"}],"assumptions":["1 handful each, ~28g each"],"confidence":"high"}
 
-Example 1:
-Input: "chicken gravy with 4 chapati and 50g cooked rice"
-Output:
-{
-  "items": [
-    {
-      "name": "chicken meat in curry",
-      "canonical_key": "chicken_boneless",
-      "quantity": 100,
-      "unit": "g",
-      "preparation": "curry",
-      "estimated_grams": 100,
-      "edible_grams": 100,
-      "is_fried": false,
-      "is_bone_in": false,
-      "confidence": "high"
-    },
-    {
-      "name": "chicken gravy sauce with cooking oil",
-      "canonical_key": "chicken_gravy",
-      "quantity": 1,
-      "unit": "bowl",
-      "preparation": "curry",
-      "estimated_grams": 120,
-      "edible_grams": 120,
-      "is_fried": false,
-      "is_bone_in": false,
-      "confidence": "high"
-    },
-    {
-      "name": "wheat chapati",
-      "canonical_key": "chapati",
-      "quantity": 4,
-      "unit": "piece",
-      "preparation": "plain",
-      "estimated_grams": 160,
-      "edible_grams": 160,
-      "is_fried": false,
-      "is_bone_in": false,
-      "confidence": "high"
-    },
-    {
-      "name": "cooked white rice",
-      "canonical_key": "rice_cooked",
-      "quantity": 50,
-      "unit": "g",
-      "preparation": "boiled",
-      "estimated_grams": 50,
-      "edible_grams": 50,
-      "is_fried": false,
-      "is_bone_in": false,
-      "confidence": "high"
-    }
-  ],
-  "assumptions": [
-    "Separated chicken gravy into 100g chicken meat and 1 bowl gravy sauce with cooking oil",
-    "4 standard chapatis without ghee (~40g each)",
-    "50g weighed cooked white rice"
-  ],
-  "confidence": "high"
+Input: "4 small boned chicken pieces"
+{"items":[{"name":"small bone-in chicken pieces","canonical_key":"chicken_bone_in_piece","quantity":4,"unit":"piece","preparation":"curry","is_fried":false,"is_bone_in":true,"confidence":"high"}],"assumptions":["4 small bone-in pieces"],"confidence":"high"}
+
+Input: "chicken gravy (4 pieces of small boned chicken) with 4 chapati"
+{"items":[{"name":"chicken gravy sauce","canonical_key":"chicken_gravy","quantity":1,"unit":"bowl","preparation":"curry","is_fried":false,"is_bone_in":false,"confidence":"high"},{"name":"small bone-in chicken pieces","canonical_key":"chicken_bone_in_piece","quantity":4,"unit":"piece","preparation":"curry","is_fried":false,"is_bone_in":true,"confidence":"high"},{"name":"chapati","canonical_key":"chapati","quantity":4,"unit":"piece","preparation":"plain","is_fried":false,"is_bone_in":false,"confidence":"high"}],"assumptions":["gravy + 4 explicit bone-in pieces + 4 chapatis"],"confidence":"high"}`;
+
+  const userCtx = userMemoryContext
+    ? `\nUSER CALIBRATIONS (highest priority):\n${userMemoryContext}\n`
+    : "";
+
+  return `You are an elite food-parsing AI specialized in Indian, Asian, and international cuisines.
+Your ONLY job is to identify every food item, quantity, unit, and preparation method.
+Do NOT invent calorie or protein values — the backend calculates nutrition from a verified database.
+
+MANDATORY PARSING RULES:
+
+1. EXTRACT EVERY FOOD ITEM SEPARATELY:
+   - "chicken gravy with 4 chapati and 50g rice" -> chicken_gravy + chapati(qty:4) + rice_cooked(qty:50,unit:g)
+   - "fried chicken leg and one fried liver" -> chicken_fried(qty:1) + chicken_liver_fried(qty:1)
+   - "handful of roasted chana and peanuts" -> roasted_chana(qty:1,unit:handful) + peanuts(qty:1,unit:handful)
+   - "10 ragda puri" -> ragda_puri(qty:10,unit:piece) -- NEVER use plate or portion for this
+
+2. CANONICAL KEYS (use EXACTLY as listed):
+   ragda_puri           -> ragda puri (unit MUST be piece)
+   chicken_bone_in_piece -> small boned chicken, bone-in chicken pieces
+   chicken_leg          -> chicken leg, drumstick
+   chicken_fried        -> fried chicken, chicken 65, fried chicken leg
+   chicken_gravy        -> chicken gravy, chicken curry (sauce only)
+   chicken_liver        -> chicken liver, liver, kaleji
+   chicken_liver_fried  -> fried liver, liver fry, kaleji fry
+   chicken_boneless     -> boneless chicken, plain curry chicken
+   chicken_breast       -> chicken breast, grilled chicken
+   butter_chicken       -> butter chicken, murgh makhani (do NOT split)
+   chicken_biryani      -> chicken biryani (do NOT split into rice+chicken+gravy)
+   chapati              -> chapati, roti, phulka
+   rice_cooked          -> rice, cooked rice, chawal (default)
+   egg_boiled           -> boiled egg, egg
+   egg_fried            -> fried egg, omelet, egg bhurji
+   roasted_chana        -> roasted chana, bhuna chana
+   peanuts              -> peanuts, groundnuts, mungfali
+
+3. NO DOUBLE-COUNTING:
+   - "chicken biryani" -> chicken_biryani ONLY
+   - "butter chicken" -> butter_chicken ONLY
+   - "chicken gravy" alone -> chicken_gravy ONLY (no auto chicken pieces)
+   - "chicken gravy with 4 small boned chicken" -> chicken_gravy + chicken_bone_in_piece(qty:4)
+
+4. PRESERVE ALL QUANTITIES:
+   - "10 ragda puri" -> qty:10, unit:"piece"
+   - "4 chapati" -> qty:4, unit:"piece"
+   - "50 grams rice" -> qty:50, unit:"g"
+   - "one fried liver" -> qty:1
+   - "handful" -> qty:1, unit:"handful"
+   - Word numbers: one=1, two=2, three=3, four=4, five=5
+
+FEW-SHOT EXAMPLES:
+${examples}
+${userCtx}
+RESPONSE FORMAT: Return ONLY valid JSON, no markdown, no explanation.
+{"items":[{"name":string,"canonical_key":string,"quantity":number,"unit":string,"preparation":string,"is_fried":boolean,"is_bone_in":boolean,"confidence":"high"|"medium"|"low"}],"assumptions":[string],"confidence":"high"|"medium"|"low"}`;
 }
 
-Example 2:
-Input: "2 boiled eggs"
-Output:
-{
-  "items": [
-    {
-      "name": "boiled eggs",
-      "canonical_key": "egg_boiled",
-      "quantity": 2,
-      "unit": "piece",
-      "preparation": "boiled",
-      "estimated_grams": 100,
-      "edible_grams": 100,
-      "is_fried": false,
-      "is_bone_in": false,
-      "confidence": "high"
-    }
-  ],
-  "assumptions": ["2 whole large boiled eggs (~50g each)"],
-  "confidence": "high"
-}
+// ─── Word-number map ──────────────────────────────────────────────────────────
 
-${userMemoryContext ? `4. USER SPECIFIC CALIBRATIONS:\n${userMemoryContext}\n` : ""}
-
-RESPONSE FORMAT:
-Return ONLY a valid JSON object matching the schema above. No additional commentary or markdown.`;
-}
-
-/**
- * Word to number converter for parsing quantities
- */
 const WORD_NUMBERS = {
-  half: 0.5,
-  "a half": 0.5,
-  one: 1,
-  a: 1,
-  an: 1,
-  two: 2,
-  three: 3,
-  four: 4,
-  five: 5,
-  six: 6,
-  seven: 7,
-  eight: 8,
-  nine: 9,
-  ten: 10,
-  eleven: 11,
-  twelve: 12,
+  half: 0.5, "a half": 0.5, one: 1, a: 1, an: 1, two: 2, three: 3,
+  four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12,
 };
 
+// ─── DB Entry Resolution ──────────────────────────────────────────────────────
+
 /**
- * Deterministic Nutrition Calculation Engine
- * 
- * Takes parsed items from Groq (or fallback heuristic) and computes
- * accurate item-level and meal-level calories and protein using the
- * verified NUTRITION_DATABASE.
+ * Resolve a parsed item's canonical_key or name to a NUTRITION_DATABASE entry.
+ * Priority:
+ *   1. Exact DB key from canonical_key
+ *   2. Alias lookup on canonical_key
+ *   3. Alias lookup on raw name
+ *   4. Contextual inference from name + preparation flags
+ */
+function resolveDbEntry(canonicalKey, rawName, isFried, isBoneIn) {
+  // 1. Direct key match (fastest, most specific)
+  const ck = String(canonicalKey || "").trim().toLowerCase().replace(/\s+/g, "_");
+  if (ck && NUTRITION_DATABASE[ck]) return NUTRITION_DATABASE[ck];
+
+  // 2. Alias lookup on canonical_key
+  if (ck) {
+    const byKey = findNutritionDatabaseEntry(ck);
+    if (byKey) return byKey;
+  }
+
+  // 3. Alias lookup on raw name
+  const name = String(rawName || "").trim();
+  if (name) {
+    const byName = findNutritionDatabaseEntry(name);
+    if (byName) return byName;
+  }
+
+  // 4. Contextual inference
+  const nl = name.toLowerCase();
+
+  if (nl.includes("ragda") && nl.includes("puri")) return NUTRITION_DATABASE.ragda_puri;
+
+  if (nl.includes("chicken") || nl.includes("murgh")) {
+    if (nl.includes("biryani")) return NUTRITION_DATABASE.chicken_biryani;
+    if (nl.includes("butter") || nl.includes("makhani")) return NUTRITION_DATABASE.butter_chicken;
+    if (nl.includes("chettinad") || nl.includes("andhra") || nl.includes("sukka")) return NUTRITION_DATABASE.chicken_chettinad;
+    if (isFried || nl.includes("fried") || nl.includes("65") || nl.includes("lollipop") || nl.includes("pakora")) return NUTRITION_DATABASE.chicken_fried;
+    if (nl.includes("liver")) return (isFried || nl.includes("fried") || nl.includes("fry")) ? NUTRITION_DATABASE.chicken_liver_fried : NUTRITION_DATABASE.chicken_liver;
+    if (nl.includes("gravy") || nl.includes("curry") || nl.includes("masala")) return NUTRITION_DATABASE.chicken_gravy;
+    if (isBoneIn || nl.includes("bone") || nl.includes("drumstick") || nl.includes("leg")) return NUTRITION_DATABASE.chicken_leg;
+    if (nl.includes("small") || nl.includes("boned") || nl.includes("pieces")) return NUTRITION_DATABASE.chicken_bone_in_piece;
+    if (nl.includes("breast")) return NUTRITION_DATABASE.chicken_breast;
+    return NUTRITION_DATABASE.chicken_boneless;
+  }
+
+  if (nl.includes("liver") || nl.includes("kaleji")) {
+    return (isFried || nl.includes("fried") || nl.includes("fry")) ? NUTRITION_DATABASE.chicken_liver_fried : NUTRITION_DATABASE.chicken_liver;
+  }
+
+  if (nl.includes("chapati") || nl.includes("roti") || nl.includes("phulka")) return NUTRITION_DATABASE.chapati;
+
+  if (nl.includes("egg") || nl.includes("anda") || nl.includes("muttai")) {
+    return (isFried || nl.includes("fried") || nl.includes("omelet") || nl.includes("bhurji")) ? NUTRITION_DATABASE.egg_fried : NUTRITION_DATABASE.egg_boiled;
+  }
+
+  if (nl.includes("rice") || nl.includes("chawal")) {
+    return (nl.includes("raw") || nl.includes("uncooked")) ? NUTRITION_DATABASE.rice_raw : NUTRITION_DATABASE.rice_cooked;
+  }
+
+  if ((nl.includes("roasted") || nl.includes("bhuna")) && nl.includes("chana")) return NUTRITION_DATABASE.roasted_chana;
+
+  if (nl.includes("peanut") || nl.includes("groundnut") || nl.includes("mungfali")) return NUTRITION_DATABASE.peanuts;
+
+  return null;
+}
+
+// ─── Single-item nutrition calculator ────────────────────────────────────────
+
+/**
+ * Calculate one item using the DB's calculateNutrition() as primary path.
+ * Groq's own calorie/protein numbers are completely ignored.
+ */
+function calcItemNutrition(dbEntry, quantity, unit, isFried, isBoneIn, edibleGrams, assumptions) {
+  // For 'portion' serving type, bowl/katori should use caloriesPerUnit (the canonical serving),
+  // not the weight-based calculation that calculateNutrition does when given bowl unit.
+  const u = unit.toLowerCase().trim();
+  const isBowlUnit = ["bowl","bowls","katori","katoris","vati","vatti"].includes(u);
+  if (dbEntry.servingType === "portion" && isBowlUnit && dbEntry.caloriesPerUnit) {
+    const calories = Math.max(5, Math.round(quantity * dbEntry.caloriesPerUnit));
+    const protein  = Math.max(0, Math.round(quantity * dbEntry.proteinPerUnit * 10) / 10);
+    const grams    = quantity * (dbEntry.defaultGrams || 150);
+    if (isFried && !dbEntry.isFried) {
+      const extra = Math.round(50 * quantity);
+      assumptions.push(`Added frying oil (+${extra} kcal) for ${dbEntry.name}`);
+      return { calories: Math.max(5, Math.round(calories + extra)), protein, grams: Math.round(grams), displayUnit: u };
+    }
+    return { calories, protein, grams: Math.round(grams), displayUnit: u };
+  }
+
+  // Use authoritative DB calculator
+  const calc = calculateNutrition(dbEntry.key || "", quantity, unit);
+  let calories = calc.matched ? calc.calories : 0;
+  let protein  = calc.matched ? calc.protein  : 0;
+  let grams    = calc.matched ? calc.grams    : quantity * (dbEntry.defaultGrams || 100);
+
+  if (!calc.matched) {
+    // Fallback inline calculation for edge-case units
+    const u = unit.toLowerCase().trim();
+    const conv = STANDARD_PORTION_CONVERSIONS[u];
+    if (u.startsWith("g") || u === "gm" || u === "gram" || u === "grams") {
+      grams = quantity;
+      calories = (grams / 100) * dbEntry.caloriesPer100g;
+      protein  = (grams / 100) * dbEntry.proteinPer100g;
+    } else if (u === "kg") {
+      grams = quantity * 1000;
+      calories = (grams / 100) * dbEntry.caloriesPer100g;
+      protein  = (grams / 100) * dbEntry.proteinPer100g;
+    } else if (u === "handful" || u === "handfuls") {
+      grams    = quantity * (STANDARD_PORTION_CONVERSIONS.handful || 28);
+      calories = (grams / 100) * dbEntry.caloriesPer100g;
+      protein  = (grams / 100) * dbEntry.proteinPer100g;
+    } else if (conv !== undefined && !["piece","pieces","pc","pcs"].includes(u)) {
+      grams    = quantity * conv;
+      calories = (grams / 100) * dbEntry.caloriesPer100g;
+      protein  = (grams / 100) * dbEntry.proteinPer100g;
+    } else if (dbEntry.servingType === "piece" || dbEntry.caloriesPerUnit) {
+      calories = quantity * (dbEntry.caloriesPerUnit || 0);
+      protein  = quantity * (dbEntry.proteinPerUnit  || 0);
+      grams    = quantity * (dbEntry.defaultGrams    || 50);
+    } else {
+      grams    = quantity * (dbEntry.defaultGrams || 100);
+      calories = (grams / 100) * dbEntry.caloriesPer100g;
+      protein  = (grams / 100) * dbEntry.proteinPer100g;
+    }
+  }
+
+  // Bone-in override: use explicit edible grams if provided by Groq
+  if ((isBoneIn || dbEntry.isBoneIn) && edibleGrams && edibleGrams > 0) {
+    calories = (edibleGrams / 100) * dbEntry.caloriesPer100g;
+    protein  = (edibleGrams / 100) * dbEntry.proteinPer100g;
+    grams    = edibleGrams;
+  }
+
+  // Frying oil surcharge if base DB entry is not already fried
+  if (isFried && !dbEntry.isFried) {
+    const extra = Math.round(50 * quantity);
+    calories += extra;
+    assumptions.push(`Added frying oil (+${extra} kcal) for ${dbEntry.name}`);
+  }
+
+  const displayUnit = (unit === "handful" || unit === "handfuls") ? "handful" : unit;
+  return {
+    calories: Math.max(5,  Math.round(calories)),
+    protein:  Math.max(0,  Math.round(protein * 10) / 10),
+    grams:    Math.round(grams || 0),
+    displayUnit,
+  };
+}
+
+// ─── Deterministic Nutrition Calculator ──────────────────────────────────────
+
+/**
+ * calculateNutritionDeterministic
+ *
+ * Takes parsed items from Groq (or fallback heuristic).
+ * Resolves each item to a DB entry, then computes nutrition from the DB.
+ * Groq calorie/protein numbers are completely ignored.
  */
 export function calculateNutritionDeterministic({
   parsedItems = [],
@@ -170,346 +263,261 @@ export function calculateNutritionDeterministic({
 }) {
   const calculatedItems = [];
   let totalCalories = 0;
-  let totalProtein = 0;
+  let totalProtein  = 0;
   const recordedAssumptions = Array.isArray(assumptions) ? [...assumptions] : [];
 
   for (const item of parsedItems) {
     if (!item) continue;
 
-    const rawName = String(item.name || item.foodName || "").trim();
-    const canonicalKey = String(item.canonical_key || "").trim().toLowerCase();
-    let quantity = Number(item.quantity);
+    const rawName      = String(item.name || item.foodName || "").trim();
+    const canonicalKey = String(item.canonical_key || "").trim();
+    let   quantity     = Number(item.quantity);
     if (isNaN(quantity) || quantity <= 0) quantity = 1;
 
-    let unit = String(item.unit || "piece").toLowerCase().trim();
-    let estimatedGrams = item.estimated_grams ? Number(item.estimated_grams) : null;
-    let edibleGrams = item.edible_grams ? Number(item.edible_grams) : null;
-    const isFried = Boolean(item.is_fried || item.preparation === "fried" || item.preparation === "deep_fried");
-    const isBoneIn = Boolean(item.is_bone_in || item.isBoneIn);
+    let  unit       = String(item.unit || "piece").toLowerCase().trim();
+    const edibleGrams = item.edible_grams ? Number(item.edible_grams) : null;
+    const isFried   = Boolean(item.is_fried || item.preparation === "fried" || item.preparation === "deep_fried");
+    const isBoneIn  = Boolean(item.is_bone_in || item.isBoneIn);
 
-    // 1. Look up standard entry in database
-    let dbEntry = findNutritionDatabaseEntry(canonicalKey) ||
-                  findNutritionDatabaseEntry(rawName);
+    // 1. Resolve DB entry (canonical_key first)
+    const dbEntry = resolveDbEntry(canonicalKey, rawName, isFried, isBoneIn);
 
-    // Contextual auto-detection if generic
-    if (!dbEntry) {
-      if (rawName.includes("chapati") || rawName.includes("roti") || rawName.includes("phulka")) {
-        dbEntry = NUTRITION_DATABASE.chapati;
-      } else if (
-        rawName.includes("roasted chana") ||
-        rawName.includes("bhuna chana") ||
-        canonicalKey.includes("roasted_chana") ||
-        (rawName.includes("chana") && rawName.includes("roasted"))
-      ) {
-        dbEntry = NUTRITION_DATABASE.roasted_chana;
-      } else if (rawName.includes("rice") || rawName.includes("chawal")) {
-        dbEntry = rawName.includes("raw") ? NUTRITION_DATABASE.rice_raw : NUTRITION_DATABASE.rice_cooked;
-      } else if (rawName.includes("egg")) {
-        dbEntry = isFried || rawName.includes("fried") || rawName.includes("omelet")
-          ? NUTRITION_DATABASE.egg_fried
-          : NUTRITION_DATABASE.egg_boiled;
-      } else if (rawName.includes("chicken")) {
-        if (rawName.includes("gravy") || rawName.includes("curry")) {
-          dbEntry = NUTRITION_DATABASE.chicken_gravy;
-        } else if (isBoneIn || rawName.includes("bone") || rawName.includes("leg")) {
-          dbEntry = NUTRITION_DATABASE.chicken_bone_in_piece;
-        } else if (rawName.includes("breast")) {
-          dbEntry = NUTRITION_DATABASE.chicken_breast;
-        } else {
-          dbEntry = NUTRITION_DATABASE.chicken_boneless;
-        }
-      }
-    } else if (
-      (rawName.includes("roasted chana") || rawName.includes("bhuna chana") || (rawName.includes("chana") && rawName.includes("roasted"))) &&
-      dbEntry !== NUTRITION_DATABASE.roasted_chana
-    ) {
-      // Overwrite accidental match with cooked/curry chana
-      dbEntry = NUTRITION_DATABASE.roasted_chana;
-    }
-
-    let itemCalories = 0;
-    let itemProtein = 0;
+    let itemCalories, itemProtein, estimatedGrams;
 
     if (dbEntry) {
-      // 2. Unit & Portion Normalization
-      if (unit.startsWith("g") || unit === "gm" || unit === "gram" || unit === "grams") {
-        const grams = quantity;
-        itemCalories = (grams / 100) * dbEntry.caloriesPer100g;
-        itemProtein = (grams / 100) * dbEntry.proteinPer100g;
-        if (!estimatedGrams) estimatedGrams = grams;
-      } else if (unit === "kg") {
-        const grams = quantity * 1000;
-        itemCalories = (grams / 100) * dbEntry.caloriesPer100g;
-        itemProtein = (grams / 100) * dbEntry.proteinPer100g;
-        estimatedGrams = grams;
-      } else if (unit === "handful" || unit === "handfuls") {
-        const gramsPerHandful = (estimatedGrams && estimatedGrams <= 50)
-          ? estimatedGrams
-          : (dbEntry.defaultGrams && dbEntry.defaultGrams <= 50 ? dbEntry.defaultGrams : 28);
-        const totalGrams = (estimatedGrams && estimatedGrams <= 50) ? estimatedGrams : quantity * gramsPerHandful;
-        itemCalories = (totalGrams / 100) * dbEntry.caloriesPer100g;
-        itemProtein = (totalGrams / 100) * dbEntry.proteinPer100g;
-        estimatedGrams = totalGrams;
-        recordedAssumptions.push(`Assuming 1 handful of ${dbEntry.name} ≈ ${gramsPerHandful}g`);
-      } else if (unit === "bowl" || unit === "bowls" || unit === "katori" || unit === "katoris") {
-        const bowlGrams = STANDARD_PORTION_CONVERSIONS.bowl;
-        if (dbEntry.caloriesPerUnit && dbEntry.servingType === "portion") {
-          itemCalories = quantity * dbEntry.caloriesPerUnit;
-          itemProtein = quantity * dbEntry.proteinPerUnit;
-        } else {
-          const totalGrams = quantity * bowlGrams;
-          itemCalories = (totalGrams / 100) * dbEntry.caloriesPer100g;
-          itemProtein = (totalGrams / 100) * dbEntry.proteinPer100g;
-        }
-        estimatedGrams = quantity * bowlGrams;
-      } else if (unit === "plate" || unit === "plates") {
-        const plateGrams = STANDARD_PORTION_CONVERSIONS.plate;
-        const totalGrams = quantity * plateGrams;
-        itemCalories = (totalGrams / 100) * dbEntry.caloriesPer100g;
-        itemProtein = (totalGrams / 100) * dbEntry.proteinPer100g;
-        estimatedGrams = totalGrams;
-      } else if (unit === "cup" || unit === "cups" || unit === "glass" || unit === "glasses") {
-        const cupGrams = STANDARD_PORTION_CONVERSIONS[unit] || 200;
-        const totalGrams = quantity * cupGrams;
-        itemCalories = (totalGrams / 100) * dbEntry.caloriesPer100g;
-        itemProtein = (totalGrams / 100) * dbEntry.proteinPer100g;
-        estimatedGrams = totalGrams;
-      } else {
-        // Standard count / piece
-        if (dbEntry.servingType === "piece" || dbEntry.servingType === "portion") {
-          itemCalories = quantity * dbEntry.caloriesPerUnit;
-          itemProtein = quantity * dbEntry.proteinPerUnit;
-          estimatedGrams = quantity * (dbEntry.defaultGrams || 50);
-        } else {
-          // Weight-based food entered as pieces (e.g. piece of chicken, handful)
-          const pieceGrams = dbEntry.defaultGrams || 100;
-          const totalGrams = quantity * pieceGrams;
-          itemCalories = (totalGrams / 100) * dbEntry.caloriesPer100g;
-          itemProtein = (totalGrams / 100) * dbEntry.proteinPer100g;
-          estimatedGrams = totalGrams;
-        }
-      }
+      // 2. Calculate via DB — Groq's own calorie numbers are ignored
+      const r = calcItemNutrition(dbEntry, quantity, unit, isFried, isBoneIn, edibleGrams, recordedAssumptions);
+      itemCalories   = r.calories;
+      itemProtein    = r.protein;
+      estimatedGrams = r.grams;
+      unit           = r.displayUnit;
 
-      // 3. Bone-in meat handling
-      if ((isBoneIn || dbEntry.isBoneIn) && edibleGrams && edibleGrams > 0) {
-        // Recalculate accurately based on edible meat weight
-        itemCalories = (edibleGrams / 100) * dbEntry.caloriesPer100g;
-        itemProtein = (edibleGrams / 100) * dbEntry.proteinPer100g;
-      }
-
-      // 4. Extra frying oil allowance if item is fried but base DB entry is not
-      if (isFried && !dbEntry.isFried) {
-        const fryingExtraCaloriesPerServing = 60 * quantity;
-        itemCalories += fryingExtraCaloriesPerServing;
-        recordedAssumptions.push(`Added frying oil contribution (+${fryingExtraCaloriesPerServing} kcal) for ${rawName}`);
+      // 3. User memory override (highest priority)
+      const memKey = rawName.toLowerCase().trim();
+      if (userMemoryMap.has(memKey)) {
+        const t = userMemoryMap.get(memKey);
+        if (t && typeof t.calories === "number") {
+          itemCalories = t.calories;
+          itemProtein  = t.protein || itemProtein;
+          recordedAssumptions.push(`Used your personal calibration for "${rawName}"`);
+        }
       }
     } else {
-      // Unrecognized food fallback
-      if (estimatedGrams && estimatedGrams > 0) {
-        itemCalories = estimatedGrams * 1.5;
-        itemProtein = estimatedGrams * 0.06;
+      // 4. Unrecognized food — conservative estimate
+      const estG = (item.estimated_grams && Number(item.estimated_grams) > 0) ? Number(item.estimated_grams) : null;
+      if (estG) {
+        itemCalories   = Math.round(estG * 1.5);
+        itemProtein    = Math.round(estG * 0.06 * 10) / 10;
+        estimatedGrams = estG;
       } else {
-        itemCalories = 150 * quantity;
-        itemProtein = 5 * quantity;
+        itemCalories   = 150 * quantity;
+        itemProtein    = 5   * quantity;
+        estimatedGrams = null;
       }
-      recordedAssumptions.push(`Estimated standard Indian portion for "${rawName}"`);
+      recordedAssumptions.push(`Estimated generic portion for "${rawName}" — no database entry found`);
     }
 
-    // Check user trained memory override if applicable
-    const memoryKey = rawName.toLowerCase().trim();
-    if (userMemoryMap.has(memoryKey)) {
-      const trained = userMemoryMap.get(memoryKey);
-      if (trained && typeof trained.calories === "number") {
-        itemCalories = trained.calories;
-        itemProtein = trained.protein || itemProtein;
-      }
-    }
-
-    const finalCal = Math.max(5, Math.round(itemCalories));
+    const finalCal  = Math.max(5, Math.round(itemCalories));
     const finalProt = Math.max(0, Math.round(itemProtein * 10) / 10);
-
     totalCalories += finalCal;
-    totalProtein += finalProt;
+    totalProtein  += finalProt;
 
-    // Build user-friendly display name
+    // 5. Build display name
     let displayName = rawName;
-    if (quantity > 1 && !rawName.includes(String(quantity))) {
-      if (unit === "piece") {
-        displayName = `${quantity} ${rawName}`;
-      } else {
-        displayName = `${rawName} (${quantity} ${unit})`;
-      }
-    } else if (unit === "g" || unit === "gm" || unit === "ml") {
-      if (!rawName.includes(`${quantity}`)) {
-        displayName = `${rawName} (${quantity}${unit})`;
-      }
+    if (quantity > 1 && !rawName.match(new RegExp(`\\b${quantity}\\b`))) {
+      displayName = unit === "piece" ? `${quantity} ${rawName}` : `${rawName} (${quantity} ${unit})`;
+    } else if ((unit === "g" || unit === "gm" || unit === "ml") && !rawName.includes(String(quantity))) {
+      displayName = `${rawName} (${quantity}${unit})`;
+    } else if (unit === "handful") {
+      displayName = `${rawName} (1 handful)`;
     }
 
     calculatedItems.push({
-      foodName: displayName,
+      foodName:     displayName,
       quantity,
       unit,
-      calories: finalCal,
-      protein: Math.round(finalProt),
+      calories:     finalCal,
+      protein:      Math.round(finalProt),
       exactProtein: finalProt,
-      grams: estimatedGrams,
-      confidence: item.confidence || "high",
+      grams:        estimatedGrams,
+      confidence:   item.confidence || "high",
+      dbKey:        dbEntry?.key || null,
     });
   }
 
-  // 5. Run Sanity Checks to guarantee realistic totals
-  const validated = applyNutritionSanityChecks({
+  // 6. Sanity checks
+  return applyNutritionSanityChecks({
     items: calculatedItems,
     totalCalories,
     totalProtein,
     rawQuery,
     recordedAssumptions,
   });
-
-  return validated;
 }
 
-/**
- * Sanity Check Validation Rules
- * Prevents under-estimations and ensures consistent realistic totals.
- */
-export function applyNutritionSanityChecks({
-  items,
-  totalCalories,
-  totalProtein,
-  rawQuery = "",
-  recordedAssumptions = [],
-}) {
-  const queryLower = rawQuery.toLowerCase();
-  let adjustedCalories = totalCalories;
-  let adjustedProtein = totalProtein;
+// ─── Sanity Checks ───────────────────────────────────────────────────────────
 
-  // Rule 1: Chapatis / Rotis check
-  const chapatiMatch = queryLower.match(/\b(\d+)\s*(chapati|chapatis|roti|rotis|phulka|phulkas)\b/i);
-  if (chapatiMatch) {
-    const chapatiCount = parseInt(chapatiMatch[1], 10);
-    const minChapatiCalories = chapatiCount * 80;
-    const minChapatiProtein = chapatiCount * 2.8;
+export function applyNutritionSanityChecks({ items, totalCalories, totalProtein, rawQuery = "", recordedAssumptions = [] }) {
+  const q = rawQuery.toLowerCase();
 
-    // Check if chapati is represented in items
-    const chapatiItems = items.filter((it) =>
-      /chapati|roti|phulka/i.test(it.foodName)
-    );
+  // Rule 1: Chapatis — min 80 kcal + 2.8g protein each
+  const chapatiM = q.match(/\b(\d+)\s*(chapati|chapatis|roti|rotis|phulka|phulkas)\b/i);
+  if (chapatiM) {
+    const n = parseInt(chapatiM[1], 10);
+    const minC = n * 80, minP = n * 2.8;
+    const its = items.filter(it => /chapati|roti|phulka/i.test(it.foodName));
+    const curC = its.reduce((s, it) => s + it.calories, 0);
+    if (curC < minC && its.length) {
+      its[0].calories = Math.max(its[0].calories, minC);
+      its[0].protein  = Math.max(its[0].protein,  Math.round(minP));
+      recordedAssumptions.push(`Calibrated ${n} chapatis to minimum (${minC} kcal)`);
+    }
+  }
 
-    const currentChapatiCal = chapatiItems.reduce((s, it) => s + it.calories, 0);
-    if (currentChapatiCal < minChapatiCalories) {
-      const diff = minChapatiCalories - currentChapatiCal;
-      if (chapatiItems.length > 0) {
-        chapatiItems[0].calories += diff;
-        chapatiItems[0].protein = Math.max(chapatiItems[0].protein, Math.round(minChapatiProtein));
+  // Rule 2: Boiled eggs — min 70 kcal + 6g protein each
+  const eggM = q.match(/\b(\d+)\s*(boiled\s*egg|egg|eggs)\b/i);
+  if (eggM) {
+    const n = parseInt(eggM[1], 10);
+    const its = items.filter(it => /egg/i.test(it.foodName));
+    if (its.length) {
+      its[0].calories = Math.max(its[0].calories, n * 70);
+      its[0].protein  = Math.max(its[0].protein,  Math.round(n * 6));
+    }
+  }
+
+  // Rule 3: Plain puris — min 80 kcal each (NOT ragda puri — DB value is 52 kcal/piece, keep it)
+  if (!/ragda/i.test(q)) {
+    const puriM = q.match(/\b(\d+)\s*(puri|puris|poori|pooris)\b/i);
+    if (puriM) {
+      const n = parseInt(puriM[1], 10);
+      const minC = n * 80;
+      const its = items.filter(it => /\bpuri|\bpoori/i.test(it.foodName) && !/ragda/i.test(it.foodName));
+      const curC = its.reduce((s, it) => s + it.calories, 0);
+      if (curC < minC && its.length) {
+        its[0].calories = Math.max(its[0].calories, minC);
+        recordedAssumptions.push(`Calibrated ${n} puris to minimum (${minC} kcal)`);
       }
-      recordedAssumptions.push(`Calibrated ${chapatiCount} chapatis to standard baseline (${minChapatiCalories} kcal)`);
     }
   }
 
-  // Rule 2: Boiled eggs check
-  const eggMatch = queryLower.match(/\b(\d+)\s*(boiled\s*egg|egg|eggs)\b/i);
-  if (eggMatch) {
-    const eggCount = parseInt(eggMatch[1], 10);
-    const minEggCal = eggCount * 70;
-    const minEggProt = eggCount * 6.0;
-
-    const eggItems = items.filter((it) => /egg/i.test(it.foodName));
-    const currentEggProt = eggItems.reduce((s, it) => s + it.protein, 0);
-    if (currentEggProt < minEggProt && eggItems.length > 0) {
-      eggItems[0].protein = Math.round(minEggProt);
-      eggItems[0].calories = Math.max(eggItems[0].calories, minEggCal);
+  // Rule 4: Chicken protein — ensure at least 15g when chicken is present
+  if (/chicken|murgh|drumstick/i.test(q)) {
+    const its = items.filter(it => /chicken|murgh|drumstick/i.test(it.foodName));
+    const curP = its.reduce((s, it) => s + it.protein, 0);
+    if (curP < 15 && its.length) {
+      its[0].protein = Math.round(its[0].protein + (18 - curP));
+      recordedAssumptions.push(`Adjusted chicken protein to realistic minimum (~18g)`);
     }
   }
 
-  // Rule 3: Puris check (10 puris must be ~800-1000 kcal, never 80 kcal)
-  const puriMatch = queryLower.match(/\b(\d+)\s*(puri|puris|poori|pooris)\b/i);
-  if (puriMatch) {
-    const puriCount = parseInt(puriMatch[1], 10);
-    const minPuriCal = puriCount * 85;
-    const puriItems = items.filter((it) => /\bpuri|\bpoori/i.test(it.foodName));
-    const currentPuriCal = puriItems.reduce((s, it) => s + it.calories, 0);
-    if (currentPuriCal < minPuriCal && puriItems.length > 0) {
-      puriItems[0].calories = minPuriCal;
+  // Rule 5: Ragda puri quantity sanity — enforce DB value of 52 kcal/piece
+  const ragdaM = q.match(/\b(\d+)\s*ragda\s*puri/i);
+  if (ragdaM) {
+    const n = parseInt(ragdaM[1], 10);
+    const expected = n * 52;
+    const its = items.filter(it => /ragda/i.test(it.foodName));
+    if (its.length && its[0].calories < expected * 0.8) {
+      its[0].calories = expected;
+      its[0].protein  = Math.round(n * 1.4);
+      recordedAssumptions.push(`Calibrated ${n} ragda puris to ${expected} kcal (${n} x 52 kcal/piece)`);
     }
   }
 
-  // Rule 4: Chicken meal protein sanity check
-  // If chicken pieces or gravy with chicken is present, protein should reflect actual meat content
-  const hasChicken = /chicken|murgh|drumstick|leg piece/i.test(queryLower);
-  if (hasChicken) {
-    const chickenItems = items.filter((it) => /chicken|murgh|drumstick/i.test(it.foodName));
-    const currentChickenProt = chickenItems.reduce((s, it) => s + it.protein, 0);
-
-    // If chicken was detected but protein calculated is unrealistically low (e.g. < 15g for chicken dish)
-    if (currentChickenProt < 18 && chickenItems.length > 0) {
-      const targetProt = 24; // typical single serving chicken has 22-28g protein
-      const diff = targetProt - currentChickenProt;
-      chickenItems[0].protein += Math.round(diff);
-      recordedAssumptions.push(`Adjusted chicken protein to realistic standard portion (~${targetProt}g protein)`);
-    }
-  }
-
-  // Rule 5: Both chapati and rice check
-  const hasChapati = /chapati|roti|phulka/i.test(queryLower);
-  const hasRice = /rice|chawal/i.test(queryLower);
-  if (hasChapati && hasRice) {
-    const foundChapati = items.some((it) => /chapati|roti|phulka/i.test(it.foodName));
-    const foundRice = items.some((it) => /rice|chawal/i.test(it.foodName));
-
-    if (!foundRice) {
-      items.push({
-        foodName: "Cooked Rice (Standard Serving)",
-        quantity: 1,
-        unit: "bowl",
-        calories: 195,
-        protein: 4,
-        exactProtein: 4.05,
-        grams: 150,
-        confidence: "medium",
-      });
-      recordedAssumptions.push("Added detected rice portion to meal breakdown");
-    }
-  }
-
-  // Re-sum totals strictly from verified items
-  adjustedCalories = items.reduce((sum, it) => sum + (it.calories || 0), 0);
-  adjustedProtein = items.reduce((sum, it) => sum + (it.protein || 0), 0);
-
+  // Re-sum after adjustments
+  const cal  = items.reduce((s, it) => s + (it.calories || 0), 0);
+  const prot = items.reduce((s, it) => s + (it.protein  || 0), 0);
   return {
-    calories: Math.max(10, Math.round(adjustedCalories)),
-    protein: Math.max(0, Math.round(adjustedProtein)),
+    calories:    Math.max(10, Math.round(cal)),
+    protein:     Math.max(0,  Math.round(prot)),
     items,
     assumptions: Array.from(new Set(recordedAssumptions)),
   };
 }
 
+// ─── Heuristic Splitter ───────────────────────────────────────────────────────
+
+function parseWordQty(text) {
+  for (const [w, v] of Object.entries(WORD_NUMBERS)) {
+    if (new RegExp(`\\b${w}\\b`, "i").test(text)) return v;
+  }
+  return null;
+}
+
+function splitMealText(text) {
+  const parts = text
+    .split(/[,;+\n]|\s+and\s+|\s+&\s+|\s+with\s+/i)
+    .map(s => s.trim())
+    .filter(Boolean);
+  return parts.length > 0 ? parts : [text.trim()];
+}
+
+function parseSegment(segment) {
+  const text = segment.toLowerCase().trim();
+  let quantity = 1, unit = "piece", estimatedGrams = null;
+
+  // Bracket quantity: "(200g)", "(4 pieces)"
+  const bm = text.match(/\(([0-9.]+)\s*(g|gm|gram|grams|kg|ml|piece|pieces|bowl|bowls|cup|cups|plate|plates|handful|handfuls)?\)/i);
+  if (bm) {
+    const val = parseFloat(bm[1]), u = (bm[2] || "").toLowerCase();
+    if (!isNaN(val) && val > 0) {
+      if (u.startsWith("g") || u === "gm" || u === "gram" || u === "grams") { quantity = val; unit = "g"; estimatedGrams = val; }
+      else if (u === "kg") { quantity = val * 1000; unit = "g"; estimatedGrams = val * 1000; }
+      else { quantity = val; unit = u || "piece"; }
+    }
+  } else {
+    // Prefix number + unit: "4 chapati", "50g rice", "10 ragda puri"
+    const nm = text.match(/^([0-9.]+)\s*(g|gm|gram|grams|kg|ml|piece|pieces|bowl|bowls|cup|cups|plate|plates|handful|handfuls|scoops?)?\s/i);
+    if (nm) {
+      const val = parseFloat(nm[1]), u = (nm[2] || "").toLowerCase();
+      if (!isNaN(val) && val > 0) {
+        if (u.startsWith("g") || u === "gm" || u === "gram" || u === "grams") { quantity = val; unit = "g"; estimatedGrams = val; }
+        else if (u === "kg") { quantity = val * 1000; unit = "g"; estimatedGrams = val * 1000; }
+        else { quantity = val; unit = u || "piece"; }
+      }
+    } else {
+      // Inline Xg: "50grams"
+      const ig = text.match(/\b([0-9.]+)\s*(g|gm|gram|grams|kg)\b/i);
+      if (ig) {
+        const val = parseFloat(ig[1]), u = ig[2].toLowerCase();
+        if (!isNaN(val) && val > 0) {
+          quantity = val;
+          unit = "g";
+          estimatedGrams = u === "kg" ? val * 1000 : val;
+        }
+      } else {
+        const wq = parseWordQty(text);
+        if (wq !== null) quantity = wq;
+        if (/\bhandful\b/i.test(text)) unit = "handful";
+      }
+    }
+  }
+
+  const isFried  = /fried|deep.?fried|pakora|samosa/i.test(text);
+  const isBoneIn = /\bbone\b|small\s*boned|boned|drumstick|leg\s*piece/i.test(text);
+  return { quantity, unit, estimatedGrams, isFried, isBoneIn };
+}
+
+// ─── Fallback Heuristic Parser ────────────────────────────────────────────────
+
 /**
- * Advanced Multi-Item Fallback Heuristic Parser
- * Used when AI / Groq is offline or unavailable.
- * Parses multi-item text, brackets, numbers, word-numbers, and calculates
- * against NUTRITION_DATABASE deterministically.
+ * estimateNutritionHeuristic
+ *
+ * Used when Groq is offline or returns invalid JSON.
+ * Parses multi-item text deterministically from the DB.
  */
 export function estimateNutritionHeuristic(foodName) {
   if (!foodName || typeof foodName !== "string" || !foodName.trim()) {
     return {
-      calories: 250,
-      protein: 10,
+      calories: 250, protein: 10,
       items: [{ foodName: "Unknown Meal", calories: 250, protein: 10, quantity: 1, unit: "piece" }],
-      assumptions: ["Default generic serving used"],
-      confidence: "low",
+      assumptions: ["Default generic serving used"], confidence: "low",
     };
   }
 
   const trimmed = foodName.trim();
-
-  // Split by commas, semicolons, plus signs, newlines, "and", "&", "with"
-  const rawParts = trimmed
-    .split(/[,;+\n]|\s+and\s+|\s+&\s+|\s+with\s+/i)
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const parts = rawParts.length > 0 ? rawParts : [trimmed];
+  // Detect "handful of X and Y" pattern — all split segments should inherit handful unit
+  const startsWithHandful = /^\s*(?:a\s+)?handful\s+of\s+/i.test(trimmed);
+  const parts   = splitMealText(trimmed);
   const parsedItems = [];
   const assumptions = [];
 
@@ -517,147 +525,46 @@ export function estimateNutritionHeuristic(foodName) {
     const text = part.toLowerCase().trim();
     if (!text) continue;
 
-    let quantity = 1;
-    let unit = "piece";
-    let estimatedGrams = null;
-
-    // 1. Check for brackets e.g. "(200g)", "(4 pieces)", "(50 gm)"
-    const bracketMatch = text.match(/\(([\d\.]+)\s*(g|gm|gram|grams|kg|ml|piece|pieces|slice|slices|bowl|bowls|cup|cups|plate|plates|handful|handfuls|scoop|scoops)?\)/i);
-    if (bracketMatch) {
-      const val = parseFloat(bracketMatch[1]);
-      const matchedUnit = (bracketMatch[2] || "").toLowerCase();
-      if (!isNaN(val) && val > 0) {
-        if (matchedUnit.startsWith("g") || matchedUnit === "gm" || matchedUnit === "gram" || matchedUnit === "grams") {
-          quantity = val;
-          unit = "g";
-          estimatedGrams = val;
-        } else if (matchedUnit === "kg") {
-          quantity = val * 1000;
-          unit = "g";
-          estimatedGrams = val * 1000;
-        } else {
-          quantity = val;
-          unit = matchedUnit || "piece";
-        }
-      }
-    } else {
-      // 2. Check for prefix number e.g. "4 chapati", "50g rice", "2 boiled eggs", "10 ragda puri"
-      const numMatch = text.match(/\b([\d\.]+)\s*(g|gm|gram|grams|kg|ml|piece|pieces|slice|slices|bowl|bowls|cup|cups|plate|plates|handful|handfuls|scoop|scoops)?\b/i);
-      if (numMatch) {
-        const val = parseFloat(numMatch[1]);
-        const matchedUnit = (numMatch[2] || "").toLowerCase();
-        if (!isNaN(val) && val > 0) {
-          if (matchedUnit.startsWith("g") || matchedUnit === "gm" || matchedUnit === "gram" || matchedUnit === "grams") {
-            quantity = val;
-            unit = "g";
-            estimatedGrams = val;
-          } else if (matchedUnit === "kg") {
-            quantity = val * 1000;
-            unit = "g";
-            estimatedGrams = val * 1000;
-          } else {
-            quantity = val;
-            unit = matchedUnit || "piece";
-          }
-        }
-      } else {
-        // 3. Check for word numbers e.g. "two eggs", "four chapatis", "half plate"
-        for (const [w, n] of Object.entries(WORD_NUMBERS)) {
-          if (new RegExp(`\\b${w}\\b`, "i").test(text)) {
-            quantity = n;
-            break;
-          }
-        }
-        if (text.includes("handful")) {
-          unit = "handful";
-          quantity = 1;
-        }
-      }
-    }
-
-    const isFried = /fried|deep fried|fry|pakora|samosa|vada|puri/i.test(text);
-    const isBoneIn = /bone|small boned|drumstick|leg piece/i.test(text);
-
-    // Special case 1: Chicken gravy with explicit pieces e.g. "(4 pieces of small boned chicken)"
-    if (/chicken\s+gravy|chicken\s+curry/i.test(text) && (isBoneIn || /piece|pieces/i.test(text))) {
-      const pieceCountMatch = text.match(/(\d+)\s*(?:small\s*)?(?:boned|bone-in|bone)?\s*(?:chicken\s*)?pieces?/i);
-      const pieceCount = pieceCountMatch ? parseInt(pieceCountMatch[1], 10) : 4;
-
-      parsedItems.push({
-        name: `${pieceCount} bone-in chicken pieces`,
-        canonical_key: "chicken_bone_in_piece",
-        quantity: pieceCount,
-        unit: "piece",
-        is_bone_in: true,
-        edible_grams: pieceCount * 30,
-        confidence: "high",
-      });
-
-      parsedItems.push({
-        name: "chicken gravy (curry sauce with oil)",
-        canonical_key: "chicken_gravy",
-        quantity: 1,
-        unit: "bowl",
-        is_fried: false,
-        confidence: "high",
-      });
-      continue;
-    }
-
-    // Special case 2: "chicken gravy" or "chicken curry" without piece count -> separate chicken meat + gravy sauce
-    if (text === "chicken gravy" || text === "chicken curry" || text.includes("chicken gravy") && !text.includes("chapati") && !text.includes("rice")) {
-      parsedItems.push({
-        name: "chicken meat (curry portion ~100g)",
-        canonical_key: "chicken_boneless",
-        quantity: 100,
-        unit: "g",
-        estimated_grams: 100,
-        confidence: "medium",
-      });
-      parsedItems.push({
-        name: "chicken gravy (curry sauce with oil)",
-        canonical_key: "chicken_gravy",
-        quantity: 1,
-        unit: "bowl",
-        confidence: "medium",
-      });
-      assumptions.push("Separated chicken gravy into ~100g chicken meat and 1 bowl gravy sauce with cooking oil");
-      continue;
-    }
-
-    // Special case 3: "10 ragda puri"
+    // Special: ragda puri
     if (/ragda\s*puri/i.test(text)) {
-      parsedItems.push({
-        name: `${quantity} ragda puri`,
-        canonical_key: "ragda_puri",
-        quantity,
-        unit: "piece",
-        confidence: "high",
-      });
+      const cm = text.match(/^(\d+)/);
+      const count = cm ? parseInt(cm[1], 10) : 1;
+      parsedItems.push({ name: `${count > 1 ? count + " " : ""}ragda puri`, canonical_key: "ragda_puri", quantity: count, unit: "piece", is_fried: true, is_bone_in: false, confidence: "high" });
       continue;
     }
 
-    parsedItems.push({
-      name: part,
-      canonical_key: "",
-      quantity,
-      unit,
-      estimated_grams: estimatedGrams,
-      is_fried: isFried,
-      is_bone_in: isBoneIn,
-      confidence: "medium",
-    });
+    // Special: "chicken gravy (4 pieces of small boned chicken)" OR "(4 small boned chicken pieces)"
+    const cgBoneIn = text.match(
+      /chicken\s*(?:gravy|curry).*?\((\d+)\s+(?:pieces?\s+of\s+)?(?:small\s+)?(?:boned?|bone)/i
+    ) || text.match(
+      /chicken\s*(?:gravy|curry).*?\((\d+)\s*(?:small\s*)?(?:boned?|bone-in)?\s*(?:chicken\s*)?pieces?\)/i
+    );
+    if (cgBoneIn) {
+      const count = parseInt(cgBoneIn[1], 10);
+      parsedItems.push({ name: "chicken gravy sauce", canonical_key: "chicken_gravy", quantity: 1, unit: "bowl", is_fried: false, is_bone_in: false, confidence: "high" });
+      parsedItems.push({ name: `${count} small bone-in chicken pieces`, canonical_key: "chicken_bone_in_piece", quantity: count, unit: "piece", is_fried: false, is_bone_in: true, confidence: "high" });
+      assumptions.push(`Separated: gravy sauce + ${count} bone-in pieces`);
+      continue;
+    }
+
+    // Special: plain "chicken gravy" or "chicken curry" alone
+    if (/^chicken\s*(gravy|curry)$/i.test(text.trim())) {
+      parsedItems.push({ name: "chicken gravy", canonical_key: "chicken_gravy", quantity: 1, unit: "bowl", is_fried: false, is_bone_in: false, confidence: "medium" });
+      assumptions.push("chicken gravy alone = sauce only");
+      continue;
+    }
+
+    // Generic
+    let { quantity, unit, estimatedGrams, isFried, isBoneIn } = parseSegment(text);
+
+    // Inherit handful unit if the whole meal started with "handful of X and Y"
+    if (startsWithHandful && unit === "piece" && !estimatedGrams) {
+      unit = "handful";
+    }
+
+    parsedItems.push({ name: part, canonical_key: "", quantity, unit, estimated_grams: estimatedGrams, is_fried: isFried, is_bone_in: isBoneIn, confidence: "medium" });
   }
 
-  const result = calculateNutritionDeterministic({
-    parsedItems,
-    assumptions,
-    rawQuery: foodName,
-  });
-
-  return {
-    ...result,
-    confidence: "medium",
-    isHeuristicFallback: true,
-  };
+  const result = calculateNutritionDeterministic({ parsedItems, assumptions, rawQuery: foodName });
+  return { ...result, confidence: "medium", isHeuristicFallback: true };
 }
