@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Check, X, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
+import { Edit2, Check, X, CalendarDays, ChevronDown, ChevronUp, Sparkles, Info } from "lucide-react";
 import api from "../../utils/api";
 import { useAuth } from "../../context/AuthContext.jsx";
 import CalorieSummary from "../../components/CalorieSummary/CalorieSummary";
@@ -27,6 +27,7 @@ export default function Calories() {
   const [showPastDate, setShowPastDate] = useState(false);
   const [pastDate, setPastDate] = useState("");
   const [addingPast, setAddingPast] = useState(false);
+  const [lastEstimate, setLastEstimate] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -123,6 +124,16 @@ export default function Calories() {
     try {
       const aiRes = await api.post("/calories/ai/estimate", {
         foodName: food.trim(),
+      });
+
+      // Save estimate breakdown for UI display
+      setLastEstimate({
+        rawQuery: food.trim(),
+        calories: aiRes.data?.calories,
+        protein: aiRes.data?.protein,
+        items: aiRes.data?.items || [],
+        assumptions: aiRes.data?.assumptions || [],
+        confidence: aiRes.data?.confidence || "high",
       });
 
       if (aiRes.data?.items && aiRes.data.items.length > 1) {
@@ -354,6 +365,82 @@ export default function Calories() {
               {addingPast ? "Adding..." : showPastDate ? "Add to Past" : "Add"}
             </button>
           </div>
+
+          {/* AI Meal Breakdown Display */}
+          {lastEstimate && (
+            <div className={styles.breakdownCard}>
+              <div className={styles.breakdownCardHeader}>
+                <div className={styles.breakdownTitleGroup}>
+                  <Sparkles size={18} className={styles.sparkleIcon} />
+                  <span className={styles.breakdownHeading}>AI Meal Breakdown</span>
+                  <span
+                    className={`${styles.confidenceBadge} ${
+                      lastEstimate.confidence === "high"
+                        ? styles.confidenceHigh
+                        : lastEstimate.confidence === "low"
+                        ? styles.confidenceLow
+                        : styles.confidenceMedium
+                    }`}
+                  >
+                    {lastEstimate.confidence === "high"
+                      ? "High Confidence"
+                      : lastEstimate.confidence === "low"
+                      ? "Low Confidence"
+                      : "Medium Confidence"}
+                  </span>
+                </div>
+                <button
+                  className={styles.closeBreakdownBtn}
+                  onClick={() => setLastEstimate(null)}
+                  title="Close breakdown"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className={styles.breakdownQuery}>
+                Analyzed meal: <strong>"{lastEstimate.rawQuery}"</strong>
+              </div>
+
+              <div className={styles.breakdownTable}>
+                <div className={styles.breakdownTableHeader}>
+                  <span className={styles.colFood}>Food Item</span>
+                  <span className={styles.colQty}>Quantity</span>
+                  <span className={styles.colNum}>Calories</span>
+                  <span className={styles.colNum}>Protein</span>
+                </div>
+                {lastEstimate.items.map((it, idx) => (
+                  <div key={idx} className={styles.breakdownTableRow}>
+                    <span className={styles.colFood}>{it.foodName}</span>
+                    <span className={styles.colQty}>
+                      {it.quantity ? `${it.quantity} ${it.unit || "serving"}` : it.grams ? `${it.grams}g` : "1 serving"}
+                    </span>
+                    <span className={styles.colNum}>{it.calories} kcal</span>
+                    <span className={styles.colNum}>{it.protein}g</span>
+                  </div>
+                ))}
+                <div className={styles.breakdownTableFooter}>
+                  <span className={styles.colFood}>TOTAL</span>
+                  <span className={styles.colQty}></span>
+                  <span className={styles.colNum}>{lastEstimate.calories} kcal</span>
+                  <span className={styles.colNum}>{lastEstimate.protein}g</span>
+                </div>
+              </div>
+
+              {lastEstimate.assumptions && lastEstimate.assumptions.length > 0 && (
+                <div className={styles.assumptionsBox}>
+                  <div className={styles.assumptionsHeading}>
+                    <Info size={14} /> Serving Assumptions:
+                  </div>
+                  <ul className={styles.assumptionsList}>
+                    {lastEstimate.assumptions.map((asm, i) => (
+                      <li key={i}>{asm}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           <CalorieSummary key={refreshSummary} onMealChanged={loadStatus} />
         </>

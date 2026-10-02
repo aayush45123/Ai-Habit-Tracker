@@ -521,6 +521,196 @@
   color: #9ca3af;
 }
 
+/* AI Meal Breakdown Card */
+.breakdownCard {
+  background: var(--color-bg-secondary, #ffffff);
+  border: 2px solid var(--color-border, #111827);
+  box-shadow: 4px 4px 0 var(--color-border, #111827);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.breakdownCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border, #111827);
+}
+
+.breakdownTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sparkleIcon {
+  color: var(--color-accent-primary, #6366f1);
+}
+
+.breakdownHeading {
+  font-family: var(--font-primary);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary, #111827);
+}
+
+.confidenceBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+}
+
+.confidenceHigh {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.confidenceMedium {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.confidenceLow {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.closeBreakdownBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary, #6b7280);
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.closeBreakdownBtn:hover {
+  color: var(--color-text-primary, #111827);
+}
+
+.breakdownQuery {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #4b5563);
+  margin-bottom: 1rem;
+}
+
+.breakdownQuery strong {
+  color: var(--color-text-primary, #111827);
+}
+
+.breakdownTable {
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg-primary, #f9fafb);
+  margin-bottom: 1rem;
+}
+
+.breakdownTableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 0.6rem 1rem;
+  background: var(--color-bg-tertiary, #f3f4f6);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary, #6b7280);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.breakdownTableRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--color-border, #f3f4f6);
+  align-items: center;
+}
+
+.breakdownTableRow:nth-child(even) {
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.colFood {
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.colQty {
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.colNum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.breakdownTableFooter {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-tertiary, #f3f4f6);
+  font-weight: 800;
+  font-size: 0.95rem;
+  border-top: 2px solid var(--color-border, #111827);
+}
+
+.breakdownTableFooter .colFood {
+  letter-spacing: 0.05em;
+}
+
+.breakdownTableFooter .colNum {
+  color: var(--color-accent-primary, #4f46e5);
+}
+
+.assumptionsBox {
+  padding: 0.75rem 1rem;
+  background: rgba(99, 102, 241, 0.06);
+  border-left: 3px solid var(--color-accent-primary, #6366f1);
+  font-size: 0.85rem;
+}
+
+.assumptionsHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin-bottom: 0.4rem;
+}
+
+.assumptionsList {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-text-secondary, #4b5563);
+  line-height: 1.45;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
