@@ -125,12 +125,19 @@ export default function Calories() {
         foodName: food.trim(),
       });
 
-      await api.post("/calories/food", {
-        foodName: food.trim(),
-        calories: aiRes.data.calories,
-        protein: aiRes.data.protein,
-        ...(showPastDate && pastDate ? { date: pastDate } : {}),
-      });
+      if (aiRes.data?.items && aiRes.data.items.length > 1) {
+        await api.post("/calories/food", {
+          items: aiRes.data.items,
+          ...(showPastDate && pastDate ? { date: pastDate } : {}),
+        });
+      } else {
+        await api.post("/calories/food", {
+          foodName: aiRes.data?.items?.[0]?.foodName || food.trim(),
+          calories: aiRes.data?.calories,
+          protein: aiRes.data?.protein,
+          ...(showPastDate && pastDate ? { date: pastDate } : {}),
+        });
+      }
 
       setFood("");
       // Only reload today's status if logging for today
@@ -348,7 +355,7 @@ export default function Calories() {
             </button>
           </div>
 
-          <CalorieSummary key={refreshSummary} />
+          <CalorieSummary key={refreshSummary} onMealChanged={loadStatus} />
         </>
       )}
 

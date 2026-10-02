@@ -160,7 +160,16 @@
   color: var(--color-text-secondary);
 }
 
-.deleteBtn {
+.actionBtns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editBtn,
+.deleteBtn,
+.saveBtn,
+.cancelBtn {
   width: 32px;
   height: 32px;
   display: flex;
@@ -175,10 +184,95 @@
   transition: all var(--transition-speed) var(--transition-easing);
 }
 
+.editBtn:hover {
+  background-color: var(--color-accent-primary, #6366f1);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
 .deleteBtn:hover {
   background-color: var(--color-error);
   color: var(--color-bg-primary);
   transform: rotate(90deg);
+}
+
+.saveBtn {
+  background-color: #10b981;
+  color: #fff;
+}
+
+.saveBtn:hover {
+  background-color: #059669;
+  transform: scale(1.05);
+}
+
+.cancelBtn:hover {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-error);
+}
+
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.editFields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.editInputText {
+  flex: 2;
+  min-width: 140px;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.editInputNumber {
+  width: 90px;
+  padding: 0.5rem 0.5rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+  text-align: center;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.trainedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  margin-top: 0.2rem;
+  width: fit-content;
 }
 
 .stats {

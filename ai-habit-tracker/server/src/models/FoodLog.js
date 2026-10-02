@@ -12,6 +12,7 @@ const foodLogSchema = new mongoose.Schema(
     protein: { type: Number, default: 0 },
     imageUrl: String,
     date: { type: String, required: true }, // IST yyyy-mm-dd
+    isUserEdited: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

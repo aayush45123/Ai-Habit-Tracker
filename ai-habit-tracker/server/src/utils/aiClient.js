@@ -4,8 +4,7 @@ const DEFAULT_MODELS = [
   process.env.GROQ_MODEL,
   "openai/gpt-oss-120b",
   "openai/gpt-oss-20b",
-  "groq/compound-mini",
-  "qwen/qwen3.6-27b",
+  "qwen/qwen3.8-27b",
 ].filter(Boolean);
 
 export function createGroqClient() {

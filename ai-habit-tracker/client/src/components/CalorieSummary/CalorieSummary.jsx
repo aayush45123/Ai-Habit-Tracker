@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, Edit2, Check, Sparkles } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./CalorieSummary.module.css";
 
-export default function CalorieSummary() {
+export default function CalorieSummary({ onMealChanged }) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Inline editing state for user corrections / AI training
+  const [editingId, setEditingId] = useState(null);
+  const [editFoodName, setEditFoodName] = useState("");
+  const [editCalories, setEditCalories] = useState("");
+  const [editProtein, setEditProtein] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     loadSummary();
@@ -26,12 +33,48 @@ export default function CalorieSummary() {
     }
   }
 
+  function startEdit(food) {
+    setEditingId(food._id);
+    setEditFoodName(food.foodName);
+    setEditCalories(food.calories);
+    setEditProtein(food.protein || 0);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  async function saveEdit(foodId) {
+    if (!editFoodName.trim() || editCalories === "") {
+      alert("Please provide food name and calories");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      await api.put(`/calories/food/${foodId}`, {
+        foodName: editFoodName.trim(),
+        calories: Number(editCalories),
+        protein: Number(editProtein || 0),
+      });
+      setEditingId(null);
+      await loadSummary();
+      onMealChanged?.();
+    } catch (err) {
+      console.error("Error updating food:", err);
+      alert("Failed to update food item. Please try again.");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   async function deleteFood(foodId) {
     if (!window.confirm("Delete this food item?")) return;
 
     try {
       await api.delete(`/calories/food/${foodId}`);
-      loadSummary();
+      await loadSummary();
+      onMealChanged?.();
     } catch (err) {
       console.error("Error deleting food:", err);
       alert("Failed to delete food item");
@@ -87,35 +130,113 @@ export default function CalorieSummary() {
       </div>
 
       <div className={styles.list}>
-        {summary.items.map((food, index) => (
-          <div key={food._id} className={styles.item}>
-            <div className={styles.itemLeft}>
-              <span className={styles.itemNumber}>{index + 1}</span>
-              <div className={styles.itemDetails}>
-                <span className={styles.foodName}>{food.foodName}</span>
-                <span className={styles.timestamp}>
-                  {new Date(food.createdAt).toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
+        {summary.items.map((food, index) => {
+          const isEditing = editingId === food._id;
+
+          return (
+            <div key={food._id} className={styles.item}>
+              {isEditing ? (
+                <div className={styles.editRow}>
+                  <div className={styles.editFields}>
+                    <input
+                      type="text"
+                      className={styles.editInputText}
+                      value={editFoodName}
+                      onChange={(e) => setEditFoodName(e.target.value)}
+                      placeholder="Food description"
+                    />
+                    <div className={styles.inputGroup}>
+                      <input
+                        type="number"
+                        className={styles.editInputNumber}
+                        value={editCalories}
+                        onChange={(e) => setEditCalories(e.target.value)}
+                        min="0"
+                      />
+                      <span>kcal</span>
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <input
+                        type="number"
+                        className={styles.editInputNumber}
+                        value={editProtein}
+                        onChange={(e) => setEditProtein(e.target.value)}
+                        min="0"
+                      />
+                      <span>g P</span>
+                    </div>
+                  </div>
+                  <div className={styles.actionBtns}>
+                    <button
+                      onClick={() => saveEdit(food._id)}
+                      className={styles.saveBtn}
+                      disabled={savingEdit}
+                      title="Save & Train AI"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      className={styles.cancelBtn}
+                      title="Cancel"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.itemLeft}>
+                    <span className={styles.itemNumber}>{index + 1}</span>
+                    <div className={styles.itemDetails}>
+                      <span className={styles.foodName}>{food.foodName}</span>
+                      <span className={styles.timestamp}>
+                        {new Date(food.createdAt).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      {food.isUserEdited && (
+                        <span
+                          className={styles.trainedBadge}
+                          title="Trained into AI memory from your calibration"
+                        >
+                          <Sparkles size={11} /> Calibrated
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.itemRight}>
+                    <div className={styles.nutrition}>
+                      <span className={styles.calories}>
+                        {food.calories} kcal
+                      </span>
+                      <span className={styles.protein}>
+                        {food.protein}g protein
+                      </span>
+                    </div>
+                    <div className={styles.actionBtns}>
+                      <button
+                        onClick={() => startEdit(food)}
+                        className={styles.editBtn}
+                        title="Edit & Train AI"
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button
+                        onClick={() => deleteFood(food._id)}
+                        className={styles.deleteBtn}
+                        title="Delete"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            <div className={styles.itemRight}>
-              <div className={styles.nutrition}>
-                <span className={styles.calories}>{food.calories} kcal</span>
-                <span className={styles.protein}>{food.protein}g protein</span>
-              </div>
-              <button
-                onClick={() => deleteFood(food._id)}
-                className={styles.deleteBtn}
-                title="Delete"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className={styles.stats}>

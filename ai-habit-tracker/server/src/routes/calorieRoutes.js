@@ -2,6 +2,7 @@ import express from "express";
 import auth from "../middleware/authMiddleware.js";
 import {
   addFoodLog,
+  updateFoodLog,
   saveCalorieProfile,
   getCalorieStatus,
   getCalorieProfile,
@@ -28,6 +29,8 @@ router.get("/recommendations", auth, getRecommendations);
 
 // Food logging routes
 router.post("/food", auth, addFoodLog);
+router.put("/food/:id", auth, updateFoodLog);
+router.patch("/food/:id", auth, updateFoodLog);
 router.get("/status", auth, getCalorieStatus);
 router.delete("/food/:id", auth, deleteFoodLog);
 

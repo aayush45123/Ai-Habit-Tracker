@@ -4,20 +4,15 @@ import CalorieProfile from "../models/CalorieProfile.js";
 import WeeklyCheckIn from "../models/WeeklyCheckIn.js";
 import User from "../models/User.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
+import { trainFoodMemory } from "../services/foodMemoryService.js";
 
 /* ============================
-   SAVE FOOD LOG
+   SAVE FOOD LOG (Single or Batch)
 ============================ */
 export const addFoodLog = async (req, res) => {
   try {
     const userId = req.user?._id;
-    const { foodName, calories, protein, imageUrl, date } = req.body;
-
-    if (!foodName || !calories) {
-      return res.status(400).json({
-        message: "foodName and calories are required",
-      });
-    }
+    const { foodName, calories, protein, imageUrl, date, items } = req.body;
 
     // Determine the log date — default to today, allow past dates only
     let logDate = normalizeDateIST(new Date());
@@ -31,19 +26,110 @@ export const addFoodLog = async (req, res) => {
       logDate = normalizeDateIST(date);
     }
 
+    // Support batch logging multiple foods
+    if (Array.isArray(items) && items.length > 0) {
+      const createdItems = [];
+      for (const item of items) {
+        if (!item.foodName || typeof item.calories !== "number") continue;
+        const food = await FoodLog.create({
+          userId,
+          foodName: item.foodName.trim(),
+          calories: Math.max(0, Math.round(Number(item.calories))),
+          protein: Math.max(0, Math.round(Number(item.protein || 0))),
+          imageUrl,
+          date: logDate,
+        });
+        createdItems.push(food);
+
+        // Train memory with logged item
+        await trainFoodMemory({
+          userId,
+          foodName: food.foodName,
+          calories: food.calories,
+          protein: food.protein,
+          isCorrection: false,
+        });
+      }
+
+      return res.json({
+        message: "Logged all food items successfully",
+        items: createdItems,
+      });
+    }
+
+    if (!foodName || calories === undefined || calories === null) {
+      return res.status(400).json({
+        message: "foodName and calories are required",
+      });
+    }
+
     const food = await FoodLog.create({
       userId,
-      foodName,
-      calories: Number(calories),
-      protein: Number(protein || 0),
+      foodName: foodName.trim(),
+      calories: Math.max(0, Math.round(Number(calories))),
+      protein: Math.max(0, Math.round(Number(protein || 0))),
       imageUrl,
       date: logDate,
+    });
+
+    // Train food memory
+    await trainFoodMemory({
+      userId,
+      foodName: food.foodName,
+      calories: food.calories,
+      protein: food.protein,
+      isCorrection: false,
     });
 
     res.json(food);
   } catch (err) {
     console.error("Error adding food log:", err);
     res.status(500).json({ message: "Failed to add food log" });
+  }
+};
+
+/* ============================
+   UPDATE / CORRECT FOOD LOG (Trains AI from User Corrections)
+============================ */
+export const updateFoodLog = async (req, res) => {
+  try {
+    const userId = req.user?._id;
+    const { id } = req.params;
+    const { foodName, calories, protein } = req.body;
+
+    const food = await FoodLog.findOne({ _id: id, userId });
+    if (!food) {
+      return res.status(404).json({ message: "Food log not found" });
+    }
+
+    if (foodName && foodName.trim()) {
+      food.foodName = foodName.trim();
+    }
+    if (calories !== undefined && !isNaN(Number(calories))) {
+      food.calories = Math.max(0, Math.round(Number(calories)));
+    }
+    if (protein !== undefined && !isNaN(Number(protein))) {
+      food.protein = Math.max(0, Math.round(Number(protein)));
+    }
+    food.isUserEdited = true;
+    await food.save();
+
+    // Explicit user correction — trains the AI memory with highest priority!
+    await trainFoodMemory({
+      userId,
+      foodName: food.foodName,
+      calories: food.calories,
+      protein: food.protein,
+      isCorrection: true,
+    });
+
+    res.json({
+      message: "Food updated and AI trained with your correction!",
+      food,
+    });
+  } catch (err) {
+    console.error("Error updating food log:", err);
+    res.status(500).json({ message: "Failed to update food log" });
   }
 };
 

@@ -3,86 +3,215 @@ import FoodLog from "../models/FoodLog.js";
 import CalorieProfile from "../models/CalorieProfile.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
 import { completeWithGroq, extractAndParseJSON } from "../utils/aiClient.js";
+import {
+  getUserFoodMemoryContext,
+  findDirectMemoryMatch,
+  trainFoodMemory,
+} from "../services/foodMemoryService.js";
 
-/* Heuristic fallback nutrition estimator when AI is offline */
-function estimateNutritionHeuristic(foodName) {
-  const text = (foodName || "").toLowerCase();
-  let calories = 250;
-  let protein = 10;
-
-  if (text.includes("egg")) {
-    const count = parseInt(text.match(/(\d+)\s*egg/)?.[1] || "1", 10);
-    calories = count * 78;
-    protein = count * 6;
-  } else if (text.includes("roti") || text.includes("chapati")) {
-    const count = parseInt(text.match(/(\d+)\s*(?:roti|chapati)/)?.[1] || "1", 10);
-    calories = count * 80;
-    protein = count * 3;
-  } else if (text.includes("fried rice") || text.includes("schezwan") || text.includes("shezwan") || text.includes("biryani")) {
-    const isHalf = text.includes("half");
-    calories = isHalf ? 280 : 550;
-    protein = isHalf ? 8 : 16;
-  } else if (text.includes("rice")) {
-    calories = text.includes("half") ? 130 : 260;
-    protein = text.includes("half") ? 3 : 6;
-  } else if (text.includes("chicken")) {
-    calories = 300;
-    protein = 32;
-  } else if (text.includes("paneer")) {
-    calories = 320;
-    protein = 18;
-  } else if (text.includes("dal") || text.includes("dhal")) {
-    calories = 180;
-    protein = 9;
-  } else if (text.includes("salad")) {
-    calories = 120;
-    protein = 4;
-  } else if (text.includes("pizza") || text.includes("burger")) {
-    calories = 450;
-    protein = 14;
-  } else if (text.includes("oat") || text.includes("oatmeal")) {
-    calories = 200;
-    protein = 7;
-  } else if (text.includes("milk") || text.includes("shake")) {
-    calories = 180;
-    protein = 8;
+/* ============================================================
+   ADVANCED MULTI-ITEM NUTRITION HEURISTIC (Fallback when AI offline)
+   - Accurately parses multiple foods (commas, 'and', '+', newlines)
+   - Parses numbers, brackets like (200g), weights, counts, and units
+   - Calculates and sums ALL items without capping at 250 cal
+============================================================ */
+export function estimateNutritionHeuristic(foodName) {
+  if (!foodName || typeof foodName !== "string") {
+    return { calories: 250, protein: 10, items: [] };
   }
 
-  return { calories, protein };
-}
+  // Split input into individual food items
+  const rawParts = foodName
+    .split(/[,;+\n]|\s+and\s+|\s+&\s+/i)
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-/* Build a compact few-shot context from user's past logs */
-async function buildUserFoodContext(userId) {
-  try {
-    const recentLogs = await FoodLog.find({ userId })
-      .sort({ createdAt: -1 })
-      .limit(40)
-      .lean();
+  const parts = rawParts.length > 0 ? rawParts : [foodName.trim()];
 
-    if (!recentLogs.length) return "";
+  const foodDatabase = [
+    // Eggs
+    { keys: ["boiled egg", "egg white", "egg"], cal: 78, prot: 6.3, baseUnit: "piece", baseQty: 1 },
+    { keys: ["omelet", "omelette", "fried egg", "bhurji"], cal: 130, prot: 8.0, baseUnit: "piece", baseQty: 1 },
+    // Breads & Rotis
+    { keys: ["roti", "chapati", "chapatti", "phulka", "fulka"], cal: 85, prot: 3.2, baseUnit: "piece", baseQty: 1 },
+    { keys: ["paratha", "parantha", "aloo paratha", "paneer paratha"], cal: 260, prot: 6.0, baseUnit: "piece", baseQty: 1 },
+    { keys: ["naan", "kulcha", "bhatura", "puri", "poori"], cal: 280, prot: 7.5, baseUnit: "piece", baseQty: 1 },
+    { keys: ["bread", "toast", "slice"], cal: 75, prot: 2.8, baseUnit: "piece", baseQty: 1 },
+    // Rice & Grains
+    { keys: ["biryani", "fried rice", "schezwan rice", "shezwan rice", "pulao"], cal: 520, prot: 14.0, baseUnit: "plate", baseQty: 1 },
+    { keys: ["rice", "steamed rice", "chawal", "white rice", "brown rice"], cal: 210, prot: 4.5, baseUnit: "bowl", baseQty: 1 },
+    { keys: ["oat", "oatmeal", "oats", "porridge"], cal: 180, prot: 6.5, baseUnit: "bowl", baseQty: 1 },
+    { keys: ["poha", "upma", "khichdi", "seviyan", "vermicelli"], cal: 230, prot: 5.5, baseUnit: "bowl", baseQty: 1 },
+    // Dals, Legumes & Curries
+    { keys: ["dal", "dhal", "daal", "sambar", "rasam", "lentil", "chana", "rajma", "choole", "chole", "moong"], cal: 180, prot: 9.5, baseUnit: "bowl", baseQty: 1 },
+    { keys: ["paneer", "cottage cheese"], cal: 265, prot: 18.0, baseUnit: "g", baseQty: 100 },
+    { keys: ["tofu", "soya", "soy", "soya chunks"], cal: 140, prot: 16.0, baseUnit: "g", baseQty: 100 },
+    { keys: ["sabzi", "bhaji", "curry", "veg curry", "mix veg"], cal: 150, prot: 3.5, baseUnit: "bowl", baseQty: 1 },
+    // Meats & Seafood
+    { keys: ["chicken breast"], cal: 165, prot: 31.0, baseUnit: "g", baseQty: 100 },
+    { keys: ["chicken", "murgh", "chicken curry", "tandoori chicken"], cal: 240, prot: 26.0, baseUnit: "g", baseQty: 100 },
+    { keys: ["fish", "salmon", "tuna", "prawn", "prawns", "fish curry"], cal: 180, prot: 24.0, baseUnit: "g", baseQty: 100 },
+    { keys: ["mutton", "lamb", "beef", "meat"], cal: 280, prot: 25.0, baseUnit: "g", baseQty: 100 },
+    // Dairy & Supplements
+    { keys: ["whey", "protein shake", "protein powder", "shake"], cal: 130, prot: 25.0, baseUnit: "scoop", baseQty: 1 },
+    { keys: ["milk", "doodh"], cal: 130, prot: 6.8, baseUnit: "cup", baseQty: 1 },
+    { keys: ["curd", "dahi", "yogurt"], cal: 120, prot: 6.0, baseUnit: "cup", baseQty: 1 },
+    { keys: ["cheese", "cheddar", "mozzarella"], cal: 110, prot: 7.0, baseUnit: "slice", baseQty: 1 },
+    // Fruits & Vegetables
+    { keys: ["apple"], cal: 85, prot: 0.5, baseUnit: "piece", baseQty: 1 },
+    { keys: ["banana"], cal: 105, prot: 1.3, baseUnit: "piece", baseQty: 1 },
+    { keys: ["orange", "sweet lime", "mosambi"], cal: 65, prot: 1.2, baseUnit: "piece", baseQty: 1 },
+    { keys: ["mango"], cal: 140, prot: 1.1, baseUnit: "piece", baseQty: 1 },
+    { keys: ["salad", "green salad", "cucumber", "tomato"], cal: 80, prot: 2.5, baseUnit: "bowl", baseQty: 1 },
+    // Snacks & Fast Food
+    { keys: ["pizza"], cal: 280, prot: 11.0, baseUnit: "slice", baseQty: 1 },
+    { keys: ["burger"], cal: 480, prot: 19.0, baseUnit: "piece", baseQty: 1 },
+    { keys: ["sandwich"], cal: 320, prot: 10.0, baseUnit: "piece", baseQty: 1 },
+    { keys: ["dosa", "masala dosa"], cal: 200, prot: 4.5, baseUnit: "piece", baseQty: 1 },
+    { keys: ["idli"], cal: 65, prot: 2.2, baseUnit: "piece", baseQty: 1 },
+    { keys: ["peanut butter"], cal: 95, prot: 4.0, baseUnit: "tablespoon", baseQty: 1 },
+    { keys: ["almond", "almonds", "nuts", "cashew", "walnut"], cal: 160, prot: 6.0, baseUnit: "handful", baseQty: 1 },
+    { keys: ["biscuit", "cookie"], cal: 65, prot: 1.0, baseUnit: "piece", baseQty: 1 },
+    { keys: ["tea", "chai", "coffee"], cal: 60, prot: 1.5, baseUnit: "cup", baseQty: 1 },
+  ];
 
-    // Deduplicate and build concise context string
-    const seen = new Set();
-    const examples = [];
-    for (const log of recentLogs) {
-      const key = log.foodName.toLowerCase().trim();
-      if (!seen.has(key) && examples.length < 20) {
-        seen.add(key);
-        examples.push(`- "${log.foodName}" = ${log.calories} kcal, ${log.protein}g protein`);
+  const wordNumbers = {
+    half: 0.5,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10,
+  };
+
+  const items = [];
+  let totalCalories = 0;
+  let totalProtein = 0;
+
+  for (const part of parts) {
+    const text = part.toLowerCase().trim();
+    if (!text) continue;
+
+    let multiplier = 1;
+    let explicitGrams = null;
+
+    // 1. Look for brackets like (200g), (150 gm), (2 bowls), (3 slices)
+    const bracketMatch = text.match(/\(([\d\.]+)\s*(g|gm|gram|grams|kg|ml|oz|piece|pieces|slice|slices|bowl|bowls|cup|cups|plate|plates|scoop|scoops)?\)/i);
+    if (bracketMatch) {
+      const val = parseFloat(bracketMatch[1]);
+      const unit = (bracketMatch[2] || "").toLowerCase();
+      if (!isNaN(val) && val > 0) {
+        if (unit.startsWith("g")) {
+          explicitGrams = val;
+        } else if (unit === "kg") {
+          explicitGrams = val * 1000;
+        } else if (unit.startsWith("ml")) {
+          explicitGrams = val; // roughly 1g/ml
+        } else {
+          multiplier = val;
+        }
       }
     }
-    return examples.length
-      ? `\n\nThis user's previously logged foods (use as calibration context for portion sizes):\n${examples.join("\n")}`
-      : "";
-  } catch {
-    return "";
+
+    // 2. Look for numerical prefix or quantity in the text, e.g. "4 eggs", "100g paneer", "2.5 rotis"
+    if (!bracketMatch) {
+      const numMatch = text.match(/\b([\d\.]+)\s*(g|gm|gram|grams|kg|ml|oz|piece|pieces|slice|slices|bowl|bowls|cup|cups|plate|plates|scoop|scoops)?\b/i);
+      if (numMatch) {
+        const val = parseFloat(numMatch[1]);
+        const unit = (numMatch[2] || "").toLowerCase();
+        if (!isNaN(val) && val > 0) {
+          if (unit.startsWith("g")) {
+            explicitGrams = val;
+          } else if (unit === "kg") {
+            explicitGrams = val * 1000;
+          } else if (unit.startsWith("ml")) {
+            explicitGrams = val;
+          } else {
+            multiplier = val;
+          }
+        }
+      } else {
+        // Check for words like "half", "two", "three"
+        for (const [w, n] of Object.entries(wordNumbers)) {
+          if (new RegExp(`\\b${w}\\b`, "i").test(text)) {
+            multiplier = n;
+            break;
+          }
+        }
+      }
+    }
+
+    // 3. Match against food database
+    let matchedFood = null;
+    for (const food of foodDatabase) {
+      if (food.keys.some((k) => text.includes(k))) {
+        matchedFood = food;
+        break;
+      }
+    }
+
+    let itemCal = 0;
+    let itemProt = 0;
+
+    if (matchedFood) {
+      if (explicitGrams !== null) {
+        if (matchedFood.baseUnit === "g") {
+          const ratio = explicitGrams / matchedFood.baseQty;
+          itemCal = matchedFood.cal * ratio;
+          itemProt = matchedFood.prot * ratio;
+        } else {
+          // If food base unit is piece/bowl but grams provided (e.g. 200g rice or 150g chicken)
+          const ratio = explicitGrams / 100;
+          itemCal = (matchedFood.cal / 1.5) * ratio;
+          itemProt = (matchedFood.prot / 1.5) * ratio;
+        }
+      } else {
+        itemCal = matchedFood.cal * multiplier;
+        itemProt = matchedFood.prot * multiplier;
+      }
+    } else {
+      // Unrecognized food fallback: scale by grams or reasonable default
+      if (explicitGrams !== null) {
+        itemCal = explicitGrams * 1.5;
+        itemProt = explicitGrams * 0.06;
+      } else {
+        itemCal = 180 * multiplier;
+        itemProt = 6 * multiplier;
+      }
+    }
+
+    itemCal = Math.max(10, Math.round(itemCal));
+    itemProt = Math.max(0, Math.round(itemProt));
+
+    totalCalories += itemCal;
+    totalProtein += itemProt;
+
+    items.push({
+      foodName: part,
+      calories: itemCal,
+      protein: itemProt,
+    });
   }
+
+  return {
+    calories: Math.max(10, Math.round(totalCalories)),
+    protein: Math.max(0, Math.round(totalProtein)),
+    items: items.length > 0 ? items : [{ foodName, calories: 250, protein: 10 }],
+  };
 }
 
 /* ============================
    ESTIMATE FOOD CALORIES & PROTEIN
-   ✅ IMPROVED: Personalized with user's actual food history as few-shot context
-============================ */
+   - Multi-item detection and breakdown
+   - Precision parsing for numbers, brackets like (200g), counts & units
+   - Continuous training & few-shot memory calibration
+   - Generous max_tokens to prevent JSON validation truncation
+=========================== */
 export const estimateFoodCalories = async (req, res) => {
   const { foodName } = req.body;
 
@@ -94,21 +223,48 @@ export const estimateFoodCalories = async (req, res) => {
   const userId = req.user?._id;
 
   try {
-    // Build personalized context from user's eating history
-    const userContext = await buildUserFoodContext(userId);
+    // 1. Direct memory match check for single items that the user specifically trained
+    const directMatch = await findDirectMemoryMatch(userId, trimmedFood);
+    if (directMatch) {
+      return res.json(directMatch);
+    }
 
-    const systemPrompt = `You are an expert nutritionist specializing in Indian and international foods. Provide accurate calorie and protein estimates calibrated to the user's portion sizes.${userContext}
+    // 2. Build personalized learned context from user food memory
+    const userMemoryContext = await getUserFoodMemoryContext(userId);
 
-Return ONLY a valid JSON object in this exact format:
-{ "calories": number, "protein": number }`;
+    const systemPrompt = `You are an elite nutritionist and dietitian specializing in Indian, Asian, and global cuisines.
+The user enters foods to log. They may enter a single food or 2, 3, 4, or more foods separated by commas, "and", "&", "+", or newlines.
+They may specify portion sizes numerically (e.g. 4 rotis, 3 eggs), in brackets (e.g. "rice (200g)", "chicken (150g)", "milk (250ml)"), or with words (e.g. "half plate", "2 bowls").
+
+CRITICAL INSTRUCTIONS:
+1. MULTIPLE ITEMS: If the user inputs 2 or more foods, calculate EVERY SINGLE FOOD item. NEVER stop at only the first food.
+2. QUANTITIES & BRACKETS: Accurately parse numbers, bracketed weights e.g. (200g), counts, volumes (ml, glasses, bowls, scoops), and scale calories and protein strictly proportional to that exact quantity.
+3. USER MEMORY & CALIBRATIONS:
+${userMemoryContext || "No prior user calibrations recorded yet."}
+If the user's learned calibrations contain the food or portion, prioritize the user's calibrated values.
+4. RETURN FORMAT: Return ONLY a valid JSON object in this exact structure:
+{
+  "calories": <total_sum_of_calories_number>,
+  "protein": <total_sum_of_protein_grams_number>,
+  "items": [
+    {
+      "foodName": "<item name with portion e.g. 2 rotis>",
+      "calories": <item_calories_number>,
+      "protein": <item_protein_number>
+    }
+  ]
+}`;
 
     const { content } = await completeWithGroq({
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: `Estimate calories and protein for: ${trimmedFood}` },
+        {
+          role: "user",
+          content: `Accurately calculate calories and protein for: ${trimmedFood}`,
+        },
       ],
       temperature: 0.1,
-      max_tokens: 200,
+      max_tokens: 1000,
       jsonMode: true,
     });
 
@@ -119,20 +275,41 @@ Return ONLY a valid JSON object in this exact format:
       typeof parsed.calories === "number" &&
       typeof parsed.protein === "number" &&
       parsed.calories >= 10 &&
-      parsed.calories <= 5000 &&
+      parsed.calories <= 15000 &&
       parsed.protein >= 0 &&
-      parsed.protein <= 300
+      parsed.protein <= 1000
     ) {
+      let items = [];
+      if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+        items = parsed.items.map((it) => ({
+          foodName: (it.foodName || trimmedFood).trim(),
+          calories: Math.round(Number(it.calories) || 0),
+          protein: Math.round(Number(it.protein) || 0),
+        }));
+      } else {
+        items = [
+          {
+            foodName: trimmedFood,
+            calories: Math.round(parsed.calories),
+            protein: Math.round(parsed.protein),
+          },
+        ];
+      }
+
+      const totalCalories = Math.round(parsed.calories);
+      const totalProtein = Math.round(parsed.protein);
+
       return res.json({
-        calories: Math.round(parsed.calories),
-        protein: Math.round(parsed.protein),
+        calories: totalCalories,
+        protein: totalProtein,
+        items,
       });
     }
 
     const fallbackEstimate = estimateNutritionHeuristic(trimmedFood);
     return res.json(fallbackEstimate);
   } catch (err) {
-    console.warn("AI nutrition estimation failed, using heuristic estimation:", err.message);
+    console.warn("AI nutrition estimation failed, using advanced heuristic fallback:", err.message);
     const fallbackEstimate = estimateNutritionHeuristic(trimmedFood);
     return res.json(fallbackEstimate);
   }
