@@ -1,13 +1,10 @@
 // server/src/services/nutritionDatabase.js
-
 /**
  * Pan-India Nutrition Reference Database
- *
  * Approximate, cooked-as-eaten values per 100g (calories in kcal, protein in g),
  * compiled from typical IFCT / USDA / NIN-style reference ranges and rounded.
  * Home and restaurant recipes vary a lot (oil, ghee, sugar), so treat these as
  * sensible defaults for deterministic backend math, not lab values.
- *
  * Schema (backward compatible with the previous version):
  *   name, aliases, servingType ("piece" | "weight" | "portion"), defaultGrams,
  *   caloriesPer100g, proteinPer100g, caloriesPerUnit, proteinPerUnit,
