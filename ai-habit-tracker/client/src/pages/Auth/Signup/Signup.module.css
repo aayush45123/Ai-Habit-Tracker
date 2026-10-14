@@ -16,25 +16,23 @@
   padding: 2rem;
 }
 
-/* Main Card - 2D Nihilism Effect */
+/* Main Card - 3D Engineered Style */
 .authCard {
   background-color: var(--color-bg-primary);
   border: 3px solid var(--color-border);
-  border-radius: 0;
-  padding: 3rem;
+  border-radius: 14px;
+  padding: 2.5rem;
   width: 100%;
-  max-width: 450px;
+  max-width: 460px;
   position: relative;
   z-index: 5;
-  box-shadow: 8px 8px 0 0 var(--color-border),
-    12px 12px 0 0 var(--color-bg-tertiary);
+  box-shadow: 10px 10px 0 0 var(--color-border);
   transition: all var(--transition-speed) var(--transition-easing);
 }
 
 .authCard:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 12px 12px 0 0 var(--color-border),
-    16px 16px 0 0 var(--color-bg-tertiary);
+  transform: translate(-3px, -3px);
+  box-shadow: 13px 13px 0 0 var(--color-border);
 }
 
 /* Header Section */

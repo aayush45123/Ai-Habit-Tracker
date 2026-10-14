@@ -2,23 +2,31 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Zap,
-  Target,
-  TrendingUp,
-  Brain,
-  Calendar,
-  BarChart3,
   ArrowRight,
-  CheckCircle2,
   Flame,
+  CheckCircle2,
+  Sparkles,
+  ShieldCheck,
+  Lock,
+  ChevronDown,
 } from "lucide-react";
 import styles from "./Landing.module.css";
+
+// 3D Components
+import Scene3DBackground from "./components/Scene3DBackground";
+import Hero3DShowcase from "./components/Hero3DShowcase";
+import InteractiveHabitSimulator from "./components/InteractiveHabitSimulator";
+import Feature3DTabs from "./components/Feature3DTabs";
+import Steps3D from "./components/Steps3D";
+import Testimonials3D from "./components/Testimonials3D";
+import LiveCommunityTicker from "./components/LiveCommunityTicker";
 
 export default function Landing() {
   const navigate = useNavigate();
   const [countersVisible, setCountersVisible] = useState(false);
   const statsRef = useRef(null);
 
-  // Redirect to dashboard if already logged in
+  // Redirect to dashboard if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -34,233 +42,303 @@ export default function Landing() {
           setCountersVisible(true);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.25 }
     );
     if (statsRef.current) observer.observe(statsRef.current);
     return () => observer.disconnect();
   }, []);
 
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className={styles.landingPage}>
-      {/* Animated Grid Background */}
+      {/* 3D Animated Interactive Particle & Geometry Background */}
+      <Scene3DBackground />
+
+      {/* Subtle Grid Pattern Overlay */}
       <div className={styles.gridBackground} aria-hidden="true" />
 
-      {/* Navigation */}
+      {/* Sticky Glass Navbar */}
       <nav className={styles.navbar}>
         <div className={styles.navContent}>
-          <div className={styles.logo}>
-            <Zap size={24} strokeWidth={2.5} />
+          <Link to="/" className={styles.logo}>
+            <div className={styles.logoIconWrap}>
+              <Zap size={20} strokeWidth={2.75} />
+            </div>
             <span>HabitAI</span>
+          </Link>
+
+          <div className={styles.navLinks}>
+            <a
+              href="#simulator"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("simulator");
+              }}
+              className={styles.navLink}
+            >
+              Live Demo
+            </a>
+            <a
+              href="#features"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("features");
+              }}
+              className={styles.navLink}
+            >
+              Features
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("how-it-works");
+              }}
+              className={styles.navLink}
+            >
+              How It Works
+            </a>
+            <a
+              href="#testimonials"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("testimonials");
+              }}
+              className={styles.navLink}
+            >
+              Community
+            </a>
           </div>
 
           <div className={styles.navButtons}>
             <Link to="/login" className={styles.loginBtn}>
-              Login
+              Log In
             </Link>
             <Link to="/signup" className={styles.signupBtn}>
-              Get Started
+              <span>Get Started</span>
+              <ArrowRight size={15} strokeWidth={2.5} />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* ─── Hero Section ─── */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
           <div className={styles.heroTag}>
-            <Flame size={16} strokeWidth={2} />
-            <span>AI-Powered Habit Tracking</span>
+            <Sparkles size={15} strokeWidth={2.5} />
+            <span>AI-Powered Habit Tracking • 3D Spatial Engine</span>
           </div>
 
           <h1 className={styles.heroTitle}>
-            <span className={styles.heroTitleLine1}>Build Better Habits,</span>
+            Build Better Habits,
             <br />
-            <span className={styles.highlightText}>Transform Your Life</span>
+            <span className={styles.highlightText}>Transform Your Life.</span>
           </h1>
 
           <p className={styles.heroSubtitle}>
-            Track your daily habits, build powerful streaks, and transform your
-            life one day at a time with AI-powered insights and personalized
-            recommendations.
+            Track non-negotiables, build compounding streaks, and optimize your
+            daily schedule with neural AI coaching and 21-day neuroplasticity
+            challenges.
           </p>
 
           <div className={styles.heroButtons}>
             <Link to="/signup" className={styles.ctaPrimary}>
               <span>Start Free Today</span>
-              <ArrowRight size={20} strokeWidth={2.5} />
+              <ArrowRight size={19} strokeWidth={2.75} />
             </Link>
-            <Link to="/about" className={styles.ctaSecondary}>
-              Learn More
-            </Link>
+            <button
+              onClick={() => scrollToSection("simulator")}
+              className={styles.ctaSecondary}
+            >
+              <span>Try Interactive Demo</span>
+              <ChevronDown size={18} strokeWidth={2.5} />
+            </button>
           </div>
 
+          {/* Stats Bar */}
           <div className={styles.heroStats} ref={statsRef}>
-            <StatCounter
-              end={10000}
-              suffix="+"
-              label="Active Users"
-              visible={countersVisible}
-              display="10K+"
-            />
+            <div className={styles.statItem}>
+              <div
+                className={`${styles.statNumber} ${
+                  countersVisible ? styles.statVisible : ""
+                }`}
+              >
+                10,000+
+              </div>
+              <div className={styles.statLabel}>Active Trackers</div>
+            </div>
             <div className={styles.statDivider} />
-            <StatCounter
-              end={500000}
-              suffix="+"
-              label="Habits Tracked"
-              visible={countersVisible}
-              display="500K+"
-            />
+            <div className={styles.statItem}>
+              <div
+                className={`${styles.statNumber} ${
+                  countersVisible ? styles.statVisible : ""
+                }`}
+              >
+                500,000+
+              </div>
+              <div className={styles.statLabel}>Habits Completed</div>
+            </div>
             <div className={styles.statDivider} />
-            <StatCounter
-              end={85}
-              suffix="%"
-              label="Success Rate"
-              visible={countersVisible}
-              display="85%"
-            />
+            <div className={styles.statItem}>
+              <div
+                className={`${styles.statNumber} ${
+                  countersVisible ? styles.statVisible : ""
+                }`}
+              >
+                98.4%
+              </div>
+              <div className={styles.statLabel}>Streak Consistency</div>
+            </div>
           </div>
         </div>
+
+        {/* 3D Interactive Device Mockup with Cursor-Tracking Tilt */}
+        <Hero3DShowcase />
       </section>
 
-      {/* Features Section */}
-      <section className={styles.features}>
+      {/* ─── Live Community Stream Ticker ─── */}
+      <LiveCommunityTicker />
+
+      {/* ─── Interactive Habit Simulator Section ─── */}
+      <section id="simulator" className={styles.simulatorSection}>
         <div className={styles.sectionHeader}>
-          <div className={styles.sectionTag}>Features</div>
-          <h2 className={styles.sectionTitle}>Everything You Need</h2>
+          <div className={styles.sectionTag}>Interactive Playground</div>
+          <h2 className={styles.sectionTitle}>Experience The Dopamine Loop</h2>
           <p className={styles.sectionSubtitle}>
-            Powerful tools to help you stay consistent and motivated
+            Witness how instant positive feedback and milestone XP triggers keep
+            you motivated day after day.
           </p>
         </div>
 
-        <div className={styles.featuresGrid}>
-          <FeatureCard
-            icon={<Target size={28} strokeWidth={2} />}
-            title="Smart Tracking"
-            description="Track your habits effortlessly with an intuitive interface designed for daily use."
-            delay={0}
-          />
-          <FeatureCard
-            icon={<Brain size={28} strokeWidth={2} />}
-            title="AI Insights"
-            description="Get personalized recommendations and insights powered by artificial intelligence."
-            delay={1}
-          />
-          <FeatureCard
-            icon={<TrendingUp size={28} strokeWidth={2} />}
-            title="Progress Analytics"
-            description="Visualize your progress with detailed charts and comprehensive analytics."
-            delay={2}
-          />
-          <FeatureCard
-            icon={<Flame size={28} strokeWidth={2} />}
-            title="Streak Building"
-            description="Build momentum with streak tracking and celebrate your consistency."
-            delay={3}
-          />
-          <FeatureCard
-            icon={<Calendar size={28} strokeWidth={2} />}
-            title="21-Day Challenge"
-            description="Transform habits into routines with guided challenges and milestones."
-            delay={4}
-          />
-          <FeatureCard
-            icon={<BarChart3 size={28} strokeWidth={2} />}
-            title="Focus Mode"
-            description="Stay productive with integrated Pomodoro timer and focus tracking tools."
-            delay={5}
-          />
-        </div>
+        <InteractiveHabitSimulator />
       </section>
 
-      {/* How It Works */}
-      <section className={styles.howItWorks}>
+      {/* ─── 3D Feature Tabs Section ─── */}
+      <section id="features" className={styles.featuresSection}>
         <div className={styles.sectionHeader}>
-          <div className={styles.sectionTag}>Process</div>
-          <h2 className={styles.sectionTitle}>How It Works</h2>
+          <div className={styles.sectionTag}>Platform Capabilities</div>
+          <h2 className={styles.sectionTitle}>Everything You Need to Win</h2>
           <p className={styles.sectionSubtitle}>
-            Get started in three simple steps
+            Engineered from ground up with cognitive psychology, neuroplasticity,
+            and machine intelligence.
           </p>
         </div>
 
-        <div className={styles.stepsGrid}>
-          <StepCard
-            number="01"
-            title="Create Your Account"
-            description="Sign up in seconds and start your journey to better habits today."
-            delay={0}
-          />
-          <StepCard
-            number="02"
-            title="Add Your Habits"
-            description="Choose from templates or create custom habits that match your goals."
-            delay={1}
-          />
-          <StepCard
-            number="03"
-            title="Track &amp; Improve"
-            description="Mark habits daily, build streaks, and watch your progress grow."
-            delay={2}
-          />
-        </div>
+        <Feature3DTabs />
       </section>
 
-      {/* Social Proof */}
-      <section className={styles.socialProof}>
-        <div className={styles.proofContent}>
-          <h2 className={styles.proofTitle}>
-            Join thousands of people building better habits
-          </h2>
-          <div className={styles.proofItems}>
-            <ProofItem
-              icon={<CheckCircle2 size={20} strokeWidth={2.5} />}
-              text="No credit card required"
-            />
-            <ProofItem
-              icon={<CheckCircle2 size={20} strokeWidth={2.5} />}
-              text="Free forever plan"
-            />
-            <ProofItem
-              icon={<CheckCircle2 size={20} strokeWidth={2.5} />}
-              text="Cancel anytime"
-            />
-          </div>
+      {/* ─── 3D How It Works ─── */}
+      <section id="how-it-works" className={styles.howItWorks}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTag}>The Habit Architecture</div>
+          <h2 className={styles.sectionTitle}>How HabitAI Works</h2>
+          <p className={styles.sectionSubtitle}>
+            Three seamless steps to transform fleeting resolutions into permanent
+            daily standards.
+          </p>
         </div>
+
+        <Steps3D />
       </section>
 
-      {/* CTA Section */}
+      {/* ─── 3D Testimonials & Community ─── */}
+      <section id="testimonials" className={styles.testimonialsSection}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTag}>Wall of Consistency</div>
+          <h2 className={styles.sectionTitle}>Built for High Performers</h2>
+          <p className={styles.sectionSubtitle}>
+            Join thousands of developers, researchers, founders, and students who
+            rely on HabitAI every day.
+          </p>
+        </div>
+
+        <Testimonials3D />
+      </section>
+
+      {/* ─── Magnetic Final CTA ─── */}
       <section className={styles.finalCta}>
         <div className={styles.ctaContent}>
-          <div className={styles.ctaDecorTop} aria-hidden="true" />
-          <h2 className={styles.ctaTitle}>Ready to Build Better Habits?</h2>
+          <h2 className={styles.ctaTitle}>Ready to Build Unbreakable Momentum?</h2>
           <p className={styles.ctaSubtitle}>
-            Start tracking your habits today and transform your life one day at
-            a time.
+            Start tracking today for free. Join over 10,000+ people compounding
+            their daily habits with personalized AI guidance.
           </p>
-          <Link to="/signup" className={styles.ctaPrimaryLarge}>
-            <span>Get Started Free</span>
-            <ArrowRight size={22} strokeWidth={2.5} />
-          </Link>
-          <div className={styles.ctaDecorBottom} aria-hidden="true" />
+
+          <div className={styles.ctaActions}>
+            <Link to="/signup" className={styles.ctaPrimaryLarge}>
+              <span>Get Started Free</span>
+              <ArrowRight size={20} strokeWidth={3} />
+            </Link>
+            <Link to="/login" className={styles.ctaSecondaryLarge}>
+              <span>Log In to Account</span>
+            </Link>
+          </div>
+
+          <div className={styles.ctaGuarantees}>
+            <div className={styles.ctaGuaranteeItem}>
+              <CheckCircle2 size={16} strokeWidth={2.5} color="#27c93f" />
+              <span>Free forever core plan</span>
+            </div>
+            <div className={styles.ctaGuaranteeItem}>
+              <ShieldCheck size={16} strokeWidth={2.5} color="#27c93f" />
+              <span>No credit card required</span>
+            </div>
+            <div className={styles.ctaGuaranteeItem}>
+              <Lock size={16} strokeWidth={2.5} color="#27c93f" />
+              <span>Google 1-Click sign-in</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ─── Structured Modern Footer ─── */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>
-              <Zap size={20} strokeWidth={2.5} />
+              <div className={styles.logoIconWrap} style={{ width: 30, height: 30 }}>
+                <Zap size={16} strokeWidth={3} />
+              </div>
               <span>HabitAI</span>
             </div>
-            <p className={styles.footerTagline}>Build better habits with AI</p>
+            <p className={styles.footerTagline}>
+              Architect your life with intelligent habit tracking
+            </p>
           </div>
 
           <div className={styles.footerLinks}>
+            <a
+              href="#simulator"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("simulator");
+              }}
+              className={styles.footerLink}
+            >
+              Demo
+            </a>
+            <a
+              href="#features"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("features");
+              }}
+              className={styles.footerLink}
+            >
+              Features
+            </a>
             <Link to="/about" className={styles.footerLink}>
               About
             </Link>
             <Link to="/login" className={styles.footerLink}>
-              Login
+              Log In
             </Link>
             <Link to="/signup" className={styles.footerLink}>
               Sign Up
@@ -269,57 +347,10 @@ export default function Landing() {
         </div>
 
         <div className={styles.footerBottom}>
-          <p>© 2024 HabitAI. Built with care by Aayush Bharda</p>
+          <p>© {new Date().getFullYear()} HabitAI. Built with precision for ambitious humans.</p>
+          <p>Created by Aayush Bharda • All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/* Helper Components */
-
-function StatCounter({ display, label, visible }) {
-  return (
-    <div className={styles.statItem}>
-      <div className={`${styles.statNumber} ${visible ? styles.statVisible : ""}`}>
-        {display}
-      </div>
-      <div className={styles.statLabel}>{label}</div>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, description, delay }) {
-  return (
-    <div
-      className={styles.featureCard}
-      style={{ animationDelay: `${delay * 0.1}s` }}
-    >
-      <div className={styles.featureIcon}>{icon}</div>
-      <h3 className={styles.featureTitle}>{title}</h3>
-      <p className={styles.featureDescription}>{description}</p>
-    </div>
-  );
-}
-
-function StepCard({ number, title, description, delay }) {
-  return (
-    <div
-      className={styles.stepCard}
-      style={{ animationDelay: `${delay * 0.12}s` }}
-    >
-      <div className={styles.stepNumber}>{number}</div>
-      <h3 className={styles.stepTitle}>{title}</h3>
-      <p className={styles.stepDescription}>{description}</p>
-    </div>
-  );
-}
-
-function ProofItem({ icon, text }) {
-  return (
-    <div className={styles.proofItem}>
-      {icon}
-      <span>{text}</span>
     </div>
   );
 }

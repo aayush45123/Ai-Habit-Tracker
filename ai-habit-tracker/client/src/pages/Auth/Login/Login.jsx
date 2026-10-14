@@ -6,6 +6,9 @@ import { useAuth } from "../../../context/AuthContext.jsx";
 import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import SocialAuthButtons from "../../../components/Auth/SocialAuthButtons";
 
+import Scene3DBackground from "../../Landing/components/Scene3DBackground";
+import { Zap } from "lucide-react";
+
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -76,12 +79,94 @@ function Login() {
 
   return (
     <div className={styles.authContainer}>
+      <Scene3DBackground />
+
       <div className={styles.authCard}>
+        {/* Brand Home Link */}
+        <Link
+          to="/"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "0.85rem",
+            fontWeight: 800,
+            color: "#000000",
+            textDecoration: "none",
+            marginBottom: "1.5rem",
+          }}
+        >
+          <span style={{ fontSize: "1.1rem" }}>←</span> Back to HabitAI
+        </Link>
+
+        {/* Tab Switcher */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "4px",
+            backgroundColor: "#f0f0f0",
+            padding: "4px",
+            border: "2px solid #000000",
+            marginBottom: "1.75rem",
+            borderRadius: "6px",
+          }}
+        >
+          <button
+            type="button"
+            style={{
+              padding: "0.55rem 0",
+              backgroundColor: "#000000",
+              color: "#ffffff",
+              border: "none",
+              fontWeight: 900,
+              fontSize: "0.85rem",
+              borderRadius: "4px",
+              cursor: "default",
+            }}
+          >
+            Log In
+          </button>
+          <Link
+            to="/signup"
+            style={{
+              padding: "0.55rem 0",
+              textAlign: "center",
+              backgroundColor: "transparent",
+              color: "#555555",
+              textDecoration: "none",
+              fontWeight: 800,
+              fontSize: "0.85rem",
+              borderRadius: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            Sign Up
+          </Link>
+        </div>
+
         {/* AI Habit Tracker Header */}
         <div className={styles.authHeader}>
-          <div className={styles.aiIcon}>AI</div>
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              margin: "0 auto 1rem",
+              backgroundColor: "#000000",
+              color: "#ffffff",
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "3px 3px 0 0 #555555",
+            }}
+          >
+            <Zap size={24} strokeWidth={2.75} />
+          </div>
           <h2 className={styles.authTitle}>Welcome Back</h2>
-          <p className={styles.authSubtitle}>Access your habit tracker</p>
+          <p className={styles.authSubtitle}>Enter your credentials to access your streak</p>
         </div>
 
         {error && (
