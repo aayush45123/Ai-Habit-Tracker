@@ -1,52 +1,27 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Zap,
-  ArrowRight,
-  Flame,
-  CheckCircle2,
-  Sparkles,
-  ShieldCheck,
-  Lock,
-  ChevronDown,
-} from "lucide-react";
+import { Zap, ArrowRight } from "lucide-react";
 import styles from "./Landing.module.css";
 
-// 3D Components
-import Scene3DBackground from "./components/Scene3DBackground";
-import Hero3DShowcase from "./components/Hero3DShowcase";
-import InteractiveHabitSimulator from "./components/InteractiveHabitSimulator";
-import Feature3DTabs from "./components/Feature3DTabs";
-import Steps3D from "./components/Steps3D";
-import Testimonials3D from "./components/Testimonials3D";
+// 3D Scroll-Driven Components
+import Hero3DScrollStage from "./components/Hero3DScrollStage";
 import LiveCommunityTicker from "./components/LiveCommunityTicker";
+import InteractiveHabitSimulator from "./components/InteractiveHabitSimulator";
+import Feature3DScrollVault from "./components/Feature3DScrollVault";
+import Steps3DScroll from "./components/Steps3DScroll";
+import Testimonials3DScroll from "./components/Testimonials3DScroll";
+import MagneticTunnelCTA from "./components/MagneticTunnelCTA";
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [countersVisible, setCountersVisible] = useState(false);
-  const statsRef = useRef(null);
 
-  // Redirect to dashboard if user is already logged in
+  // Redirect to dashboard if already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       navigate("/dashboard", { replace: true });
     }
   }, [navigate]);
-
-  // Intersection observer for stat counters
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setCountersVisible(true);
-        }
-      },
-      { threshold: 0.25 }
-    );
-    if (statsRef.current) observer.observe(statsRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -57,13 +32,10 @@ export default function Landing() {
 
   return (
     <div className={styles.landingPage}>
-      {/* 3D Animated Interactive Particle & Geometry Background */}
-      <Scene3DBackground />
-
-      {/* Subtle Grid Pattern Overlay */}
+      {/* Subtle Structural Grid Background (No decorative cubes) */}
       <div className={styles.gridBackground} aria-hidden="true" />
 
-      {/* Sticky Glass Navbar */}
+      {/* Sticky Neo-Brutalist Glass Navbar */}
       <nav className={styles.navbar}>
         <div className={styles.navContent}>
           <Link to="/" className={styles.logo}>
@@ -75,6 +47,16 @@ export default function Landing() {
 
           <div className={styles.navLinks}>
             <a
+              href="#feature-vault"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("feature-vault");
+              }}
+              className={styles.navLink}
+            >
+              3D Feature Vault
+            </a>
+            <a
               href="#simulator"
               onClick={(e) => {
                 e.preventDefault();
@@ -82,17 +64,7 @@ export default function Landing() {
               }}
               className={styles.navLink}
             >
-              Live Demo
-            </a>
-            <a
-              href="#features"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("features");
-              }}
-              className={styles.navLink}
-            >
-              Features
+              Interactive Demo
             </a>
             <a
               href="#how-it-works"
@@ -102,7 +74,7 @@ export default function Landing() {
               }}
               className={styles.navLink}
             >
-              How It Works
+              Architecture
             </a>
             <a
               href="#testimonials"
@@ -112,7 +84,7 @@ export default function Landing() {
               }}
               className={styles.navLink}
             >
-              Community
+              Proof
             </a>
           </div>
 
@@ -122,94 +94,25 @@ export default function Landing() {
             </Link>
             <Link to="/signup" className={styles.signupBtn}>
               <span>Get Started</span>
-              <ArrowRight size={15} strokeWidth={2.5} />
+              <ArrowRight size={15} strokeWidth={2.75} />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ─── Hero Section ─── */}
-      <section className={styles.hero}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroTag}>
-            <Sparkles size={15} strokeWidth={2.5} />
-            <span>AI-Powered Habit Tracking • 3D Spatial Engine</span>
-          </div>
+      {/* ─── 1. Pinned 3D Hero Camera Zoom & Device Unfold ─── */}
+      <Hero3DScrollStage />
 
-          <h1 className={styles.heroTitle}>
-            Build Better Habits,
-            <br />
-            <span className={styles.highlightText}>Transform Your Life.</span>
-          </h1>
-
-          <p className={styles.heroSubtitle}>
-            Track non-negotiables, build compounding streaks, and optimize your
-            daily schedule with neural AI coaching and 21-day neuroplasticity
-            challenges.
-          </p>
-
-          <div className={styles.heroButtons}>
-            <Link to="/signup" className={styles.ctaPrimary}>
-              <span>Start Free Today</span>
-              <ArrowRight size={19} strokeWidth={2.75} />
-            </Link>
-            <button
-              onClick={() => scrollToSection("simulator")}
-              className={styles.ctaSecondary}
-            >
-              <span>Try Interactive Demo</span>
-              <ChevronDown size={18} strokeWidth={2.5} />
-            </button>
-          </div>
-
-          {/* Stats Bar */}
-          <div className={styles.heroStats} ref={statsRef}>
-            <div className={styles.statItem}>
-              <div
-                className={`${styles.statNumber} ${
-                  countersVisible ? styles.statVisible : ""
-                }`}
-              >
-                10,000+
-              </div>
-              <div className={styles.statLabel}>Active Trackers</div>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <div
-                className={`${styles.statNumber} ${
-                  countersVisible ? styles.statVisible : ""
-                }`}
-              >
-                500,000+
-              </div>
-              <div className={styles.statLabel}>Habits Completed</div>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <div
-                className={`${styles.statNumber} ${
-                  countersVisible ? styles.statVisible : ""
-                }`}
-              >
-                98.4%
-              </div>
-              <div className={styles.statLabel}>Streak Consistency</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3D Interactive Device Mockup with Cursor-Tracking Tilt */}
-        <Hero3DShowcase />
-      </section>
-
-      {/* ─── Live Community Stream Ticker ─── */}
+      {/* ─── 2. Real-Time Community Ticker ─── */}
       <LiveCommunityTicker />
 
-      {/* ─── Interactive Habit Simulator Section ─── */}
+      {/* ─── 3. Pinned 3D Unfolding Feature Vault ─── */}
+      <Feature3DScrollVault />
+
+      {/* ─── 4. Interactive 3D Habit Chamber ─── */}
       <section id="simulator" className={styles.simulatorSection}>
         <div className={styles.sectionHeader}>
-          <div className={styles.sectionTag}>Interactive Playground</div>
+          <div className={styles.sectionTag}>Tactile Playground</div>
           <h2 className={styles.sectionTitle}>Experience The Dopamine Loop</h2>
           <p className={styles.sectionSubtitle}>
             Witness how instant positive feedback and milestone XP triggers keep
@@ -220,85 +123,16 @@ export default function Landing() {
         <InteractiveHabitSimulator />
       </section>
 
-      {/* ─── 3D Feature Tabs Section ─── */}
-      <section id="features" className={styles.featuresSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionTag}>Platform Capabilities</div>
-          <h2 className={styles.sectionTitle}>Everything You Need to Win</h2>
-          <p className={styles.sectionSubtitle}>
-            Engineered from ground up with cognitive psychology, neuroplasticity,
-            and machine intelligence.
-          </p>
-        </div>
+      {/* ─── 5. 3D Spatial Steps Architecture ─── */}
+      <Steps3DScroll />
 
-        <Feature3DTabs />
-      </section>
+      {/* ─── 6. 3D Parallax Testimonials ─── */}
+      <Testimonials3DScroll />
 
-      {/* ─── 3D How It Works ─── */}
-      <section id="how-it-works" className={styles.howItWorks}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionTag}>The Habit Architecture</div>
-          <h2 className={styles.sectionTitle}>How HabitAI Works</h2>
-          <p className={styles.sectionSubtitle}>
-            Three seamless steps to transform fleeting resolutions into permanent
-            daily standards.
-          </p>
-        </div>
+      {/* ─── 7. Magnetic 3D Tunnel Final CTA ─── */}
+      <MagneticTunnelCTA />
 
-        <Steps3D />
-      </section>
-
-      {/* ─── 3D Testimonials & Community ─── */}
-      <section id="testimonials" className={styles.testimonialsSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionTag}>Wall of Consistency</div>
-          <h2 className={styles.sectionTitle}>Built for High Performers</h2>
-          <p className={styles.sectionSubtitle}>
-            Join thousands of developers, researchers, founders, and students who
-            rely on HabitAI every day.
-          </p>
-        </div>
-
-        <Testimonials3D />
-      </section>
-
-      {/* ─── Magnetic Final CTA ─── */}
-      <section className={styles.finalCta}>
-        <div className={styles.ctaContent}>
-          <h2 className={styles.ctaTitle}>Ready to Build Unbreakable Momentum?</h2>
-          <p className={styles.ctaSubtitle}>
-            Start tracking today for free. Join over 10,000+ people compounding
-            their daily habits with personalized AI guidance.
-          </p>
-
-          <div className={styles.ctaActions}>
-            <Link to="/signup" className={styles.ctaPrimaryLarge}>
-              <span>Get Started Free</span>
-              <ArrowRight size={20} strokeWidth={3} />
-            </Link>
-            <Link to="/login" className={styles.ctaSecondaryLarge}>
-              <span>Log In to Account</span>
-            </Link>
-          </div>
-
-          <div className={styles.ctaGuarantees}>
-            <div className={styles.ctaGuaranteeItem}>
-              <CheckCircle2 size={16} strokeWidth={2.5} color="#27c93f" />
-              <span>Free forever core plan</span>
-            </div>
-            <div className={styles.ctaGuaranteeItem}>
-              <ShieldCheck size={16} strokeWidth={2.5} color="#27c93f" />
-              <span>No credit card required</span>
-            </div>
-            <div className={styles.ctaGuaranteeItem}>
-              <Lock size={16} strokeWidth={2.5} color="#27c93f" />
-              <span>Google 1-Click sign-in</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Structured Modern Footer ─── */}
+      {/* ─── 8. Minimalist Structured Footer ─── */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.footerBrand}>
@@ -309,11 +143,21 @@ export default function Landing() {
               <span>HabitAI</span>
             </div>
             <p className={styles.footerTagline}>
-              Architect your life with intelligent habit tracking
+              Intelligent habit architecture for high performers
             </p>
           </div>
 
           <div className={styles.footerLinks}>
+            <a
+              href="#feature-vault"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("feature-vault");
+              }}
+              className={styles.footerLink}
+            >
+              Features
+            </a>
             <a
               href="#simulator"
               onClick={(e) => {
@@ -323,16 +167,6 @@ export default function Landing() {
               className={styles.footerLink}
             >
               Demo
-            </a>
-            <a
-              href="#features"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("features");
-              }}
-              className={styles.footerLink}
-            >
-              Features
             </a>
             <Link to="/about" className={styles.footerLink}>
               About

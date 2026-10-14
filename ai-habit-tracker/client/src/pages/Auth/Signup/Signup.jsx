@@ -165,8 +165,6 @@ function Signup() {
   // ─── SIGNUP FORM ─────────────────────────────────────────────────────────
   return (
     <div className={styles.authContainer}>
-      <Scene3DBackground />
-
       <div className={styles.authCard}>
         {/* Brand Home Link */}
         <Link
