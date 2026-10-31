@@ -1,6 +1,7 @@
 import { memo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { Dumbbell } from "lucide-react";
 import {
   FiZap,
   FiGrid,
@@ -102,7 +103,8 @@ function Sidebar() {
           {renderNavLink("/journal", FiBookOpen, "Growth Journal")}
           {renderNavLink("/focus", FiTarget, "Focus")}
           {renderNavLink("/calories", FiActivity, "Calorie Tracker")}
-          {renderNavLink("/timetable", FiClock, "Timetable Section")}
+          {renderNavLink("/timetable", Dumbbell, "Workout Timetable")}
+          {renderNavLink("/schedule", FiClock, "Time Timetable")}
           {renderNavLink("/profile", FiUser, "Profile")}
           {renderNavLink("/about", FiInfo, "About Us")}
           {(user?.isAdmin || user?.role === "admin") && (

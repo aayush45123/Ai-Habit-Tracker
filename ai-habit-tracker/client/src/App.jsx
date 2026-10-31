@@ -27,6 +27,7 @@ const Pomodoro       = lazy(() => import("./pages/Focus/Pomodoro"));
 const About          = lazy(() => import("./pages/About/About"));
 const Calories       = lazy(() => import("./pages/Calories/Calories"));
 const TimetablePage  = lazy(() => import("./pages/Timetable/TimetablePage"));
+const TimeSchedulePage = lazy(() => import("./pages/TimeSchedule/TimeSchedulePage"));
 const Profile        = lazy(() => import("./pages/Profile/Profile"));
 const Reports        = lazy(() => import("./pages/Reports/Reports"));
 const JournalPage    = lazy(() => import("./pages/Journal/JournalPage"));
@@ -115,6 +116,8 @@ function App() {
                 <Route path="/focus" element={<Pomodoro />} />
                 <Route path="/calories" element={<Calories />} />
                 <Route path="/timetable" element={<TimetablePage />} />
+                <Route path="/schedule" element={<TimeSchedulePage />} />
+                <Route path="/time-timetable" element={<TimeSchedulePage />} />
                 <Route path="/dashboard/reports" element={<Reports />} />
                 <Route path="/progression" element={<ProgressionPage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />

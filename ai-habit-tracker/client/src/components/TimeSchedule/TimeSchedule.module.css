@@ -1,0 +1,807 @@
+/* client/src/components/TimeSchedule/TimeSchedule.module.css */
+
+/* ── Live Reminder Banner ── */
+.reminderBanner {
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 2px solid var(--color-border, #000000);
+  box-shadow: 4px 4px 0px var(--color-border, #000000);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.reminderLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pulseIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border, #000000);
+  background: #000000;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.idleIcon {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--color-border, #000000);
+  background: var(--color-bg-primary, #ffffff);
+  color: var(--color-text-primary, #000000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reminderContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.reminderStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.liveTag {
+  background: #000000;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 0.15rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.upcomingTag {
+  background: var(--color-bg-tertiary, #e6e6e6);
+  color: var(--color-text-primary, #000000);
+  border: 1px solid var(--color-border, #000000);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 0.15rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.reminderTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-primary, #000000);
+}
+
+.reminderTime {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #555555);
+}
+
+.reminderRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bannerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--color-bg-primary, #ffffff);
+  border: 1.5px solid var(--color-border, #000000);
+  box-shadow: 2px 2px 0px var(--color-border, #000000);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bannerBtn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+}
+
+.bannerBtnActive {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* ── Daily Timeline View ── */
+.timelineContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.timelineEmpty {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 2px dashed var(--color-border, #000000);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.emptyIcon {
+  width: 52px;
+  height: 52px;
+  color: var(--color-text-secondary, #555555);
+}
+
+.emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.emptyText {
+  color: var(--color-text-secondary, #555555);
+  font-size: 0.95rem;
+  max-width: 440px;
+  margin: 0;
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.timelineList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  position: relative;
+}
+
+.timelineItem {
+  position: relative;
+  background: var(--color-bg-secondary, #ffffff);
+  border: 2px solid var(--color-border, #000000);
+  box-shadow: 4px 4px 0px var(--color-border, #000000);
+  padding: 1.15rem 1.25rem;
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.timelineItem:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--color-border, #000000);
+}
+
+.itemActive {
+  border-left: 8px solid #000000;
+  background: #fafafa;
+}
+
+.itemCompleted {
+  opacity: 0.7;
+  background: #fcfcfc;
+}
+
+.timeCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.timeSpan {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text-primary, #000000);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.durationBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #555555);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.eventTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-primary, #000000);
+}
+
+.completedText {
+  text-decoration: line-through;
+  color: var(--color-text-secondary, #777777);
+}
+
+.eventDesc {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary, #555555);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.badgesRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.categoryTag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--color-border, #000000);
+  background: var(--color-bg-primary, #ffffff);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.priorityTag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--color-border, #000000);
+  background: var(--color-bg-tertiary, #e6e6e6);
+}
+
+.priorityUrgent {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.conflictBadge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #ffeeee;
+  color: #b91c1c;
+  border: 1px solid #b91c1c;
+  padding: 0.18rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.actionsCol {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-primary, #ffffff);
+  border: 1.5px solid var(--color-border, #000000);
+  box-shadow: 2px 2px 0px var(--color-border, #000000);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actionBtn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+}
+
+.checkBtnCompleted {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* ── Weekly Grid View ── */
+.weeklyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.weekDayCol {
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 2px solid var(--color-border, #000000);
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.weekColHeader {
+  padding: 0.75rem;
+  border-bottom: 2px solid var(--color-border, #000000);
+  background: var(--color-bg-primary, #ffffff);
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.weekColHeader:hover {
+  background: var(--color-bg-tertiary, #e6e6e6);
+}
+
+.colHeaderToday {
+  background: #000000;
+  color: #ffffff;
+}
+
+.colHeaderToday:hover {
+  background: #222222;
+}
+
+.colDayName {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.colDayNumber {
+  font-size: 1.35rem;
+  font-weight: 900;
+  margin-top: 0.15rem;
+}
+
+.weekEventsList {
+  flex: 1;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.weekMiniCard {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1.5px solid var(--color-border, #000000);
+  padding: 0.55rem;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.weekMiniCard:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px var(--color-border, #000000);
+}
+
+.weekMiniCardDone {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.weekCardTime {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--color-text-secondary, #555555);
+}
+
+.weekCardTitle {
+  font-weight: 700;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.addQuickDayBtn {
+  margin: 0.5rem;
+  padding: 0.4rem;
+  border: 1.5px dashed var(--color-border, #000000);
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.addQuickDayBtn:hover {
+  background: var(--color-bg-tertiary, #e6e6e6);
+}
+
+/* ── Monthly Calendar View ── */
+.monthContainer {
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 2px solid var(--color-border, #000000);
+  box-shadow: 4px 4px 0px var(--color-border, #000000);
+  padding: 1.5rem;
+}
+
+.monthHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.monthTitle {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.monthNavBtns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.monthWeekDayHeader {
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  padding: 0.5rem 0;
+  color: var(--color-text-secondary, #555555);
+}
+
+.monthDayCell {
+  min-height: 84px;
+  background: var(--color-bg-primary, #ffffff);
+  border: 1.5px solid var(--color-border, #000000);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.monthDayCell:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+}
+
+.cellOtherMonth {
+  opacity: 0.35;
+  background: #f7f7f7;
+}
+
+.cellToday {
+  border: 2.5px solid #000000;
+  font-weight: 800;
+}
+
+.cellSelected {
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+  background: #f0f0f0;
+}
+
+.cellDayNum {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cellEventsDots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+}
+
+.eventDot {
+  width: 7px;
+  height: 7px;
+  background: #000000;
+  border-radius: 50%;
+}
+
+.eventCountBadge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #000000;
+  color: #ffffff;
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
+}
+
+/* ── Modal Common Styles ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.modalBox {
+  background: var(--color-bg-primary, #ffffff);
+  border: 3px solid var(--color-border, #000000);
+  box-shadow: 8px 8px 0px var(--color-border, #000000);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 2px solid var(--color-border, #000000);
+  background: var(--color-bg-secondary, #f5f5f5);
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.closeModalBtn {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.formLabel {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-text-primary, #000000);
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  padding: 0.75rem;
+  border: 2px solid var(--color-border, #000000);
+  background: var(--color-bg-primary, #ffffff);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-text-primary, #000000);
+  outline: none;
+  border-radius: 0;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  background: #fdfdfd;
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.modalFooter {
+  padding: 1rem 1.5rem;
+  border-top: 2px solid var(--color-border, #000000);
+  background: var(--color-bg-secondary, #f5f5f5);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnPrimary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-bg-primary, #ffffff);
+  color: #000000;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnSecondary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+/* ── Preset Cards ── */
+.presetsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.presetCard {
+  border: 2px solid var(--color-border, #000000);
+  background: var(--color-bg-secondary, #ffffff);
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.presetCard:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px var(--color-border, #000000);
+}
+
+.presetCardSelected {
+  border: 3px solid #000000;
+  background: #f7f7f7;
+}
+
+.presetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.presetName {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.presetCount {
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: #000000;
+  color: #ffffff;
+  padding: 0.15rem 0.5rem;
+}
+
+.presetDesc {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #555555);
+  margin: 0;
+}
+
+.presetTimelinePreview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--color-border, #000000);
+  padding-top: 0.5rem;
+}
+
+.presetItemMini {
+  font-size: 0.78rem;
+  color: var(--color-text-primary, #000000);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .timelineItem {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .timeCol {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eeeeee;
+    padding-bottom: 0.4rem;
+  }
+
+  .actionsCol {
+    justify-content: flex-end;
+    border-top: 1px solid #eeeeee;
+    padding-top: 0.5rem;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
+
