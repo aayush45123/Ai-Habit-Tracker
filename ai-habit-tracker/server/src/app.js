@@ -39,7 +39,9 @@ import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
 /* =======================
    ENV & DB
 ======================= */
-connectDB();
+if (process.env.NODE_ENV !== "test") {
+  connectDB();
+}
 
 const app = express();
 
@@ -126,14 +128,17 @@ app.use("/api/visitors", visitorRoutes);
 /* =======================
    SEED GAMIFICATION CATALOG
 ======================= */
-seedGamificationData().catch((err) => console.error("Gamification seed error:", err));
+if (process.env.NODE_ENV !== "test") {
+  seedGamificationData().catch((err) => console.error("Gamification seed error:", err));
+}
 
 /* =======================
    AUTOMATIC STREAK RESET - DAILY CRON JOB
 ======================= */
 
 // Run initial streak check when server starts
-console.log("Running initial streak check on server startup...");
+if (process.env.NODE_ENV !== "test") {
+  console.log("Running initial streak check on server startup...");
 checkAndResetMissedStreaks()
   .then(() => {
     console.log("Initial streak check completed successfully");
@@ -166,6 +171,7 @@ console.log("Streak reset cron job scheduled (runs daily at 00:01 IST)");
 ======================= */
 scheduleDailyReminderCron();
 scheduleWeeklySummaryCron();
+}
 
 /* =======================
    BASE ROUTE
