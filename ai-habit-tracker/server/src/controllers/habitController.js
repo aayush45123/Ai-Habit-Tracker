@@ -511,6 +511,10 @@ export const getAnalytics = async (req, res) => {
         dailyCompletion: {},
         consistencyScore: 0,
         leaderboard: [],
+        thirtyDayActivity: [],
+        fourWeekTrend: [],
+        streakLeaderboard: [],
+        summaryStats: { totalDone: 0, consistencyScore: 0, weekChange: 0, bestStreak: 0 },
       });
     }
 
@@ -721,6 +725,62 @@ export const getAnalytics = async (req, res) => {
       return b.completionRate - a.completionRate;
     });
 
+    // ----------------------------------------------------
+    // 30-DAY ACTIVITY HEATMAP
+    // Returns [{date, count}] for the last 30 days (IST)
+    // ----------------------------------------------------
+    const thirtyDayActivity = [];
+    for (let i = 29; i >= 0; i--) {
+      const iso = getDaysAgoIST(i);
+      const count = normalizedLogs.filter(
+        (l) => l.date === iso && l.status === "done",
+      ).length;
+      thirtyDayActivity.push({ date: iso, count });
+    }
+
+    // ----------------------------------------------------
+    // 4-WEEK MOMENTUM TREND
+    // Returns weekly completion rate for last 4 weeks
+    // ----------------------------------------------------
+    const fourWeekTrend = [];
+    for (let w = 3; w >= 0; w--) {
+      const days = [];
+      for (let d = 0; d < 7; d++) {
+        days.push(getDaysAgoIST(w * 7 + d));
+      }
+      const doneDays = days.filter((day) =>
+        normalizedLogs.some((l) => l.date === day && l.status === "done"),
+      ).length;
+      const weekLabel = `W-${w === 0 ? "This" : w}`;
+      fourWeekTrend.push({ week: weekLabel, rate: Math.round((doneDays / 7) * 100) });
+    }
+    // Reverse so oldest week is first
+    fourWeekTrend.reverse();
+
+    // ----------------------------------------------------
+    // STREAK LEADERBOARD (per-habit streaks)
+    // Returns habits sorted by currentStreak desc
+    // ----------------------------------------------------
+    const streakLeaderboard = habits
+      .map((h) => ({
+        habit: h.title,
+        currentStreak: h.streak || 0,
+        longestStreak: h.longestStreak || 0,
+        totalDone: normalizedLogs.filter(
+          (l) => l.habitId.toString() === h._id.toString() && l.status === "done",
+        ).length,
+      }))
+      .sort((a, b) => b.currentStreak - a.currentStreak || b.totalDone - a.totalDone);
+
+    // ----------------------------------------------------
+    // SUMMARY STATS
+    // ----------------------------------------------------
+    const totalDone = normalizedLogs.filter((l) => l.status === "done").length;
+    const bestStreak = habits.reduce(
+      (max, h) => Math.max(max, h.longestStreak || 0),
+      0,
+    );
+
     return res.json({
       weekly: sortedWeekly,
       dayCount,
@@ -729,6 +789,15 @@ export const getAnalytics = async (req, res) => {
       dailyCompletion,
       consistencyScore,
       leaderboard,
+      thirtyDayActivity,
+      fourWeekTrend,
+      streakLeaderboard,
+      summaryStats: {
+        totalDone,
+        consistencyScore,
+        weekChange,
+        bestStreak,
+      },
     });
   } catch (error) {
     console.error("Analytics error:", error);

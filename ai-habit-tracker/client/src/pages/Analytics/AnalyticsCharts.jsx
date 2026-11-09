@@ -4,6 +4,8 @@ import React, { useMemo } from "react";
 import {
   ResponsiveContainer,
   LineChart,
+  BarChart,
+  Bar,
   Line,
   PieChart,
   Pie,
@@ -38,15 +40,26 @@ const DEFAULT_COLORS = [
 /**
  * Unified chart renderer for AnalyticsPage using Recharts.
  * Props:
- *   type: "line" | "pie"
- *   labels / values — for line chart
+ *   type: "line" | "bar" | "pie"
+ *   labels / values — for line or bar chart
  *   pieData / pieOptions — for pie chart
+ *   barColor — optional color override for bar chart
+ *   height — optional chart height (default 220)
+ *   unit — optional unit suffix for tooltip (e.g. "%")
  */
-export default function AnalyticsCharts({ type, labels = [], values = [], pieData }) {
+export default function AnalyticsCharts({
+  type,
+  labels = [],
+  values = [],
+  pieData,
+  barColor = "#7C3AED",
+  height = 220,
+  unit = "",
+}) {
   const lineData = useMemo(() => {
     return labels.map((label, idx) => ({
       label,
-      completed: values[idx] ?? 0,
+      value: values[idx] ?? 0,
     }));
   }, [labels, values]);
 
@@ -62,9 +75,23 @@ export default function AnalyticsCharts({ type, labels = [], values = [], pieDat
     }));
   }, [pieData]);
 
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={tooltipStyle}>
+          <p style={{ margin: 0, fontWeight: 700, color: "#000" }}>{label}</p>
+          <p style={{ margin: "2px 0 0", color: barColor }}>
+            {payload[0].value}{unit}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   if (type === "pie") {
     return (
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width="100%" height={height}>
         <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
           <Pie
             data={pieChartData}
@@ -91,8 +118,28 @@ export default function AnalyticsCharts({ type, labels = [], values = [], pieDat
     );
   }
 
+  if (type === "bar") {
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+          <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar
+            dataKey="value"
+            fill={barColor}
+            radius={0}
+            maxBarSize={40}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // Default: line
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={height}>
       <LineChart data={lineData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis dataKey="label" tick={{ fontSize: 11 }} />
@@ -100,7 +147,7 @@ export default function AnalyticsCharts({ type, labels = [], values = [], pieDat
         <Tooltip contentStyle={tooltipStyle} />
         <Line
           type="monotone"
-          dataKey="completed"
+          dataKey="value"
           name="Habits Completed"
           stroke="#7C3AED"
           strokeWidth={3}
