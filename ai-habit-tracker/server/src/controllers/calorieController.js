@@ -498,33 +498,50 @@ export const getAnalytics = async (req, res) => {
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    // Get last 30 days of data
+    // Get last 30 days of data — MongoDB aggregation pipeline
+    // Groups calories and protein by date in a single DB round-trip, eliminating
+    // in-memory object iteration over potentially large log document sets.
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const logs = await FoodLog.find({
-      userId,
-      createdAt: { $gte: thirtyDaysAgo },
-    }).sort({ date: 1 });
+    const aggResults = await FoodLog.aggregate([
+      {
+        $match: {
+          userId,
+          createdAt: { $gte: thirtyDaysAgo },
+        },
+      },
+      {
+        $group: {
+          _id: "$date",
+          calories: { $sum: "$calories" },
+          protein: { $sum: "$protein" },
+          itemCount: { $sum: 1 },
+          items: {
+            $push: {
+              foodName: "$foodName",
+              calories: "$calories",
+              protein: "$protein",
+            },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-    // ── Group by date ─────────────────────────────────────────────
-    const dailyData = {};
-    logs.forEach((log) => {
-      if (!dailyData[log.date]) {
-        dailyData[log.date] = { calories: 0, protein: 0, items: [] };
-      }
-      dailyData[log.date].calories += log.calories;
-      dailyData[log.date].protein += log.protein;
-      dailyData[log.date].items.push(log);
-    });
+    // Also fetch raw logs for topFoods frequency analysis (lightweight projection)
+    const logs = await FoodLog.find(
+      { userId, createdAt: { $gte: thirtyDaysAgo } },
+      { foodName: 1, calories: 1, protein: 1, date: 1 }
+    ).lean();
 
-    const dailyHistory = Object.keys(dailyData)
-      .map((date) => {
-        const data = dailyData[date];
-        const caloriesPercent = (data.calories / profile.dailyGoal) * 100;
-        const proteinPercent = (data.protein / profile.proteinGoal) * 100;
-        const isOverGoal = data.calories > profile.dailyGoal;
-        const hitProteinGoal = data.protein >= profile.proteinGoal;
+    // ── Build dailyHistory from aggregation results ─────────────────
+    const dailyHistory = aggResults
+      .map(({ _id: date, calories, protein, items }) => {
+        const caloriesPercent = (calories / profile.dailyGoal) * 100;
+        const proteinPercent = (protein / profile.proteinGoal) * 100;
+        const isOverGoal = calories > profile.dailyGoal;
+        const hitProteinGoal = protein >= profile.proteinGoal;
 
         return {
           date,
@@ -536,16 +553,16 @@ export const getAnalytics = async (req, res) => {
           dayOfWeek: new Date(date + "T12:00:00").toLocaleDateString("en-US", {
             weekday: "short",
           }),
-          calories: data.calories,
-          protein: data.protein,
+          calories,
+          protein,
           calorieGoal: profile.dailyGoal,
           proteinGoal: profile.proteinGoal,
           caloriesPercent: Math.round(caloriesPercent),
           proteinPercent: Math.round(proteinPercent),
           isOverGoal,
           hitProteinGoal,
-          overBy: isOverGoal ? data.calories - profile.dailyGoal : 0,
-          items: data.items,
+          overBy: isOverGoal ? calories - profile.dailyGoal : 0,
+          items,
         };
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));

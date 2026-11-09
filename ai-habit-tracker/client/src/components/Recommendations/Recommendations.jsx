@@ -132,12 +132,12 @@ function RecommendationCard({ rec }) {
   const [whyOpen, setWhyOpen] = useState(false);
   const [actionPlanOpen, setActionPlanOpen] = useState(false);
   const [activated, setActivated] = useState(false);
-  const [progress] = useState({
-    percent: Math.floor(Math.random() * 30) + 40,
-    streak: Math.floor(Math.random() * 5) + 1,
-    improvement: `+${Math.floor(Math.random() * 15) + 5}%`,
-    started: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-  });
+  const [progress] = useState(() => ({
+    percent: 55,
+    streak: 3,
+    improvement: "+12%",
+    started: "Today",
+  }));
 
   const handleAction = useCallback(() => {
     setActivated(true);
@@ -281,11 +281,11 @@ function ChallengeCard({ challenge }) {
   const [whyOpen, setWhyOpen] = useState(false);
   const [actionPlanOpen, setActionPlanOpen] = useState(false);
   const [started, setStarted] = useState(false);
-  const [progress] = useState({
-    percent: Math.floor(Math.random() * 25) + 10,
-    streak: Math.floor(Math.random() * 4) + 1,
-    started: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-  });
+  const [progress] = useState(() => ({
+    percent: 25,
+    streak: 2,
+    started: "Today",
+  }));
 
   return (
     <div className={`${styles.chalCard} ${started ? styles.chalCardStarted : ""}`}>

@@ -161,7 +161,7 @@ export function playChimeSound() {
     osc1.stop(now + 0.2);
     osc2.start(now + 0.15);
     osc2.stop(now + 0.5);
-  } catch (err) {
+  } catch {
     // Ignore audio permission/context errors silently
   }
 }

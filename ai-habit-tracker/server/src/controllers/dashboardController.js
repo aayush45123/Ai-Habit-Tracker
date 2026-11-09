@@ -72,29 +72,38 @@ export const getUserDashboard = async (req, res) => {
       completionRate: totalHabits > 0 ? Math.round((weeklyLogs.length / (totalHabits * 7)) * 100) : 0,
     };
 
-    // 4. Activity Heatmap (Past 30 Days)
+    // 4. Activity Heatmap (Past 30 Days) — MongoDB aggregation pipeline
+    // Groups by IST date string in a single DB round-trip, eliminating
+    // in-memory object iteration over potentially thousands of log documents.
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    const heatmapLogs = userHabitIds.length
-      ? await HabitLog.find({
-          habitId: { $in: userHabitIds },
-          date: { $gte: thirtyDaysAgo },
-          status: { $in: ["done", "completed"] },
-        })
+    const heatmap = userHabitIds.length
+      ? await HabitLog.aggregate([
+          {
+            $match: {
+              habitId: { $in: userHabitIds },
+              date: { $gte: thirtyDaysAgo },
+              status: { $in: ["done", "completed"] },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$date",
+                  timezone: "+05:30",
+                },
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $project: { _id: 0, date: "$_id", count: 1 } },
+          { $sort: { date: 1 } },
+        ])
       : [];
-
-    const heatmapMap = {};
-    heatmapLogs.forEach((log) => {
-      const dateKey = new Date(log.date || log.createdAt).toISOString().split("T")[0];
-      heatmapMap[dateKey] = (heatmapMap[dateKey] || 0) + 1;
-    });
-
-    const heatmap = Object.keys(heatmapMap).map((date) => ({
-      date,
-      count: heatmapMap[date],
-    }));
 
     // 5. AI Recommendation Snippet
     const aiRecommendation =

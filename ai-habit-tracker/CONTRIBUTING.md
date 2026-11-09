@@ -57,17 +57,39 @@ git clone https://github.com/your-username/ai-habit-tracker.git
 cd ai-habit-tracker
 ```
 
-### 2. Install Dependencies
+### 2. Unified Workspace Workflow (Recommended)
+
+From the project root:
+
+```bash
+# Run all tests (34 tests across client & server)
+npm test
+
+# Run linters and syntax checks
+npm run lint
+npm run lint:server
+
+# Build frontend production bundle
+npm run build
+
+# Start services
+npm run dev:server
+npm run dev:client
+```
+
+### 3. Individual Subdirectory Setup (Alternative)
 
 ```bash
 # Server
 cd server && npm install
+npm run dev
 
 # Client
 cd ../client && npm install
+npm run dev
 ```
 
-### 3. Configure Environment Variables
+### 4. Configure Environment Variables
 
 ```bash
 cp server/.env.example server/.env

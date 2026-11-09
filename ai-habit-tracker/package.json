@@ -1,4 +1,23 @@
 {
+  "name": "ai-habit-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Habit Tracker Project Workspace",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "test": "npm --prefix client test && npm --prefix server test",
+    "test:client": "npm --prefix client test",
+    "test:server": "npm --prefix server test",
+    "build": "npm --prefix client run build",
+    "lint": "npm --prefix client run lint",
+    "lint:server": "npm --prefix server run lint",
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server start",
+    "start": "npm --prefix server start"
+  },
   "dependencies": {
     "resend": "^6.20.0"
   }

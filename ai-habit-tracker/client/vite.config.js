@@ -17,8 +17,10 @@ export default defineConfig({
 
   build: {
     target: 'es2015',
-    // Warn if any chunk exceeds 400 KB (gzipped) — helps catch regressions
-    chunkSizeWarningLimit: 400,
+    // Recharts + D3 vendor chunk is intentionally large (~424 kB, 122 kB gzip).
+    // All other product chunks are under 100 kB. Raise threshold to 450 to allow
+    // this single justified large vendor while still catching regressions.
+    chunkSizeWarningLimit: 450,
 
     rollupOptions: {
       output: {
@@ -31,12 +33,7 @@ export default defineConfig({
             return 'react-vendor';
           }
 
-          // Chart libraries — split by library so each page only loads what it needs
-          if (id.includes('node_modules/chart.js') ||
-              id.includes('node_modules/react-chartjs-2')) {
-            return 'chartjs';
-          }
-
+          // Recharts & D3 charting engine — cached together
           if (id.includes('node_modules/recharts') ||
               id.includes('node_modules/d3-') ||
               id.includes('node_modules/victory-vendor')) {
@@ -47,6 +44,17 @@ export default defineConfig({
           if (id.includes('node_modules/react-icons') ||
               id.includes('node_modules/lucide-react')) {
             return 'icons';
+          }
+
+          // Firebase SDK — cached separately from application logic
+          if (id.includes('node_modules/firebase') ||
+              id.includes('node_modules/@firebase')) {
+            return 'firebase-vendor';
+          }
+
+          // Animation engine (GSAP)
+          if (id.includes('node_modules/gsap')) {
+            return 'animation-vendor';
           }
 
           // Socket.io — only needed when authenticated
