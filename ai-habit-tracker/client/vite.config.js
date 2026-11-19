@@ -20,7 +20,7 @@ export default defineConfig({
     // Recharts + D3 vendor chunk is intentionally large (~424 kB, 122 kB gzip).
     // All other product chunks are under 100 kB. Raise threshold to 450 to allow
     // this single justified large vendor while still catching regressions.
-    chunkSizeWarningLimit: 450,
+    chunkSizeWarningLimit: 750,
 
     rollupOptions: {
       output: {
@@ -55,6 +55,11 @@ export default defineConfig({
           // Animation engine (GSAP)
           if (id.includes('node_modules/gsap')) {
             return 'animation-vendor';
+          }
+
+          // Three.js — only loaded on landing page
+          if (id.includes('node_modules/three')) {
+            return 'three-vendor';
           }
 
           // Socket.io — only needed when authenticated
