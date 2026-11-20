@@ -344,14 +344,24 @@ export const getHabitLogs = async (req, res) => {
 };
 
 // ----------------------------------------------------
-// UPDATE HABIT
+// UPDATE HABIT (Protected against Mass Assignment & IDOR)
 // ----------------------------------------------------
 export const updateHabit = async (req, res) => {
   try {
+    const userId = req.user._id || req.user;
+    const allowedUpdates = ["title", "category", "color", "icon", "goalDays", "reminderTime"];
+    const updatePayload = {};
+
+    for (const key of allowedUpdates) {
+      if (req.body[key] !== undefined) {
+        updatePayload[key] = req.body[key];
+      }
+    }
+
     const habit = await Habit.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user },
-      req.body,
-      { new: true },
+      { _id: req.params.id, userId },
+      { $set: updatePayload },
+      { new: true, runValidators: true }
     );
 
     if (!habit) return res.status(404).json({ message: "Habit not found" });
@@ -370,9 +380,10 @@ export const updateHabit = async (req, res) => {
 // ----------------------------------------------------
 export const deleteHabit = async (req, res) => {
   try {
+    const userId = req.user._id || req.user;
     const habit = await Habit.findOneAndDelete({
       _id: req.params.id,
-      userId: req.user,
+      userId,
     });
 
     if (!habit) return res.status(404).json({ message: "Habit not found" });
@@ -382,15 +393,15 @@ export const deleteHabit = async (req, res) => {
     purgeUserDashboardCache(req.user);
 
     recordActivityEvent({
-      userId: req.user._id || req.user,
+      userId,
       eventType: "HABIT_DELETED",
       metadata: { habitId: req.params.id },
       req,
     });
 
     // Emit real-time event
-    const userId = req.user._id ? req.user._id.toString() : req.user.toString();
-    emitDashboardUpdate(userId, { type: "habit:deleted", habitId: req.params.id });
+    const emitUid = req.user._id ? req.user._id.toString() : req.user.toString();
+    emitDashboardUpdate(emitUid, { type: "habit:deleted", habitId: req.params.id });
 
     res.json({ message: "Habit deleted" });
   } catch (error) {
@@ -401,11 +412,19 @@ export const deleteHabit = async (req, res) => {
 
 // ----------------------------------------------------
 // LOG HABIT (DONE / MISSED) – ONE LOG PER DAY
-// ✅ FIXED: Now properly resets streak when marking as "missed"
+// ✅ Protected against IDOR: Validates ownership first
 // ----------------------------------------------------
 export const logHabit = async (req, res) => {
   try {
     const habitId = req.params.id;
+    const userId = req.user._id || req.user;
+
+    // Strict IDOR Check: Ensure habit exists and belongs to the authenticated user
+    const habit = await Habit.findOne({ _id: habitId, userId });
+    if (!habit) {
+      return res.status(404).json({ message: "Habit not found" });
+    }
+
     let { status } = req.body;
 
     if (status === "completed") {

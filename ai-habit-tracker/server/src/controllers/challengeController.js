@@ -198,11 +198,15 @@ export const updateChallenge = async (req, res) => {
       endTime: convertTo24FromString(h.endTime),
     }));
 
-    const updated = await Challenge.findByIdAndUpdate(
-      challengeId,
+    const updated = await Challenge.findOneAndUpdate(
+      { _id: challengeId, userId: req.user._id || req.user },
       { habits: formattedHabits },
       { new: true }
     );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Challenge not found" });
+    }
 
     res.json({
       message: "Challenge updated successfully!",
@@ -486,7 +490,8 @@ export const markHabitDone = async (req, res) => {
   try {
     const { id, index } = req.params;
     const habitIndex = Number(index);
-    const challenge = await Challenge.findById(id);
+    const userId = req.user._id || req.user;
+    const challenge = await Challenge.findOne({ _id: id, userId });
 
     if (!challenge) {
       return res.status(404).json({ message: "Challenge not found" });

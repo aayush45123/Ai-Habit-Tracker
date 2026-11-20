@@ -4,6 +4,10 @@ import cors from "cors";
 import cron from "node-cron";
 import connectDB from "./config/db.js";
 
+import securityHeaders from "./middleware/securityHeaders.js";
+import cookieParser from "./middleware/cookieParser.js";
+import { apiLimiter, aiLimiter } from "./middleware/rateLimiter.js";
+
 import authRoutes from "./routes/authRoutes.js";
 import habitRoutes from "./routes/habitRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
@@ -32,7 +36,6 @@ import activityRoutes from "./routes/activityRoutes.js";
 import visitorRoutes from "./routes/visitorRoutes.js";
 import { seedGamificationData } from "./seeds/gamificationSeed.js";
 
-// Import streak reset function
 import { scheduleDailyReminderCron, scheduleWeeklySummaryCron } from "./cron/emailReminder.cron.js";
 import { checkAndResetMissedStreaks } from "./controllers/habitController.js";
 
@@ -46,12 +49,19 @@ if (process.env.NODE_ENV !== "test") {
 const app = express();
 
 /* =======================
-   BODY PARSER
+   SECURITY HEADERS & COOKIES
 ======================= */
-app.use(express.json({ limit: "1mb" }));
+app.use(securityHeaders);
+app.use(cookieParser);
 
 /* =======================
-   ✅ PRODUCTION CORS (FIXED)
+   BODY PARSER (Strict size limits to prevent DoS)
+======================= */
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
+/* =======================
+   HARDENED PRODUCTION CORS
 ======================= */
 const allowedOrigins = [
   "http://localhost:5173",
@@ -59,43 +69,48 @@ const allowedOrigins = [
   "https://ai-habit-tracker-eb72.vercel.app",
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+if (process.env.CLIENT_URL && !allowedOrigins.includes(process.env.CLIENT_URL)) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow non-browser requests (tools, curl, server-to-server)
+    if (!origin) return callback(null, true);
 
-      if (origin.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      return callback(new Error("CORS not allowed"), false);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Session-Id"],
-    exposedHeaders: ["X-Session-Id"],
-  }),
-);
+    return callback(new Error("CORS policy violation: origin not permitted"), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Session-Id"],
+  exposedHeaders: ["X-Session-Id"],
+};
+
+app.use(cors(corsOptions));
 
 /* =======================
-   ✅ PREFLIGHT FIX (NODE 22 SAFE)
+   PREFLIGHT HANDLER
 ======================= */
-app.options(
-  /.*/,
-  cors({
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Session-Id"],
-    exposedHeaders: ["X-Session-Id"],
-  })
-);
+app.options(/.*/, cors(corsOptions));
 
 /* =======================
-   ROUTES - FIXED CALORIE PATH
+   RATE LIMITING
+======================= */
+// Dedicated throttles for expensive AI / LLM processing
+app.use("/api/ai", aiLimiter);
+app.use("/api/ai-chat", aiLimiter);
+app.use("/api/coach", aiLimiter);
+app.use("/api/ai-timetable", aiLimiter);
+
+// General API Rate Limiting (180 req/min per IP)
+app.use("/api", apiLimiter);
+
+/* =======================
+   ROUTES
 ======================= */
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
@@ -106,8 +121,7 @@ app.use("/api/focus", focusRoutes);
 app.use("/api/admin/templates", adminTemplateRoutes);
 app.use("/api/templates", publicTemplateRoutes);
 app.use("/api/ai-chat", aiChatRoutes);
-app.use("/api/calories", calorieRoutes); // Changed from /calorie to /calories
-// Timetable routes (support both plural and singular paths for backward compatibility)
+app.use("/api/calories", calorieRoutes);
 app.use("/api/timetables", timetableRoutes);
 app.use("/api/timetable", timetableRoutes);
 app.use("/api/schedule", scheduleRoutes);
@@ -115,7 +129,7 @@ app.use("/api/workout-logs", workoutLogRoutes);
 app.use("/api/ai-timetable", aiTimetableRoutes);
 app.use("/api/coach", aiCoachRoutes);
 app.use("/api/ml", mlRoutes);
-app.use("/api/dataset", datasetRoutes); // Use dataset routes
+app.use("/api/dataset", datasetRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/admin", adminRoutes);
@@ -135,42 +149,40 @@ if (process.env.NODE_ENV !== "test") {
 /* =======================
    AUTOMATIC STREAK RESET - DAILY CRON JOB
 ======================= */
-
-// Run initial streak check when server starts
 if (process.env.NODE_ENV !== "test") {
   console.log("Running initial streak check on server startup...");
-checkAndResetMissedStreaks()
-  .then(() => {
-    console.log("Initial streak check completed successfully");
-  })
-  .catch((err) => {
-    console.error("Initial streak check failed:", err);
-  });
+  checkAndResetMissedStreaks()
+    .then(() => {
+      console.log("Initial streak check completed successfully");
+    })
+    .catch((err) => {
+      console.error("Initial streak check failed:", err);
+    });
 
-// Schedule daily streak reset at 00:01 AM IST
-cron.schedule(
-  "1 0 * * *",
-  async () => {
-    console.log("Running scheduled daily streak check...");
-    try {
-      await checkAndResetMissedStreaks();
-      console.log("Daily streak check completed successfully");
-    } catch (err) {
-      console.error("Daily streak check failed:", err);
-    }
-  },
-  {
-    timezone: "Asia/Kolkata",
-  },
-);
+  // Schedule daily streak reset at 00:01 AM IST
+  cron.schedule(
+    "1 0 * * *",
+    async () => {
+      console.log("Running scheduled daily streak check...");
+      try {
+        await checkAndResetMissedStreaks();
+        console.log("Daily streak check completed successfully");
+      } catch (err) {
+        console.error("Daily streak check failed:", err);
+      }
+    },
+    {
+      timezone: "Asia/Kolkata",
+    },
+  );
 
-console.log("Streak reset cron job scheduled (runs daily at 00:01 IST)");
+  console.log("Streak reset cron job scheduled (runs daily at 00:01 IST)");
 
-/* =======================
-   EMAIL REMINDER CRON JOBS
-======================= */
-scheduleDailyReminderCron();
-scheduleWeeklySummaryCron();
+  /* =======================
+     EMAIL REMINDER CRON JOBS
+  ======================= */
+  scheduleDailyReminderCron();
+  scheduleWeeklySummaryCron();
 }
 
 /* =======================
@@ -181,12 +193,21 @@ app.get("/", (req, res) => {
 });
 
 /* =======================
-   ERROR HANDLER
+   SAFE PRODUCTION ERROR HANDLER
 ======================= */
 app.use((err, req, res, next) => {
-  console.error("Error:", err.message);
-  res.status(err.status || 500).json({
-    message: err.message || "Internal Server Error",
+  console.error("[ServerError]", err.message);
+
+  // Handle CORS errors cleanly
+  if (err.message && err.message.includes("CORS policy violation")) {
+    return res.status(403).json({ message: "Cross-Origin Request Blocked" });
+  }
+
+  const statusCode = err.status || 500;
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res.status(statusCode).json({
+    message: isProduction && statusCode === 500 ? "Internal Server Error" : (err.message || "Internal Server Error"),
   });
 });
 

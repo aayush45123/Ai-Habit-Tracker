@@ -10,6 +10,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![CI](https://github.com/aayush45123/Ai-Habit-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/aayush45123/Ai-Habit-Tracker/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-scikit--learn-3776AB?logo=python&logoColor=white)](https://scikit-learn.org/)
 [![Groq](https://img.shields.io/badge/AI-Groq%20Llama%203.3-orange)](https://groq.com/)
 [![Redis](https://img.shields.io/badge/Cache-Upstash%20Redis-DC382D?logo=redis&logoColor=white)](https://upstash.com/)
@@ -375,20 +376,41 @@ Ai-Habit-Tracker/
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/aayush45123/Ai-Habit-Tracker.git
-cd Ai-Habit-Tracker/ai-habit-tracker
+cd Ai-Habit-Tracker
 ```
 
-### 2. Backend setup
+### 2. Unified Monorepo Commands
+Run commands directly from the root workspace:
+
 ```bash
-cd server
+# Run all automated tests (client & server: 34 tests)
+npm test
+
+# Run code linters & syntax validation
+npm run lint
+npm run lint:server
+
+# Run client production build (Vite)
+npm run build
+
+# Start development servers
+npm run dev:server   # Starts Express backend at http://localhost:5000
+npm run dev:client   # Starts Vite React frontend at http://localhost:5173
+```
+
+### 3. Individual Subdirectory Setup (Alternative)
+
+**Backend Setup**
+```bash
+cd ai-habit-tracker/server
 npm install
 npm start
 ```
 Runs by default at `http://localhost:5000`.
 
-### 3. Frontend setup
+**Frontend Setup**
 ```bash
-cd ../client
+cd ai-habit-tracker/client
 npm install
 npm run dev
 ```

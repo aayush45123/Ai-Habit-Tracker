@@ -1,6 +1,6 @@
 import express from "express";
 import auth from "../middleware/authMiddleware.js";
-import upload from "../middleware/upload.middleware.js";
+import upload, { validateImageMagicBytes } from "../middleware/upload.middleware.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 import User from "../models/User.js";
 import {
@@ -24,17 +24,22 @@ router.post(
         return res.status(400).json({ message: "No image file provided" });
       }
 
+      // Deep inspection of magic bytes to reject disguised scripts/SVGs
+      if (!validateImageMagicBytes(req.file.buffer)) {
+        return res.status(400).json({ message: "Corrupted or invalid image file content." });
+      }
+
       const imageUrl = await uploadToCloudinary(req.file.buffer, "avatars");
 
       await User.findByIdAndUpdate(req.user._id, { profileImage: imageUrl });
 
-      res.json({
+      return res.json({
         message: "Profile avatar uploaded successfully",
         profileImage: imageUrl,
       });
     } catch (error) {
-      console.error("Avatar upload error:", error);
-      res.status(500).json({ message: "Failed to upload profile image", error: error.message });
+      console.error("Avatar upload error:", error.message);
+      return res.status(500).json({ message: "Failed to upload profile image" });
     }
   }
 );

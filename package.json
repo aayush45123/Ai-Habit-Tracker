@@ -1,0 +1,30 @@
+{
+  "name": "habit-tracker-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-grade, full-stack, AI & ML-driven habit, fitness, and lifestyle optimization platform.",
+  "workspaces": [
+    "ai-habit-tracker/client",
+    "ai-habit-tracker/server"
+  ],
+  "scripts": {
+    "test": "npm --prefix ai-habit-tracker/client test && npm --prefix ai-habit-tracker/server test",
+    "test:client": "npm --prefix ai-habit-tracker/client test",
+    "test:server": "npm --prefix ai-habit-tracker/server test",
+    "build": "npm --prefix ai-habit-tracker/client run build",
+    "lint": "npm --prefix ai-habit-tracker/client run lint",
+    "lint:server": "npm --prefix ai-habit-tracker/server run lint",
+    "dev:client": "npm --prefix ai-habit-tracker/client run dev",
+    "dev:server": "npm --prefix ai-habit-tracker/server start",
+    "start": "npm --prefix ai-habit-tracker/server start"
+  },
+  "keywords": [
+    "habit-tracker",
+    "fitness",
+    "ai",
+    "machine-learning",
+    "monorepo"
+  ],
+  "author": "Aayush",
+  "license": "MIT"
+}

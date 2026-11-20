@@ -46,10 +46,13 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = (newToken, newSessionId) => {
+  const login = (newToken, newSessionId, newRefreshToken) => {
     localStorage.setItem("token", newToken);
     if (newSessionId) {
       localStorage.setItem("sessionId", newSessionId);
+    }
+    if (newRefreshToken) {
+      localStorage.setItem("refreshToken", newRefreshToken);
     }
     setToken(newToken);
   };
@@ -57,6 +60,12 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     const currentSessionId = localStorage.getItem("sessionId");
     const currentToken = localStorage.getItem("token");
+    const currentRefreshToken = localStorage.getItem("refreshToken");
+
+    // Call server-side revocation
+    try {
+      api.post("/auth/logout", { refreshToken: currentRefreshToken }).catch(() => {});
+    } catch {}
 
     // Use native fetch with keepalive so it fires even during page unload,
     // and bypasses the axios 401 interceptor entirely.
@@ -78,6 +87,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("sessionId");
     setToken(null);
     setUser(null);

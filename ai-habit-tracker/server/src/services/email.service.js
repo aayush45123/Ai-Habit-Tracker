@@ -173,3 +173,37 @@ export async function sendVerificationEmail(user, verificationUrl) {
     html,
   });
 }
+
+/**
+ * Send secure password reset link (15-min single-use)
+ */
+export async function sendPasswordResetEmail(user, resetUrl) {
+  const html = `
+    <div style="font-family:'Sora',sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;">
+      <h2 style="color:#0f172a;margin-top:0;">Password Reset Request</h2>
+      <p style="color:#475569;font-size:15px;line-height:1.6;">
+        Hello ${user.name || "there"},<br/><br/>
+        We received a request to reset the password for your HabitAI account. Click the secure button below to choose a new password:
+      </p>
+      <div style="margin:28px 0;text-align:center;">
+        <a href="${resetUrl}" style="background:#0f172a;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;">
+          Reset My Password
+        </a>
+      </div>
+      <p style="color:#64748b;font-size:13px;line-height:1.5;">
+        This single-use link is valid for <strong>15 minutes</strong>. If you did not request a password reset, you can safely ignore this email — your account remains completely secure.
+      </p>
+      <hr style="border:none;border-top:1px solid #f1f5f9;margin:24px 0;" />
+      <p style="color:#94a3b8;font-size:12px;margin:0;">
+        © ${new Date().getFullYear()} HabitAI • High Performance Habit Architecture
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: "Password Reset Request — HabitAI",
+    html,
+  });
+}
+

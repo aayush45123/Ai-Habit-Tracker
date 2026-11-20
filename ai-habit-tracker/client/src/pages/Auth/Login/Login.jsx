@@ -40,7 +40,7 @@ function Login() {
       const res = await api.post("/auth/login", form);
 
       if (res.status === 200) {
-        login(res.data.token, res.data.sessionId);
+        login(res.data.token, res.data.sessionId, res.data.refreshToken);
         navigate("/dashboard");
       }
     } catch (err) {

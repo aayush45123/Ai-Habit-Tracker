@@ -7,7 +7,7 @@ import User from "../models/User.js";
  * @param {import("socket.io").Server} io
  */
 export function registerSocketHandlers(io) {
-  // Authenticate socket connection via JWT
+  // Authenticate socket connection via JWT with active & revoked token validation
   io.use(async (socket, next) => {
     try {
       const token =
@@ -25,6 +25,17 @@ export function registerSocketHandlers(io) {
         return next(new Error("User not found"));
       }
 
+      if (user.isActive === false) {
+        return next(new Error("Account disabled"));
+      }
+
+      // Check token version to reject revoked sessions
+      if (decoded.tokenVersion !== undefined && user.tokenVersion !== undefined) {
+        if (decoded.tokenVersion !== user.tokenVersion) {
+          return next(new Error("Session expired or revoked"));
+        }
+      }
+
       socket.userId = user._id.toString();
       socket.user = user;
       next();
@@ -37,19 +48,34 @@ export function registerSocketHandlers(io) {
     const userId = socket.userId;
     console.log(`⚡ Socket connected: user ${userId} (socket ${socket.id})`);
 
-    // Join user-specific room for targeted events
+    // Inbound socket event rate limiter state
+    let eventCount = 0;
+    let windowReset = Date.now() + 60000;
+
+    const checkSocketRateLimit = () => {
+      const now = Date.now();
+      if (now > windowReset) {
+        eventCount = 1;
+        windowReset = now + 60000;
+        return true;
+      }
+      eventCount++;
+      return eventCount <= 60; // Max 60 events/minute per socket
+    };
+
+    // Join user-specific room for targeted events (strictly bound to authenticated userId)
     socket.join(`user:${userId}`);
 
-    // Client can explicitly join their room (idempotent)
+    // Client can explicitly rejoin their own room
     socket.on("join:user", () => {
+      if (!checkSocketRateLimit()) {
+        return socket.emit("error", { message: "Socket rate limit exceeded" });
+      }
       socket.join(`user:${userId}`);
-      console.log(`📥 ${userId} joined their room`);
     });
 
     socket.on("disconnect", (reason) => {
-      console.log(
-        `⚡ Socket disconnected: user ${userId} — reason: ${reason}`
-      );
+      console.log(`⚡ Socket disconnected: user ${userId} — reason: ${reason}`);
     });
 
     socket.on("error", (err) => {

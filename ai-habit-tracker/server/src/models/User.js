@@ -62,6 +62,21 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Password reset security fields (stored as SHA-256 hashes)
+    passwordResetToken: {
+      type: String,
+      default: null,
+      index: true,
+    },
+    passwordResetExpires: {
+      type: Date,
+      default: null,
+    },
+    // Token revocation version (incremented to revoke all active access tokens)
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
     // Email reminder preferences
     emailNotifications: {
       type: Boolean,

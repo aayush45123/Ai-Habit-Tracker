@@ -35,7 +35,7 @@ export default function SocialAuthButtons({ mode = "login", onError }) {
 
       if (res.status === 200 || res.status === 201) {
         // Direct login — NO email verification requested!
-        login(res.data.token, res.data.sessionId);
+        login(res.data.token, res.data.sessionId, res.data.refreshToken);
         navigate("/dashboard");
       }
     } catch (err) {

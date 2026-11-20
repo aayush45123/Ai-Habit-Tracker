@@ -76,14 +76,13 @@ export const generateDataset = async (req, res) => {
       success: true,
       message: "Dataset Generated Successfully",
       rows: csv.split("\n").length - 2,
-      path: filePath,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Dataset generation error:", err);
 
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Failed to generate dataset",
     });
   }
 };

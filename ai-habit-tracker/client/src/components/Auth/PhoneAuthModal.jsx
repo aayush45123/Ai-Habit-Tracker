@@ -137,7 +137,7 @@ export default function PhoneAuthModal({ isOpen, onClose, mode = "login" }) {
 
       if (res.status === 200 || res.status === 201) {
         // Direct login — NO email verification requested!
-        login(res.data.token, res.data.sessionId);
+        login(res.data.token, res.data.sessionId, res.data.refreshToken);
         onClose();
         navigate("/dashboard");
       }
