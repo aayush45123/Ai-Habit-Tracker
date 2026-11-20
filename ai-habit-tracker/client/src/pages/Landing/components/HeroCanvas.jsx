@@ -1,15 +1,79 @@
 /**
- * HeroCanvas.jsx — High-Performance Pure Three.js 3D Productivity Ecosystem
+ * HeroCanvas.jsx — Masterpiece 3D Productivity Ecosystem (Pure Three.js)
  *
- * Designed exclusively for the AI Habit Tracker in Nihilism Monochrome:
- * - Pure Three.js (React 19 compatible, zero peer-dep lag)
- * - Realistic glass transmission, chrome metals, and obsidian materials
- * - Continuous scroll-based camera pathing across all 6 narrative stages
- * - Smooth cursor parallax and delta-time animation
+ * Full-page interactive 3D WebGL experience matching the light Nihilism Monochrome design:
+ * - Section 1: Grand Central Habit Core + 4 Floating 3D HUD Badges (Streak, XP, 100% Complete, AI Peak)
+ * - Section 2: 3D Habit Calendar with cells that physically extrude, flip, and animate to completed states on scroll
+ * - Section 3: 3D AI Neural Intelligence Core with orbital rings, connected decision nodes, and pattern plaques
+ * - Section 4: 3D Layered Dashboard with floating glass plates at distinct Z-depths (Schedule, Habits, Nutrition)
+ * - Section 5: 3D Streak & Consistency Monument with interlocking milestone toruses and prismatic core
+ * - Section 6: Grand Ecosystem Pullback view for the final CTA
+ *
+ * Optimized for 60fps on modern laptops, clamped DPR, and smooth lerp camera navigation.
  */
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+
+// ─── Helper to create crisp 2D canvas textures for 3D UI plaques ─────────────
+function createCardTexture({
+  title = "",
+  subtitle = "",
+  badge = "",
+  iconType = "check",
+  bg = "#ffffff",
+  border = "#000000",
+  textColor = "#000000",
+  accentColor = "#000000",
+  w = 512,
+  h = 256,
+}) {
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+
+  // High-DPI crisp rendering
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // Border
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = border;
+  ctx.strokeRect(5, 5, w - 10, h - 10);
+
+  // Corner accent / Brutalist mark
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(10, 10, 24, 24);
+
+  // Top Badge
+  if (badge) {
+    ctx.font = "900 22px 'Sora', sans-serif";
+    ctx.fillStyle = "#666666";
+    ctx.fillText(badge.toUpperCase(), 44, 46);
+  }
+
+  // Title
+  ctx.font = "900 42px 'Sora', sans-serif";
+  ctx.fillStyle = textColor;
+  ctx.fillText(title, 40, 120);
+
+  // Subtitle
+  if (subtitle) {
+    ctx.font = "600 24px 'Sora', sans-serif";
+    ctx.fillStyle = "#555555";
+    ctx.fillText(subtitle, 40, 175);
+  }
+
+  // Bottom indicator bar
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(40, 210, w - 80, 12);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  return texture;
+}
 
 export default function HeroCanvas({ scrollRef, mouseRef }) {
   const containerRef = useRef(null);
@@ -18,15 +82,15 @@ export default function HeroCanvas({ scrollRef, mouseRef }) {
     const container = containerRef.current;
     if (!container) return;
 
-    // ─── Scene Setup ─────────────────────────────────────────────────────────
+    // ─── Scene & Camera ──────────────────────────────────────────────────────
     const scene = new THREE.Scene();
-    scene.background = null; // Transparent, letting HTML grid show through
+    scene.background = null;
 
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
 
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0.8, 12);
+    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+    camera.position.set(0, 0.6, 12);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -42,316 +106,488 @@ export default function HeroCanvas({ scrollRef, mouseRef }) {
 
     container.appendChild(renderer.domElement);
 
-    // ─── Materials ───────────────────────────────────────────────────────────
-    // Glass Material for Hero Sphere
+    // ─── Shared Materials (Light Nihilism Monochrome) ────────────────────────
     const glassMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       metalness: 0.05,
       roughness: 0.08,
-      transmission: 0.88,
+      transmission: 0.90,
       thickness: 1.2,
-      ior: 1.48,
-      reflectivity: 0.9,
+      ior: 1.5,
       clearcoat: 1.0,
       clearcoatRoughness: 0.08,
       transparent: true,
       opacity: 0.92,
     });
 
-    // Polished Chrome
-    const chromeMaterial = new THREE.MeshStandardMaterial({
-      color: 0x222222,
-      metalness: 0.95,
-      roughness: 0.12,
-    });
-
-    // Obsidian Black Material
     const obsidianMaterial = new THREE.MeshStandardMaterial({
-      color: 0x050505,
-      metalness: 0.85,
-      roughness: 0.18,
+      color: 0x0a0a0a,
+      metalness: 0.92,
+      roughness: 0.15,
     });
 
-    // Matte Porcelain White
+    const chromeMaterial = new THREE.MeshStandardMaterial({
+      color: 0x333333,
+      metalness: 0.98,
+      roughness: 0.08,
+    });
+
+    const titaniumMaterial = new THREE.MeshStandardMaterial({
+      color: 0xd8d8dc,
+      metalness: 0.85,
+      roughness: 0.22,
+    });
+
     const whiteEnamelMaterial = new THREE.MeshStandardMaterial({
       color: 0xf5f5f5,
-      metalness: 0.1,
-      roughness: 0.35,
+      metalness: 0.08,
+      roughness: 0.4,
     });
 
-    // Fine Wireframe
+    const emeraldDoneMaterial = new THREE.MeshStandardMaterial({
+      color: 0x111111,
+      emissive: 0x059669,
+      emissiveIntensity: 0.25,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
+
     const wireframeMaterial = new THREE.MeshBasicMaterial({
-      color: 0x777777,
+      color: 0x000000,
       wireframe: true,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.25,
     });
 
-    // ─── 1. Central Hero Glass Sphere & Gyro Rings ───────────────────────────
-    const centerGroup = new THREE.Group();
-    scene.add(centerGroup);
+    // ═════════════════════════════════════════════════════════════════════════
+    // 1. SECTION 1: HERO HABIT CORE & 4 FLOATING 3D HUD BADGES
+    // ═════════════════════════════════════════════════════════════════════════
+    const heroGroup = new THREE.Group();
+    scene.add(heroGroup);
 
-    // Outer Glass Icosahedron/Sphere
-    const glassGeo = new THREE.IcosahedronGeometry(1.65, 4);
-    const glassSphere = new THREE.Mesh(glassGeo, glassMaterial);
-    glassSphere.castShadow = true;
-    centerGroup.add(glassSphere);
+    // Central Frosted Glass Sphere
+    const heroGlass = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5, 4), glassMaterial);
+    heroGlass.castShadow = true;
+    heroGroup.add(heroGlass);
 
-    // Inner Dark Core (Rotating Octahedron)
-    const coreGeo = new THREE.OctahedronGeometry(0.72, 1);
-    const innerCore = new THREE.Mesh(coreGeo, obsidianMaterial);
-    centerGroup.add(innerCore);
+    // Inner Obsidian Core
+    const heroCore = new THREE.Mesh(new THREE.OctahedronGeometry(0.7, 1), obsidianMaterial);
+    heroGroup.add(heroCore);
 
-    // Concentric Gyroscope Rings
-    const ring1Geo = new THREE.TorusGeometry(2.25, 0.022, 16, 120);
-    const ring1 = new THREE.Mesh(ring1Geo, chromeMaterial);
-    ring1.rotation.x = Math.PI / 3;
-    centerGroup.add(ring1);
+    // Dual Titanium Gyroscope Rings
+    const gyro1 = new THREE.Mesh(new THREE.TorusGeometry(2.1, 0.024, 16, 120), chromeMaterial);
+    gyro1.rotation.x = Math.PI / 3;
+    heroGroup.add(gyro1);
 
-    const ring2Geo = new THREE.TorusGeometry(2.55, 0.016, 16, 120);
-    const ring2 = new THREE.Mesh(ring2Geo, obsidianMaterial);
-    ring2.rotation.y = Math.PI / 4;
-    ring2.rotation.z = Math.PI / 6;
-    centerGroup.add(ring2);
+    const gyro2 = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.018, 16, 120), obsidianMaterial);
+    gyro2.rotation.y = Math.PI / 4;
+    gyro2.rotation.z = Math.PI / 6;
+    heroGroup.add(gyro2);
 
-    const ring3Geo = new THREE.TorusGeometry(2.9, 0.012, 16, 120);
-    const ring3 = new THREE.Mesh(ring3Geo, chromeMaterial);
-    ring3.rotation.x = -Math.PI / 5;
-    centerGroup.add(ring3);
+    const gyro3 = new THREE.Mesh(new THREE.TorusGeometry(2.7, 0.014, 16, 120), titaniumMaterial);
+    gyro3.rotation.x = -Math.PI / 4;
+    heroGroup.add(gyro3);
 
-    // ─── 2. Habit Orbiting Satellite Spheres ─────────────────────────────────
-    const habitSatellitesGroup = new THREE.Group();
-    scene.add(habitSatellitesGroup);
-
-    const SATELLITE_COUNT = 6;
-    const satellites = [];
-    const satelliteConfig = [
-      { r: 3.8, speed: 0.28, phase: 0.0, size: 0.28, mat: obsidianMaterial },
-      { r: 4.1, speed: 0.22, phase: 1.05, size: 0.24, mat: chromeMaterial },
-      { r: 3.6, speed: 0.34, phase: 2.1, size: 0.26, mat: whiteEnamelMaterial },
-      { r: 4.4, speed: 0.18, phase: 3.15, size: 0.32, mat: obsidianMaterial },
-      { r: 3.9, speed: 0.26, phase: 4.2, size: 0.22, mat: chromeMaterial },
-      { r: 4.2, speed: 0.20, phase: 5.25, size: 0.25, mat: whiteEnamelMaterial },
+    // 4 Floating 3D HUD Badges
+    const hudBadges = [];
+    const badgeConfigs = [
+      {
+        pos: [-3.6, 1.8, 1.2],
+        tex: createCardTexture({
+          badge: "STREAK PROTOCOL",
+          title: "🔥 24-Day Streak",
+          subtitle: "Top 1% Global Consistency",
+          accentColor: "#000000",
+        }),
+        rotY: 0.2,
+      },
+      {
+        pos: [3.6, 2.0, 0.8],
+        tex: createCardTexture({
+          badge: "NEURAL TELEMETRY",
+          title: "🧠 AI Peak: 09:30 AM",
+          subtitle: "Morning Deep Focus Queued",
+          accentColor: "#000000",
+        }),
+        rotY: -0.22,
+      },
+      {
+        pos: [-3.4, -1.8, 1.0],
+        tex: createCardTexture({
+          badge: "DAILY ADHERENCE",
+          title: "✓ 100% Completed",
+          subtitle: "5 of 5 Non-Negotiables",
+          accentColor: "#059669",
+        }),
+        rotY: 0.18,
+      },
+      {
+        pos: [3.4, -1.6, 1.2],
+        tex: createCardTexture({
+          badge: "GAMIFICATION XP",
+          title: "⚡ +150 XP Earned",
+          subtitle: "Level 14 · Habit Master",
+          accentColor: "#000000",
+        }),
+        rotY: -0.16,
+      },
     ];
 
-    satelliteConfig.forEach((cfg, i) => {
-      const satGroup = new THREE.Group();
-      const satMesh = new THREE.Mesh(new THREE.SphereGeometry(cfg.size, 24, 24), cfg.mat);
-      satMesh.castShadow = true;
-      satGroup.add(satMesh);
+    badgeConfigs.forEach((cfg, i) => {
+      const bGroup = new THREE.Group();
+      bGroup.position.set(...cfg.pos);
+      bGroup.rotation.y = cfg.rotY;
 
-      // Mini halo around each habit node
-      const haloGeo = new THREE.TorusGeometry(cfg.size * 1.5, 0.008, 12, 48);
-      const halo = new THREE.Mesh(haloGeo, wireframeMaterial);
-      satGroup.add(halo);
+      // Slab Geometry
+      const slabGeo = new THREE.BoxGeometry(2.2, 1.1, 0.04);
+      const faceMat = new THREE.MeshBasicMaterial({ map: cfg.tex });
+      const edgeMat = obsidianMaterial;
+      const materials = [
+        edgeMat, edgeMat, edgeMat, edgeMat, faceMat, edgeMat
+      ];
+      const slabMesh = new THREE.Mesh(slabGeo, materials);
+      slabMesh.castShadow = true;
+      bGroup.add(slabMesh);
 
-      habitSatellitesGroup.add(satGroup);
-      satellites.push({ group: satGroup, halo, ...cfg });
+      // Black border outline
+      const edges = new THREE.EdgesGeometry(slabGeo);
+      const outline = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+      bGroup.add(outline);
+
+      heroGroup.add(bGroup);
+      hudBadges.push({ group: bGroup, basePos: [...cfg.pos], phase: i * 1.3 });
     });
 
-    // ─── 3. AI Neural Core (Section 3 Visual) ────────────────────────────────
-    const aiCoreGroup = new THREE.Group();
-    aiCoreGroup.position.set(4.2, 1.2, -1.5);
-    scene.add(aiCoreGroup);
-
-    const dodecaGeo = new THREE.DodecahedronGeometry(0.9, 0);
-    const aiCoreMesh = new THREE.Mesh(dodecaGeo, obsidianMaterial);
-    aiCoreGroup.add(aiCoreMesh);
-
-    const aiWireGeo = new THREE.DodecahedronGeometry(1.25, 0);
-    const aiWireMesh = new THREE.Mesh(aiWireGeo, wireframeMaterial);
-    aiCoreGroup.add(aiWireMesh);
-
-    // Neural Connection nodes (small pulsing spheres)
-    const neuralNodes = [];
-    const NODE_COUNT = 8;
-    for (let i = 0; i < NODE_COUNT; i++) {
-      const angle = (i / NODE_COUNT) * Math.PI * 2;
-      const radius = 1.6 + Math.sin(i * 1.5) * 0.4;
-      const nx = Math.cos(angle) * radius;
-      const ny = Math.sin(angle) * radius * 0.7;
-      const nz = (Math.random() - 0.5) * 0.8;
-
-      const nodeMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.08, 16, 16),
-        chromeMaterial
+    // Orbiting Satellite Spheres around Hero
+    const heroSatellites = [];
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const sMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 20, 20),
+        i % 2 === 0 ? obsidianMaterial : chromeMaterial
       );
-      nodeMesh.position.set(nx, ny, nz);
-      aiCoreGroup.add(nodeMesh);
-
-      // Connecting line back to core
-      const linePoints = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(nx, ny, nz)];
-      const lineGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
-      const lineMesh = new THREE.Line(
-        lineGeo,
-        new THREE.LineBasicMaterial({ color: 0x999999, transparent: true, opacity: 0.4 })
-      );
-      aiCoreGroup.add(lineMesh);
-
-      neuralNodes.push({ mesh: nodeMesh, angle, radius, speed: 0.15 + (i % 3) * 0.05 });
+      heroGroup.add(sMesh);
+      heroSatellites.push({ mesh: sMesh, angle, radius: 3.5 + (i % 2) * 0.4, speed: 0.25 + i * 0.04 });
     }
 
-    // ─── 4. 3D Analytics & Progress Rings (Section 4 Visual) ─────────────────
-    const analyticsGroup = new THREE.Group();
-    analyticsGroup.position.set(-4.0, 0.4, 0.5);
-    scene.add(analyticsGroup);
+    // ═════════════════════════════════════════════════════════════════════════
+    // 2. SECTION 2: 3D HABIT CALENDAR (ANIMATED ON SCROLL)
+    // ═════════════════════════════════════════════════════════════════════════
+    const calendarSectionGroup = new THREE.Group();
+    // Positioned to the right of the text in section 2
+    calendarSectionGroup.position.set(3.4, 0.2, 0);
+    calendarSectionGroup.rotation.set(-0.35, -0.4, 0.08);
+    scene.add(calendarSectionGroup);
 
-    // Concentric Progress Arcs (Consistency 88%, Streaks 75%, Focus 92%)
-    const ringConfigs = [
-      { r: 1.65, tube: 0.055, arc: Math.PI * 1.76, color: 0x0a0a0a, tilt: 0 },
-      { r: 1.35, tube: 0.048, arc: Math.PI * 1.5, color: 0x333333, tilt: 0.15 },
-      { r: 1.05, tube: 0.042, arc: Math.PI * 1.84, color: 0x666666, tilt: -0.1 },
-    ];
-    ringConfigs.forEach((rc) => {
-      const rGeo = new THREE.TorusGeometry(rc.r, rc.tube, 16, 96, rc.arc);
-      const rMesh = new THREE.Mesh(
-        rGeo,
-        new THREE.MeshStandardMaterial({ color: rc.color, metalness: 0.9, roughness: 0.12 })
-      );
-      rMesh.rotation.x = Math.PI / 2 + rc.tilt;
-      analyticsGroup.add(rMesh);
-    });
+    // Baseplate for calendar
+    const baseplateGeo = new THREE.BoxGeometry(4.4, 3.4, 0.16);
+    const baseplate = new THREE.Mesh(baseplateGeo, whiteEnamelMaterial);
+    baseplate.receiveShadow = true;
+    calendarSectionGroup.add(baseplate);
 
-    // 3D Bar Chart Pillars
-    const barPillars = [];
-    const BAR_COUNT = 6;
-    for (let i = 0; i < BAR_COUNT; i++) {
-      const heightVal = 0.5 + i * 0.35 + (i % 2 === 0 ? 0.3 : 0);
-      const bGeo = new THREE.BoxGeometry(0.2, heightVal, 0.2);
-      const bMesh = new THREE.Mesh(bGeo, i === BAR_COUNT - 1 ? obsidianMaterial : chromeMaterial);
-      bMesh.position.set(-0.75 + i * 0.32, -1.2 + heightVal / 2, 0);
-      bMesh.castShadow = true;
-      analyticsGroup.add(bMesh);
-      barPillars.push(bMesh);
-    }
+    const baseplateBorder = new THREE.LineSegments(
+      new THREE.EdgesGeometry(baseplateGeo),
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 })
+    );
+    calendarSectionGroup.add(baseplateBorder);
 
-    // ─── 5. 3D Calendar Grid (Section 5 Visual) ──────────────────────────────
-    const calendarGroup = new THREE.Group();
-    calendarGroup.position.set(0, -3.2, 1.2);
-    calendarGroup.rotation.x = -Math.PI / 3.8;
-    scene.add(calendarGroup);
+    // 5 Weeks x 7 Days = 35 3D Day Cubes
+    const CAL_COLS = 7;
+    const CAL_ROWS = 5;
+    const C_SIZE = 0.38;
+    const C_GAP = 0.50;
+    const calendarCubes = [];
 
-    const COLS = 7;
-    const ROWS = 5;
-    const CELL_W = 0.32;
-    const CELL_GAP = 0.42;
-    const calendarCells = [];
+    for (let r = 0; r < CAL_ROWS; r++) {
+      for (let c = 0; c < CAL_COLS; c++) {
+        const index = r * CAL_COLS + c;
+        const isDoneInitial = index < 24; // 24 days done streak
 
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const isDone = (r * COLS + c) % 3 !== 0;
-        const cellH = isDone ? 0.18 + ((r + c) % 4) * 0.06 : 0.04;
-        const cGeo = new THREE.BoxGeometry(CELL_W, CELL_W, cellH);
-        const cMesh = new THREE.Mesh(
-          cGeo,
-          isDone ? obsidianMaterial : whiteEnamelMaterial
+        const cubeGeo = new THREE.BoxGeometry(C_SIZE, C_SIZE, 0.22);
+        const cubeMat = isDoneInitial ? obsidianMaterial : whiteEnamelMaterial;
+        const cubeMesh = new THREE.Mesh(cubeGeo, cubeMat);
+
+        const cx = (c - (CAL_COLS - 1) / 2) * C_GAP;
+        const cy = ((CAL_ROWS - 1) / 2 - r) * C_GAP - 0.1;
+        cubeMesh.position.set(cx, cy, 0.18);
+        cubeMesh.castShadow = true;
+        cubeMesh.receiveShadow = true;
+
+        // Thin outline on each day block
+        const cOutline = new THREE.LineSegments(
+          new THREE.EdgesGeometry(cubeGeo),
+          new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1.5 })
         );
-        cMesh.position.set(
-          (c - COLS / 2) * CELL_GAP,
-          (ROWS / 2 - r) * CELL_GAP,
-          cellH / 2
-        );
-        cMesh.castShadow = true;
-        cMesh.receiveShadow = true;
-        calendarGroup.add(cMesh);
-        calendarCells.push({ mesh: cMesh, baseH: cellH, isDone, index: r * COLS + c });
+        cubeMesh.add(cOutline);
+
+        calendarSectionGroup.add(cubeMesh);
+        calendarCubes.push({
+          mesh: cubeMesh,
+          index,
+          isDone: isDoneInitial,
+          origZ: 0.18,
+          x: cx,
+          y: cy,
+        });
       }
     }
 
-    // ─── 6. 3D Floating Dashboard Slabs (Glass HUD Panels) ────────────────────
-    const hudGroup = new THREE.Group();
-    scene.add(hudGroup);
+    // Floating 3D Progress Pill above Calendar
+    const calProgressGroup = new THREE.Group();
+    calProgressGroup.position.set(0, 1.85, 0.4);
+    const calPillGeo = new THREE.BoxGeometry(3.6, 0.35, 0.08);
+    const calPillMesh = new THREE.Mesh(calPillGeo, obsidianMaterial);
+    calProgressGroup.add(calPillMesh);
 
-    const hudConfigs = [
-      { pos: [-4.8, 2.2, -2.5], w: 2.2, h: 1.3, rotY: 0.25 },
-      { pos: [4.8, -1.2, -2.0], w: 2.4, h: 1.4, rotY: -0.2 },
+    const calProgressFillGeo = new THREE.BoxGeometry(3.5, 0.25, 0.1);
+    const calProgressFill = new THREE.Mesh(calProgressFillGeo, titaniumMaterial);
+    calProgressGroup.add(calProgressFill);
+    calendarSectionGroup.add(calProgressGroup);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // 3. SECTION 3: 3D AI NEURAL INTELLIGENCE CORE
+    // ═════════════════════════════════════════════════════════════════════════
+    const aiSectionGroup = new THREE.Group();
+    // Positioned to the left of the AI text in section 3
+    aiSectionGroup.position.set(-3.6, 0.3, 0);
+    scene.add(aiSectionGroup);
+
+    // Geodesic Neural Brain Core
+    const aiGeoCore = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.3, 2),
+      obsidianMaterial
+    );
+    aiGeoCore.castShadow = true;
+    aiSectionGroup.add(aiGeoCore);
+
+    // Outer Faceted Wireframe Cage
+    const aiCage = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(1.8, 1),
+      wireframeMaterial
+    );
+    aiSectionGroup.add(aiCage);
+
+    // Neural Ring Arcs
+    const aiArc1 = new THREE.Mesh(
+      new THREE.TorusGeometry(2.2, 0.02, 16, 96, Math.PI * 1.6),
+      chromeMaterial
+    );
+    aiArc1.rotation.x = Math.PI / 3;
+    aiSectionGroup.add(aiArc1);
+
+    const aiArc2 = new THREE.Mesh(
+      new THREE.TorusGeometry(2.5, 0.016, 16, 96, Math.PI * 1.4),
+      obsidianMaterial
+    );
+    aiArc2.rotation.y = Math.PI / 2.5;
+    aiSectionGroup.add(aiArc2);
+
+    // 3 Floating AI Pattern Chips (in 3D)
+    const aiChips = [];
+    const aiChipData = [
+      { text: "Sleep > 7h → 94% Consistency", pos: [2.2, 1.5, 0.5], angle: 0 },
+      { text: "Optimal Focus Window: 09:00 AM", pos: [-2.2, 1.2, 0.8], angle: 2.1 },
+      { text: "Pearson r = +0.84 (Mood/Adherence)", pos: [0.2, -2.1, 0.6], angle: 4.2 },
     ];
-    hudConfigs.forEach((hc) => {
-      const panel = new THREE.Group();
-      panel.position.set(...hc.pos);
-      panel.rotation.y = hc.rotY;
+    aiChipData.forEach((cd) => {
+      const chipGroup = new THREE.Group();
+      chipGroup.position.set(...cd.pos);
 
-      // Glass slab
-      const slabGeo = new THREE.BoxGeometry(hc.w, hc.h, 0.04);
-      const slabMesh = new THREE.Mesh(
-        slabGeo,
-        new THREE.MeshPhysicalMaterial({
-          color: 0xffffff,
-          roughness: 0.1,
-          transmission: 0.85,
-          thickness: 0.4,
-          transparent: true,
-          opacity: 0.75,
-        })
-      );
-      panel.add(slabMesh);
+      const tex = createCardTexture({
+        badge: "AI PATTERN INSIGHT",
+        title: cd.text,
+        subtitle: "Confidence: 94.8% · Groq Engine",
+        accentColor: "#000000",
+        w: 512,
+        h: 220,
+      });
 
-      // Border outline
-      const edges = new THREE.EdgesGeometry(slabGeo);
-      const borderLine = new THREE.LineSegments(
-        edges,
+      const slabGeo = new THREE.BoxGeometry(2.1, 0.9, 0.03);
+      const cMesh = new THREE.Mesh(slabGeo, [
+        obsidianMaterial, obsidianMaterial, obsidianMaterial, obsidianMaterial,
+        new THREE.MeshBasicMaterial({ map: tex }), obsidianMaterial
+      ]);
+      chipGroup.add(cMesh);
+
+      const cEdge = new THREE.LineSegments(
+        new THREE.EdgesGeometry(slabGeo),
         new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 })
       );
-      panel.add(borderLine);
+      chipGroup.add(cEdge);
 
-      hudGroup.add(panel);
+      // Dynamic connector line to core
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(-cd.pos[0], -cd.pos[1], -cd.pos[2])
+      ]);
+      const lineMesh = new THREE.Line(
+        lineGeo,
+        new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: 0.4 })
+      );
+      chipGroup.add(lineMesh);
+
+      aiSectionGroup.add(chipGroup);
+      aiChips.push({ group: chipGroup, ...cd });
     });
 
-    // ─── 7. Particle Ambient Field ───────────────────────────────────────────
-    const PARTICLE_COUNT = 380;
+    // ═════════════════════════════════════════════════════════════════════════
+    // 4. SECTION 4: 3D LAYERED DASHBOARD ECOSYSTEM
+    // ═════════════════════════════════════════════════════════════════════════
+    const dashboardSectionGroup = new THREE.Group();
+    dashboardSectionGroup.position.set(3.4, 0.1, 0);
+    dashboardSectionGroup.rotation.set(0.15, -0.35, 0.05);
+    scene.add(dashboardSectionGroup);
+
+    // Plate 1 (Back Layer): Daily Timetable Grid
+    const plate1Geo = new THREE.BoxGeometry(4.2, 2.6, 0.06);
+    const plate1Tex = createCardTexture({
+      badge: "SMART TIME-BLOCK SCHEDULE",
+      title: "Today's Schedule & Routine",
+      subtitle: "07:00 Run • 09:00 Deep Work • 17:00 Gym",
+      accentColor: "#000000",
+      w: 640,
+      h: 360,
+    });
+    const plate1 = new THREE.Mesh(plate1Geo, [
+      obsidianMaterial, obsidianMaterial, obsidianMaterial, obsidianMaterial,
+      new THREE.MeshBasicMaterial({ map: plate1Tex }), obsidianMaterial
+    ]);
+    plate1.position.set(0, 0, -0.6);
+    plate1.castShadow = true;
+    dashboardSectionGroup.add(plate1);
+
+    // Plate 2 (Middle Layer): Active Habit Checklist
+    const plate2Geo = new THREE.BoxGeometry(3.6, 2.2, 0.08);
+    const plate2Tex = createCardTexture({
+      badge: "NON-NEGOTIABLE CHECKLIST",
+      title: "Active Daily Habits",
+      subtitle: "✓ Morning Water  ✓ Sprint 60m  ✓ Protein",
+      accentColor: "#000000",
+      w: 640,
+      h: 360,
+    });
+    const plate2 = new THREE.Mesh(plate2Geo, [
+      obsidianMaterial, obsidianMaterial, obsidianMaterial, obsidianMaterial,
+      new THREE.MeshBasicMaterial({ map: plate2Tex }), obsidianMaterial
+    ]);
+    plate2.position.set(0.4, -0.2, 0.1);
+    plate2.castShadow = true;
+    dashboardSectionGroup.add(plate2);
+
+    // Plate 3 (Front Layer): 3D Extruded Macro Cylinders
+    const plate3Group = new THREE.Group();
+    plate3Group.position.set(-1.2, -0.5, 0.7);
+    const macroValues = [0.8, 1.4, 1.0, 1.6];
+    macroValues.forEach((val, i) => {
+      const cylGeo = new THREE.CylinderGeometry(0.16, 0.16, val, 24);
+      const cyl = new THREE.Mesh(cylGeo, i === 3 ? obsidianMaterial : titaniumMaterial);
+      cyl.position.set(i * 0.42, val / 2, 0);
+      cyl.castShadow = true;
+      plate3Group.add(cyl);
+    });
+    dashboardSectionGroup.add(plate3Group);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // 5. SECTION 5: 3D STREAK & CONSISTENCY MONUMENT
+    // ═════════════════════════════════════════════════════════════════════════
+    const monumentSectionGroup = new THREE.Group();
+    // Positioned to the right of the Streak section text
+    monumentSectionGroup.position.set(3.2, 0.2, 0);
+    scene.add(monumentSectionGroup);
+
+    // Stepped Milestone Pedestal
+    const step1 = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.4, 0.25, 32), whiteEnamelMaterial);
+    step1.position.y = -1.8;
+    step1.receiveShadow = true;
+    monumentSectionGroup.add(step1);
+
+    const step2 = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.9, 0.25, 32), obsidianMaterial);
+    step2.position.y = -1.55;
+    step2.receiveShadow = true;
+    monumentSectionGroup.add(step2);
+
+    // 3 Interlocking Monument Milestone Toruses (7d, 14d, 21d milestones)
+    const monRing1 = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.08, 16, 80), chromeMaterial);
+    monRing1.rotation.x = Math.PI / 2;
+    monumentSectionGroup.add(monRing1);
+
+    const monRing2 = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.07, 16, 80), titaniumMaterial);
+    monRing2.rotation.y = Math.PI / 2.5;
+    monumentSectionGroup.add(monRing2);
+
+    const monRing3 = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.06, 16, 80), obsidianMaterial);
+    monRing3.rotation.x = Math.PI / 3;
+    monumentSectionGroup.add(monRing3);
+
+    // Central Radiant Flame Prism
+    const flamePrismGeo = new THREE.OctahedronGeometry(0.65, 0);
+    const flamePrism = new THREE.Mesh(flamePrismGeo, obsidianMaterial);
+    flamePrism.castShadow = true;
+    monumentSectionGroup.add(flamePrism);
+
+    // Outer Glass Shield
+    const flameGlass = new THREE.Mesh(new THREE.IcosahedronGeometry(0.95, 2), glassMaterial);
+    monumentSectionGroup.add(flameGlass);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // 6. AMBIENT PARTICLES & LIGHTING
+    // ═════════════════════════════════════════════════════════════════════════
+    const PARTICLE_COUNT = 420;
     const pGeo = new THREE.BufferGeometry();
     const pPos = new Float32Array(PARTICLE_COUNT * 3);
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-      pPos[i * 3 + 0] = (Math.random() - 0.5) * 26;
-      pPos[i * 3 + 1] = (Math.random() - 0.5) * 18;
+      pPos[i * 3 + 0] = (Math.random() - 0.5) * 28;
+      pPos[i * 3 + 1] = (Math.random() - 0.5) * 20;
       pPos[i * 3 + 2] = (Math.random() - 0.5) * 16;
     }
     pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-    const pMat = new THREE.PointsMaterial({
-      color: 0x000000,
-      size: 0.038,
-      transparent: true,
-      opacity: 0.3,
-    });
-    const particles = new THREE.Points(pGeo, pMat);
+    const particles = new THREE.Points(
+      pGeo,
+      new THREE.PointsMaterial({
+        color: 0x000000,
+        size: 0.04,
+        transparent: true,
+        opacity: 0.28,
+      })
+    );
     scene.add(particles);
 
-    // ─── 8. Lighting System ──────────────────────────────────────────────────
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
-    mainLight.position.set(7, 12, 8);
-    mainLight.castShadow = true;
-    mainLight.shadow.mapSize.width = 1024;
-    mainLight.shadow.mapSize.height = 1024;
-    mainLight.shadow.camera.near = 0.5;
-    mainLight.shadow.camera.far = 30;
-    mainLight.shadow.bias = -0.0005;
-    scene.add(mainLight);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    keyLight.position.set(8, 14, 9);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.bias = -0.0005;
+    scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xf0f0f0, 0.7);
-    fillLight.position.set(-8, 4, -4);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.PointLight(0xffffff, 1.2, 20);
-    rimLight.position.set(0, -4, 4);
+    const rimLight = new THREE.DirectionalLight(0xf4f4f6, 1.0);
+    rimLight.position.set(-8, 6, -5);
     scene.add(rimLight);
 
-    // ─── 9. Camera Cinematic Waypoints (6 Narrative Stages) ──────────────────
+    const fillLight = new THREE.PointLight(0xffffff, 1.4, 25);
+    fillLight.position.set(0, -3, 6);
+    scene.add(fillLight);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // 7. CINEMATIC CAMERA PATH (STORYTELLING ACROSS 6 SECTIONS)
+    // ═════════════════════════════════════════════════════════════════════════
+    // 0.00 -> Section 1: Hero Ecosystem
+    // 0.20 -> Section 2: 3D Habit Calendar Focus
+    // 0.40 -> Section 3: AI Neural Core Focus
+    // 0.60 -> Section 4: 3D Layered Dashboard Focus
+    // 0.80 -> Section 5: Streak Monument Focus
+    // 1.00 -> Section 6: Grand Overview Pullback
     const WAYPOINTS = [
-      // 1. Hero Overview (Intro)
-      { t: 0.00, pos: [0, 0.6, 11.2], target: [0, 0, 0] },
-      // 2. Build Habits (Closer, slightly left, orbits active)
-      { t: 0.18, pos: [-1.2, 0.2, 8.4], target: [0.3, 0, 0] },
-      // 3. AI Coach (Pans to floating AI neural node at right)
-      { t: 0.38, pos: [3.2, 1.4, 7.8], target: [4.0, 1.1, -1.0] },
-      // 4. Analytics & Momentum (Pans to progress rings & pillars at left)
-      { t: 0.58, pos: [-3.4, 0.6, 7.2], target: [-3.8, 0.2, 0.5] },
-      // 5. Daily Routine & Calendar (Looks down onto 3D calendar grid)
-      { t: 0.78, pos: [0.2, -1.4, 8.6], target: [0, -3.0, 1.2] },
-      // 6. Complete Ecosystem Reveal (Grand pullback view)
-      { t: 1.00, pos: [0, 1.2, 13.5], target: [0, 0, 0] },
+      { t: 0.00, pos: [0, 0.5, 11.0], target: [0, 0, 0] },
+      { t: 0.20, pos: [2.8, 0.4, 7.8],  target: [3.4, 0.2, 0] },
+      { t: 0.40, pos: [-2.8, 0.5, 7.5], target: [-3.6, 0.3, 0] },
+      { t: 0.60, pos: [2.7, 0.3, 7.6],  target: [3.4, 0.1, 0] },
+      { t: 0.80, pos: [2.5, 0.4, 7.4],  target: [3.2, 0.2, 0] },
+      { t: 1.00, pos: [0, 1.6, 13.8], target: [0, 0, 0] },
     ];
 
     function getInterpolatedCamera(progress) {
@@ -369,7 +605,6 @@ export default function HeroCanvas({ scrollRef, mouseRef }) {
 
       const span = hi.t - lo.t;
       const frac = span < 0.0001 ? 0 : (p - lo.t) / span;
-      // Smooth cubic hermite curve
       const smooth = frac * frac * (3 - 2 * frac);
 
       const px = lo.pos[0] + (hi.pos[0] - lo.pos[0]) * smooth;
@@ -386,7 +621,7 @@ export default function HeroCanvas({ scrollRef, mouseRef }) {
       };
     }
 
-    // ─── 10. Animation Loop ──────────────────────────────────────────────────
+    // ─── Animation Loop ──────────────────────────────────────────────────────
     let animationFrameId;
     const clock = new THREE.Clock();
     const currentCamPos = camera.position.clone();
@@ -398,92 +633,111 @@ export default function HeroCanvas({ scrollRef, mouseRef }) {
       const delta = clock.getDelta();
       const time = clock.getElapsedTime();
 
-      // Read current scroll progress and mouse coordinates
       const scroll = scrollRef ? scrollRef.current || 0 : 0;
       const mouse = mouseRef ? mouseRef.current || { x: 0, y: 0 } : { x: 0, y: 0 };
 
-      // Interpolate camera waypoint
+      // Camera lerp
       const { camPos: targetCamPos, lookAt: targetLookAt } = getInterpolatedCamera(scroll);
 
-      // Apply subtle mouse parallax
-      const parallaxX = mouse.x * 0.45;
-      const parallaxY = mouse.y * 0.35;
-      targetCamPos.x += parallaxX;
-      targetCamPos.y += parallaxY;
+      // Subtle mouse parallax
+      targetCamPos.x += mouse.x * 0.4;
+      targetCamPos.y += mouse.y * 0.3;
 
-      // Smooth camera dampening
-      currentCamPos.lerp(targetCamPos, 0.05);
-      currentLookAt.lerp(targetLookAt, 0.05);
+      currentCamPos.lerp(targetCamPos, 0.045);
+      currentLookAt.lerp(targetLookAt, 0.045);
 
       camera.position.copy(currentCamPos);
       camera.lookAt(currentLookAt);
 
-      // ─── Rotate Central Glass Sphere & Gyro Rings ───
-      glassSphere.rotation.y = time * 0.12;
-      glassSphere.rotation.x = Math.sin(time * 0.1) * 0.08;
+      // ─── Section 1: Hero Core Dynamics ───
+      heroGlass.rotation.y = time * 0.12;
+      heroGlass.rotation.x = Math.sin(time * 0.1) * 0.06;
+      heroCore.rotation.y = -time * 0.24;
+      heroCore.rotation.z = time * 0.16;
+      gyro1.rotation.y = time * 0.16;
+      gyro2.rotation.x = time * 0.14;
+      gyro3.rotation.z = -time * 0.12;
 
-      innerCore.rotation.y = -time * 0.22;
-      innerCore.rotation.z = time * 0.14;
-
-      ring1.rotation.y = time * 0.18;
-      ring2.rotation.x = time * 0.14;
-      ring3.rotation.z = -time * 0.12;
-
-      // ─── Orbit Habit Satellites ───
-      satellites.forEach((sat, i) => {
-        const theta = time * sat.speed + sat.phase;
-        const x = Math.cos(theta) * sat.r;
-        const z = Math.sin(theta) * sat.r;
-        const y = Math.sin(time * 0.4 + i) * 0.6;
-        sat.group.position.set(x, y, z);
-        sat.halo.rotation.x = time * 0.5 + i;
-        sat.halo.rotation.y = time * 0.3;
+      // Floating HUD Badges
+      hudBadges.forEach((b) => {
+        b.group.position.y = b.basePos[1] + Math.sin(time * 1.4 + b.phase) * 0.09;
+        b.group.rotation.x = Math.sin(time * 0.8 + b.phase) * 0.04;
       });
 
-      // ─── Animate AI Neural Core ───
-      aiCoreMesh.rotation.y = time * 0.2;
-      aiCoreMesh.rotation.x = time * 0.12;
-      aiWireMesh.rotation.y = -time * 0.15;
-      aiWireMesh.rotation.z = time * 0.1;
-
-      // Pulse neural nodes
-      neuralNodes.forEach((node, i) => {
-        const tVal = time * node.speed + node.angle;
-        node.mesh.position.y += Math.sin(time * 1.5 + i) * 0.002;
+      // Hero Satellites
+      heroSatellites.forEach((sat) => {
+        const theta = time * sat.speed + sat.angle;
+        sat.mesh.position.set(
+          Math.cos(theta) * sat.radius,
+          Math.sin(time * 0.5 + sat.angle) * 0.4,
+          Math.sin(theta) * sat.radius
+        );
       });
 
-      // ─── Animate Analytics Rings & Pillars ───
-      analyticsGroup.rotation.y = Math.sin(time * 0.2) * 0.08;
-      barPillars.forEach((bar, i) => {
-        const pulse = 1 + Math.sin(time * 2 + i * 0.8) * 0.06;
-        bar.scale.y = pulse;
+      // ─── Section 2: 3D Calendar Extrusion on Scroll ───
+      // When scroll is around 0.15 - 0.35, cubes actively flip and elevate
+      const calScrollProgress = Math.max(0, Math.min(1, (scroll - 0.12) / 0.18));
+      calendarCubes.forEach((c) => {
+        // Staggered trigger based on index
+        const threshold = c.index / 35;
+        const activated = calScrollProgress >= threshold;
+        const targetH = activated ? 0.34 : 0.06;
+        const targetRotY = activated ? Math.PI : 0;
+
+        c.mesh.scale.z = THREE.MathUtils.lerp(c.mesh.scale.z, activated ? 1.6 : 0.7, 0.08);
+        c.mesh.rotation.y = THREE.MathUtils.lerp(c.mesh.rotation.y, targetRotY, 0.08);
+        c.mesh.position.z = THREE.MathUtils.lerp(c.mesh.position.z, c.origZ + (activated ? 0.1 : 0), 0.08);
+
+        if (activated && c.mesh.material !== emeraldDoneMaterial) {
+          c.mesh.material = emeraldDoneMaterial;
+        } else if (!activated && c.mesh.material !== whiteEnamelMaterial) {
+          c.mesh.material = whiteEnamelMaterial;
+        }
+      });
+      calProgressFill.scale.x = Math.max(0.01, THREE.MathUtils.lerp(calProgressFill.scale.x, calScrollProgress, 0.08));
+
+      // ─── Section 3: AI Neural Core Pulse ───
+      aiGeoCore.rotation.y = time * 0.18;
+      aiGeoCore.rotation.x = time * 0.10;
+      aiCage.rotation.y = -time * 0.14;
+      aiCage.rotation.z = time * 0.08;
+      aiArc1.rotation.z = time * 0.2;
+      aiArc2.rotation.x = -time * 0.15;
+
+      aiChips.forEach((chip) => {
+        chip.group.position.y = chip.pos[1] + Math.sin(time * 1.5 + chip.angle) * 0.08;
+        chip.group.rotation.y = Math.sin(time * 0.6 + chip.angle) * 0.05;
       });
 
-      // ─── Animate Calendar Grid Wave ───
-      calendarCells.forEach((c) => {
-        const wave = Math.sin(time * 1.8 + c.index * 0.2) * 0.04;
-        c.mesh.position.z = c.baseH / 2 + (c.isDone ? wave : 0);
-      });
+      // ─── Section 4: Layered Dashboard Parallax ───
+      plate1.position.y = Math.sin(time * 0.8) * 0.05;
+      plate2.position.y = -0.2 + Math.sin(time * 0.8 + 1.2) * 0.07;
+      plate3Group.position.y = -0.5 + Math.sin(time * 0.8 + 2.4) * 0.09;
 
-      // ─── Drift Ambient Particles ───
-      particles.rotation.y = time * 0.015;
-      particles.rotation.x = Math.sin(time * 0.01) * 0.02;
+      // ─── Section 5: Streak Monument Dynamics ───
+      monRing1.rotation.z = time * 0.25;
+      monRing2.rotation.x = time * 0.20;
+      monRing3.rotation.y = -time * 0.30;
+      flamePrism.rotation.y = time * 0.4;
+      flamePrism.rotation.x = Math.sin(time * 0.6) * 0.15;
+      flameGlass.rotation.y = -time * 0.15;
 
-      // ─── Render Frame ───
+      // ─── Ambient Particles ───
+      particles.rotation.y = time * 0.012;
+      particles.rotation.x = Math.sin(time * 0.008) * 0.02;
+
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // ─── Resize Handler ──────────────────────────────────────────────────────
+    // ─── Resize ──────────────────────────────────────────────────────────────
     const handleResize = () => {
       if (!container) return;
       const newW = container.clientWidth || window.innerWidth;
       const newH = container.clientHeight || window.innerHeight;
-
       camera.aspect = newW / newH;
       camera.updateProjectionMatrix();
-
       renderer.setSize(newW, newH);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     };
@@ -499,14 +753,17 @@ export default function HeroCanvas({ scrollRef, mouseRef }) {
         container.removeChild(renderer.domElement);
       }
 
-      // Dispose Geometries and Materials
       scene.traverse((obj) => {
         if (obj.isMesh || obj.isPoints || obj.isLine) {
           if (obj.geometry) obj.geometry.dispose();
           if (obj.material) {
             if (Array.isArray(obj.material)) {
-              obj.material.forEach((m) => m.dispose());
+              obj.material.forEach((m) => {
+                if (m.map) m.map.dispose();
+                m.dispose();
+              });
             } else {
+              if (obj.material.map) obj.material.map.dispose();
               obj.material.dispose();
             }
           }

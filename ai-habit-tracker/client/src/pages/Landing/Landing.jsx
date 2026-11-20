@@ -1,639 +1,477 @@
 /**
- * Landing.jsx — Premium 3D Habit Tracker Landing Page
+ * Landing.jsx — Award-Winning 3D Interactive Habit Tracker Platform
  *
- * Architecture:
- * - HeroCanvas (fixed behind everything) driven by scrollRef + mouseRef
- * - HTML sections scroll normally over the canvas
- * - GSAP ScrollTrigger animates section text layers
- * - Full theme compliance: white bg, black accents, Sora font, brutalist borders
+ * Designed with a light Nihilism Monochrome aesthetic:
+ * - Direct integration with pure Three.js HeroCanvas
+ * - 6 Storytelling stages driven by continuous scroll choreography
+ * - Interactive 3D Calendar, AI Neural Core, Layered Dashboard & Streak Monument
  */
 
-import React, { useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import React, { useEffect, useRef, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-  Zap, ArrowRight, Brain, Flame, BarChart3,
-  Timer, Trophy, Calendar, CheckCircle2,
-  TrendingUp, Sparkles, ChevronDown,
+  Zap,
+  ArrowRight,
+  Brain,
+  Flame,
+  BarChart3,
+  Timer,
+  Trophy,
+  Calendar,
+  CheckCircle2,
+  TrendingUp,
+  Sparkles,
+  ChevronDown,
+  ShieldCheck,
+  Activity,
+  Layers,
 } from "lucide-react";
 
-// Three.js canvas — lazy loaded so it doesn't block initial render
 const HeroCanvas = lazy(() => import("./components/HeroCanvas"));
 import styles from "./Landing.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// ─── Feature data ─────────────────────────────────────────────────────────────
-const FEATURES = [
-  {
-    icon: <Flame size={22} strokeWidth={2.5} />,
-    title: "Daily Habit Streaks",
-    desc:  "Build unbreakable chains of consistency. IST-aware streak engine that never lets a midnight slip count against you.",
-    tag:   "CORE ENGINE",
-  },
-  {
-    icon: <Brain size={22} strokeWidth={2.5} />,
-    title: "AI Habit Coach",
-    desc:  "Groq Llama-powered intelligence that surfaces personalized recommendations, fatigue forecasts, and intervention alerts.",
-    tag:   "NEURAL AI",
-  },
-  {
-    icon: <BarChart3 size={22} strokeWidth={2.5} />,
-    title: "Deep Analytics",
-    desc:  "30-day heatmaps, 4-week momentum charts, Pearson correlation across lifestyle variables, and exportable PDF audits.",
-    tag:   "INSIGHTS",
-  },
-  {
-    icon: <Calendar size={22} strokeWidth={2.5} />,
-    title: "Smart Timetable",
-    desc:  "Dual scheduling system: workout builder and time-block planner with conflict detection and live \"Happening Now\" banners.",
-    tag:   "SCHEDULING",
-  },
-  {
-    icon: <Timer size={22} strokeWidth={2.5} />,
-    title: "Pomodoro Focus",
-    desc:  "Configurable deep work sprints with Web Audio chime alerts, session analytics, and productivity velocity tracking.",
-    tag:   "FOCUS MODE",
-  },
-  {
-    icon: <Trophy size={22} strokeWidth={2.5} />,
-    title: "XP & Gamification",
-    desc:  "Level up through real habits. XP transactions, badge catalog, virtual reward shop, and 21-day neuroplasticity challenges.",
-    tag:   "GAMIFIED",
-  },
-];
-
-const STEPS = [
-  { num: "01", title: "Set Your Habits",        desc: "Define daily non-negotiables. Daily, weekly, or custom frequency with time windows." },
-  { num: "02", title: "Log & Complete",          desc: "One tap to mark complete. Instant XP, streak update, and AI feedback loop." },
-  { num: "03", title: "Get AI Coaching",         desc: "The neural coach analyzes patterns and surfaces insights you couldn't see yourself." },
-  { num: "04", title: "Track Your Growth",       desc: "Watch correlations emerge. See how sleep, focus, and habits compound over time." },
-];
-
 const STATS = [
-  { value: "10K+",   label: "Active Users"       },
-  { value: "2M+",    label: "Habits Logged"      },
-  { value: "98.4%",  label: "Streak Consistency" },
-  { value: "21 Days", label: "Avg. Habit Lock-in" },
+  { value: "10K+", label: "Active Trackers" },
+  { value: "2M+", label: "Habits Completed" },
+  { value: "98.4%", label: "Streak Adherence" },
+  { value: "21 Days", label: "Neuroplasticity Lock-in" },
 ];
 
-// ─── Reusable section header ─────────────────────────────────────────────────
-function SectionHeader({ tag, title, subtitle, light }) {
-  return (
-    <div className={`${styles.sectionHeader} ${light ? styles.sectionHeaderLight : ""}`}>
-      <span className={styles.sectionTag}>{tag}</span>
-      <h2 className={styles.sectionTitle}>{title}</h2>
-      {subtitle && <p className={styles.sectionSubtitle}>{subtitle}</p>}
-    </div>
-  );
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Landing() {
   const navigate = useNavigate();
+  const scrollRef = useRef(0);
+  const mouseRef = useRef({ x: 0, y: 0 });
 
-  // Shared refs for the canvas
-  const scrollRef = useRef(0);   // 0–1 progress
-  const mouseRef  = useRef({ x: 0, y: 0 });
-
-  // Section refs for GSAP
-  const heroRef     = useRef();
-  const habitsRef   = useRef();
-  const aiRef       = useRef();
-  const analyticsRef= useRef();
-  const routineRef  = useRef();
-  const ctaRef      = useRef();
-  const sectionsRef = useRef([]);
-
-  // Redirect authenticated users
+  // Redirect authenticated user
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) navigate("/dashboard", { replace: true });
   }, [navigate]);
 
-  // ── Scroll progress tracker ───────────────────────────────────────────────
+  // Scroll progress normalized 0 to 1
   useEffect(() => {
     const onScroll = () => {
-      const scrollTop  = window.scrollY;
-      const maxScroll  = document.documentElement.scrollHeight - window.innerHeight;
-      scrollRef.current = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      scrollRef.current = max > 0 ? window.scrollY / max : 0;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // ── Mouse parallax tracker ────────────────────────────────────────────────
+  // Mouse coordinates for 3D parallax
   useEffect(() => {
-    const onMouse = (e) => {
+    const onMouseMove = (e) => {
       mouseRef.current = {
-        x: (e.clientX / window.innerWidth  - 0.5) * 2,
+        x: (e.clientX / window.innerWidth - 0.5) * 2,
         y: (e.clientY / window.innerHeight - 0.5) * -2,
       };
     };
-    window.addEventListener("mousemove", onMouse, { passive: true });
-    return () => window.removeEventListener("mousemove", onMouse);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMouseMove);
   }, []);
 
-  // ── GSAP: Animate HTML sections as user scrolls ────────────────────────────
+  // GSAP Animations
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
     const ctx = gsap.context(() => {
-      // ── Hero text entrance
-      gsap.fromTo(`.${styles.heroText}`, {
-        y: 40, opacity: 0,
-      }, {
-        y: 0, opacity: 1,
-        duration: 1.1,
-        ease: "power3.out",
-        stagger: 0.12,
-        delay: 0.3,
-      });
+      // Hero entrance
+      gsap.fromTo(
+        `.${styles.heroStagger}`,
+        { y: 35, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, stagger: 0.12, ease: "power3.out", delay: 0.2 }
+      );
 
-      // ── Each content section fades in from below as it enters viewport
-      gsap.utils.toArray(`.${styles.sectionReveal}`).forEach((el) => {
-        gsap.fromTo(el, { y: 50, opacity: 0 }, {
-          y: 0, opacity: 1,
-          duration: 0.9,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: el,
-            start: "top 82%",
-            end:   "top 50%",
-            scrub: false,
-            toggleActions: "play none none none",
-          },
-        });
+      // Section reveal triggers
+      gsap.utils.toArray(`.${styles.narrativeBlock}`).forEach((el) => {
+        gsap.fromTo(
+          el,
+          { y: 40, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 80%",
+              toggleActions: "play none none none",
+            },
+          }
+        );
       });
-
-      // ── Feature cards stagger
-      gsap.utils.toArray(`.${styles.featureCard}`).forEach((card, i) => {
-        gsap.fromTo(card, { y: 60, opacity: 0 }, {
-          y: 0, opacity: 1,
-          duration: 0.75,
-          ease: "back.out(1.3)",
-          delay: (i % 3) * 0.1,
-          scrollTrigger: {
-            trigger: card,
-            start: "top 88%",
-            toggleActions: "play none none none",
-          },
-        });
-      });
-
-      // ── Steps stagger
-      gsap.utils.toArray(`.${styles.stepCard}`).forEach((card, i) => {
-        gsap.fromTo(card, { x: i % 2 === 0 ? -40 : 40, opacity: 0 }, {
-          x: 0, opacity: 1,
-          duration: 0.8,
-          ease: "power2.out",
-          delay: i * 0.08,
-          scrollTrigger: {
-            trigger: card,
-            start: "top 86%",
-            toggleActions: "play none none none",
-          },
-        });
-      });
-
-      // ── Stats counter animation
-      gsap.utils.toArray(`.${styles.statNum}`).forEach((el) => {
-        gsap.fromTo(el, { scale: 0.6, opacity: 0 }, {
-          scale: 1, opacity: 1,
-          duration: 0.6,
-          ease: "back.out(1.5)",
-          scrollTrigger: {
-            trigger: el,
-            start: "top 88%",
-            toggleActions: "play none none none",
-          },
-        });
-      });
-
     });
 
     return () => ctx.revert();
   }, []);
 
-  const scrollToSection = (id) => {
+  const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // ─── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className={styles.landingPage}>
-
-      {/* ═══ FIXED 3D CANVAS (always behind everything) ════════════════════ */}
+    <div className={styles.landingContainer}>
+      {/* ─── 1. FIXED 3D WEBGL HERO CANVAS ─── */}
       <Suspense fallback={null}>
         <HeroCanvas scrollRef={scrollRef} mouseRef={mouseRef} />
       </Suspense>
 
-      {/* ═══ FIXED GRID BACKGROUND ═════════════════════════════════════════ */}
-      <div className={styles.gridBg} aria-hidden="true" />
+      {/* ─── 2. SUBTLE ARCHITECTURAL DOT-GRID ─── */}
+      <div className={styles.dotGrid} aria-hidden="true" />
 
-      {/* ═══ STICKY NAVBAR ══════════════════════════════════════════════════ */}
-      <nav className={styles.navbar}>
+      {/* ─── 3. STICKY NEO-BRUTALIST NAVBAR ─── */}
+      <header className={styles.navbar}>
         <div className={styles.navInner}>
-          <Link to="/" className={styles.navLogo}>
-            <span className={styles.navLogoIcon}><Zap size={18} strokeWidth={3} /></span>
+          <Link to="/" className={styles.logo}>
+            <div className={styles.logoIcon}>
+              <Zap size={18} strokeWidth={3} />
+            </div>
             <span>HabitAI</span>
           </Link>
 
-          <div className={styles.navLinks}>
-            <button className={styles.navLink} onClick={() => scrollToSection("features")}>Features</button>
-            <button className={styles.navLink} onClick={() => scrollToSection("how-it-works")}>How it works</button>
-            <button className={styles.navLink} onClick={() => scrollToSection("ai-coach")}>AI Coach</button>
-            <button className={styles.navLink} onClick={() => scrollToSection("analytics")}>Analytics</button>
-          </div>
+          <nav className={styles.navMenu}>
+            <button onClick={() => scrollTo("calendar-stage")} className={styles.navItem}>
+              3D Calendar
+            </button>
+            <button onClick={() => scrollTo("ai-stage")} className={styles.navItem}>
+              Neural Coach
+            </button>
+            <button onClick={() => scrollTo("dashboard-stage")} className={styles.navItem}>
+              Ecosystem
+            </button>
+            <button onClick={() => scrollTo("streak-stage")} className={styles.navItem}>
+              Streaks
+            </button>
+          </nav>
 
-          <div className={styles.navActions}>
-            <Link to="/login"  className={styles.navLogin}>Log In</Link>
-            <Link to="/signup" className={styles.navCta}>
-              <span>Get Started</span>
+          <div className={styles.navCtas}>
+            <Link to="/login" className={styles.loginBtn}>
+              Log In
+            </Link>
+            <Link to="/signup" className={styles.signupBtn}>
+              <span>Start Journey</span>
               <ArrowRight size={15} strokeWidth={2.75} />
             </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 1 — HERO (100vh, 3D canvas is the star)
-      ═══════════════════════════════════════════════════════════════════ */}
-      <section className={styles.hero} ref={heroRef}>
-        <div className={styles.heroBadge} style={{ animationDelay: "0s" }}>
-          <Sparkles size={14} strokeWidth={2.5} />
-          <span>AI-Powered Habit Intelligence</span>
-        </div>
-
-        <h1 className={`${styles.heroH1} ${styles.heroText}`} style={{ animationDelay: "0.1s" }}>
-          Build Better Habits.<br />
-          <span className={styles.heroH1Accent}>Become Your Best Self.</span>
-        </h1>
-
-        <p className={`${styles.heroSubtitle} ${styles.heroText}`} style={{ animationDelay: "0.22s" }}>
-          Your personal AI-powered system to build consistency,<br />
-          track progress, and transform your everyday routine.
-        </p>
-
-        <div className={`${styles.heroCtas} ${styles.heroText}`} style={{ animationDelay: "0.34s" }}>
-          <Link to="/signup" className={styles.ctaPrimary}>
-            <span>Start Your Journey</span>
-            <ArrowRight size={18} strokeWidth={2.75} />
-          </Link>
-          <button className={styles.ctaSecondary} onClick={() => scrollToSection("features")}>
-            <span>Explore Features</span>
-            <ChevronDown size={18} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* Stats strip */}
-        <div className={`${styles.heroStats} ${styles.heroText}`} style={{ animationDelay: "0.46s" }}>
-          {STATS.map((s, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <div className={styles.heroStatsDivider} />}
-              <div className={styles.heroStat}>
-                <span className={styles.statNum}>{s.value}</span>
-                <span className={styles.statLabel}>{s.label}</span>
-              </div>
-            </React.Fragment>
-          ))}
-        </div>
-
-        {/* Scroll cue */}
-        <div className={styles.scrollCue}>
-          <span className={styles.scrollCueLabel}>Scroll to explore</span>
-          <div className={styles.scrollCueArrow}>
-            <ChevronDown size={20} strokeWidth={2} />
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 2 — FEATURES (Habit Tracking)
-      ═══════════════════════════════════════════════════════════════════ */}
-      <section id="features" className={styles.section}>
-        <div className={styles.sectionInner}>
-          <div className="sectionReveal">
-            <SectionHeader
-              tag="WHAT YOU GET"
-              title="Everything you need to build life-changing habits"
-              subtitle="Six precision systems, working together as one intelligent platform."
-            />
+      {/* ─── SECTION 1: HERO EXPERIENCE ─── */}
+      <section className={styles.heroSection}>
+        <div className={styles.heroContent}>
+          <div className={`${styles.pillBadge} ${styles.heroStagger}`}>
+            <Sparkles size={14} strokeWidth={2.5} />
+            <span>AI-POWERED HABIT ARCHITECTURE</span>
           </div>
 
-          <div className={styles.featuresGrid}>
-            {FEATURES.map((f, i) => (
-              <div key={i} className={`${styles.featureCard} ${styles.sectionReveal}`}>
-                <div className={styles.featureTag}>{f.tag}</div>
-                <div className={styles.featureIcon}>{f.icon}</div>
-                <h3 className={styles.featureTitle}>{f.title}</h3>
-                <p className={styles.featureDesc}>{f.desc}</p>
-              </div>
+          <h1 className={`${styles.heroHeading} ${styles.heroStagger}`}>
+            Build Better Habits.<br />
+            <span className={styles.headingAccent}>Become Your Best Self.</span>
+          </h1>
+
+          <p className={`${styles.heroSub} ${styles.heroStagger}`}>
+            Your personal AI-powered system to build consistency, track progress,
+            and transform your everyday routine with mathematical precision.
+          </p>
+
+          <div className={`${styles.heroActions} ${styles.heroStagger}`}>
+            <Link to="/signup" className={styles.btnPrimary}>
+              <span>Start Your Journey</span>
+              <ArrowRight size={18} strokeWidth={2.5} />
+            </Link>
+            <button onClick={() => scrollTo("calendar-stage")} className={styles.btnSecondary}>
+              <span>Explore 3D Ecosystem</span>
+              <ChevronDown size={18} strokeWidth={2.5} />
+            </button>
+          </div>
+
+          {/* Minimalist Stats Strip */}
+          <div className={`${styles.heroMetrics} ${styles.heroStagger}`}>
+            {STATS.map((s, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <div className={styles.metricDivider} />}
+                <div className={styles.metricItem}>
+                  <span className={styles.metricVal}>{s.value}</span>
+                  <span className={styles.metricLbl}>{s.label}</span>
+                </div>
+              </React.Fragment>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 3 — AI COACH
-      ═══════════════════════════════════════════════════════════════════ */}
-      <section id="ai-coach" className={`${styles.section} ${styles.sectionAlt}`} ref={aiRef}>
-        <div className={styles.sectionInner}>
-          <div className={styles.splitLayout}>
-            <div className={`${styles.splitText} ${styles.sectionReveal}`}>
-              <SectionHeader
-                tag="NEURAL AI"
-                title="Your personal AI habit coach, available 24/7"
-                subtitle="Powered by Groq Llama 3.3 70B with Explainable AI — every recommendation comes with confidence scores and reasoning, never a black box."
-              />
-              <ul className={styles.bulletList}>
-                {[
-                  "Fatigue forecast algorithm detects burnout before it happens",
-                  "Context-sensitive habit sequencing based on energy patterns",
-                  "Adaptive recovery protocols when streaks break",
-                  "Personalized insights from Pearson correlation analysis",
-                ].map((item, i) => (
-                  <li key={i} className={styles.bulletItem}>
-                    <CheckCircle2 size={16} strokeWidth={2.5} />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup" className={styles.ctaPrimary}>
-                <span>Try the AI Coach</span>
-                <ArrowRight size={16} strokeWidth={2.75} />
-              </Link>
-            </div>
-
-            <div className={`${styles.splitVisual} ${styles.sectionReveal}`}>
-              <div className={styles.aiCard}>
-                <div className={styles.aiCardHeader}>
-                  <div className={styles.aiCardDot} />
-                  <span>AI Neural Coach</span>
-                </div>
-                <div className={styles.aiMessage}>
-                  "Your morning routine completion is 94% when preceded by 7+ hrs of sleep.
-                  Tonight's sleep window: 10:30 PM for optimal tomorrow performance."
-                </div>
-                <div className={styles.aiMeta}>
-                  <span className={styles.aiConfidence}>Confidence: 94.2%</span>
-                  <span className={styles.aiFactors}>3 factors analyzed</span>
-                </div>
-                <div className={styles.aiFactorBars}>
-                  {[{ label: "Sleep quality", pct: 94 }, { label: "Streak momentum", pct: 78 }, { label: "Energy trend", pct: 86 }].map((b, i) => (
-                    <div key={i} className={styles.aiBar}>
-                      <div className={styles.aiBarLabel}>
-                        <span>{b.label}</span>
-                        <span>{b.pct}%</span>
-                      </div>
-                      <div className={styles.aiBarTrack}>
-                        <div className={styles.aiBarFill} style={{ width: `${b.pct}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className={styles.scrollIndicator}>
+          <span>Scroll to explore 3D journey</span>
+          <ChevronDown size={18} className={styles.bounceIcon} />
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 4 — ANALYTICS
-      ═══════════════════════════════════════════════════════════════════ */}
-      <section id="analytics" className={styles.section} ref={analyticsRef}>
-        <div className={styles.sectionInner}>
-          <div className={styles.splitLayout + " " + styles.splitReverse}>
-            <div className={`${styles.splitVisual} ${styles.sectionReveal}`}>
-              <div className={styles.analyticsCard}>
-                <div className={styles.analyticsHeader}>
-                  <span className={styles.analyticsBadge}>30-DAY OVERVIEW</span>
-                </div>
-                {/* Mini heatmap */}
-                <div className={styles.miniHeatmap}>
-                  {Array.from({ length: 30 }).map((_, i) => {
-                    const heat = Math.random();
-                    return (
-                      <div
-                        key={i}
-                        className={styles.heatCell}
-                        style={{ opacity: heat < 0.2 ? 0.08 : 0.15 + heat * 0.85 }}
-                      />
-                    );
-                  })}
-                </div>
-                <div className={styles.analyticsStats}>
-                  {[
-                    { v: "87%",  l: "Consistency" },
-                    { v: "24d",  l: "Best Streak" },
-                    { v: "+12%", l: "Week Change" },
-                  ].map((s, i) => (
-                    <div key={i} className={styles.analyticsStat}>
-                      <span className={styles.analyticsStatVal}>{s.v}</span>
-                      <span className={styles.analyticsStatLbl}>{s.l}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* ─── SECTION 2: 3D HABIT CALENDAR STORY ─── */}
+      <section id="calendar-stage" className={styles.storySection}>
+        <div className={styles.storyContainer}>
+          <div className={styles.narrativeBlock}>
+            <div className={styles.stageTag}>
+              <Calendar size={14} strokeWidth={2.5} />
+              <span>CHAPTER 01 / VISUAL ADHERENCE</span>
             </div>
-
-            <div className={`${styles.splitText} ${styles.sectionReveal}`}>
-              <SectionHeader
-                tag="ANALYTICS"
-                title="Institutional-grade insights into your habits"
-                subtitle="See patterns you've never noticed. Know exactly why you succeed — and when you're at risk."
-              />
-              <ul className={styles.bulletList}>
-                {[
-                  "30-day activity heatmap with intensity mapping",
-                  "4-week momentum trend — spot improving or declining patterns",
-                  "Weekday performance analysis to plan around your strongest days",
-                  "Pearson correlation: sleep, energy, mood vs. habit completion",
-                  "Exportable PDF performance audit reports",
-                ].map((item, i) => (
-                  <li key={i} className={styles.bulletItem}>
-                    <TrendingUp size={16} strokeWidth={2.5} />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup" className={styles.ctaPrimary}>
-                <span>See Your Analytics</span>
-                <ArrowRight size={16} strokeWidth={2.75} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 5 — HOW IT WORKS (Steps)
-      ═══════════════════════════════════════════════════════════════════ */}
-      <section id="how-it-works" className={`${styles.section} ${styles.sectionAlt}`} ref={routineRef}>
-        <div className={styles.sectionInner}>
-          <div className={styles.sectionReveal}>
-            <SectionHeader
-              tag="HOW IT WORKS"
-              title="Four steps to unstoppable momentum"
-              subtitle="From zero to consistent in days, not months."
-            />
-          </div>
-
-          <div className={styles.stepsGrid}>
-            {STEPS.map((step, i) => (
-              <div key={i} className={`${styles.stepCard} ${styles.sectionReveal}`}>
-                <div className={styles.stepNum}>{step.num}</div>
-                <h3 className={styles.stepTitle}>{step.title}</h3>
-                <p className={styles.stepDesc}>{step.desc}</p>
-                {i < STEPS.length - 1 && <div className={styles.stepConnector} />}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 6 — FEATURES DETAIL (Timetable, Pomodoro, Gamification)
-      ═══════════════════════════════════════════════════════════════════ */}
-      <section className={styles.section}>
-        <div className={styles.sectionInner}>
-          <div className={styles.sectionReveal}>
-            <SectionHeader
-              tag="COMPLETE SYSTEM"
-              title="Every productivity tool, deeply integrated"
-              subtitle="Not just habit tracking. A complete performance operating system."
-            />
-          </div>
-
-          <div className={styles.systemGrid}>
-            <div className={`${styles.systemCard} ${styles.systemCardLarge} ${styles.sectionReveal}`}>
-              <div className={styles.systemCardHeader}>
-                <Calendar size={20} strokeWidth={2.5} />
-                <span>Smart Timetable</span>
-                <span className={styles.systemTag}>DUAL SYSTEM</span>
-              </div>
-              <p className={styles.systemDesc}>
-                Two complementary schedulers: a workout timetable for exercise routines
-                and a time-block planner for daily scheduling. Conflict detection, live
-                "Happening Now" banners, and Web Audio reminder chimes.
-              </p>
-              <div className={styles.systemMini}>
-                {["07:00 Morning Run", "09:00 Deep Work", "12:00 Lunch Break", "17:00 Gym Session"].map((item, i) => (
-                  <div key={i} className={styles.systemMiniItem}>
-                    <span className={styles.systemMiniDot} />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={`${styles.systemCard} ${styles.sectionReveal}`}>
-              <div className={styles.systemCardHeader}>
-                <Timer size={20} strokeWidth={2.5} />
-                <span>Pomodoro Timer</span>
-                <span className={styles.systemTag}>FOCUS</span>
-              </div>
-              <p className={styles.systemDesc}>
-                Configurable work/break intervals with Web Audio chimes. Session
-                analytics track your deep work velocity over time.
-              </p>
-              <div className={styles.pomodoroMini}>
-                <div className={styles.pomodoroRing}>
-                  <span className={styles.pomodoroTime}>25:00</span>
-                  <span className={styles.pomodoroLabel}>Focus Sprint</span>
-                </div>
-              </div>
-            </div>
-
-            <div className={`${styles.systemCard} ${styles.sectionReveal}`}>
-              <div className={styles.systemCardHeader}>
-                <Trophy size={20} strokeWidth={2.5} />
-                <span>XP & Badges</span>
-                <span className={styles.systemTag}>GAMIFIED</span>
-              </div>
-              <p className={styles.systemDesc}>
-                Real-time XP on every completion. Level up through 10 tiers, unlock
-                badges, and spend XP in the virtual reward shop.
-              </p>
-              <div className={styles.xpMini}>
-                <div className={styles.xpBar}>
-                  <div className={styles.xpBarFill} style={{ width: "72%" }} />
-                </div>
-                <div className={styles.xpLabel}>Level 7 · 72% to Level 8 · +150 XP today</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 7 — FINAL CTA
-      ═══════════════════════════════════════════════════════════════════ */}
-      <section className={`${styles.section} ${styles.ctaSection}`} ref={ctaRef}>
-        <div className={styles.sectionInner}>
-          <div className={`${styles.ctaBlock} ${styles.sectionReveal}`}>
-            <span className={styles.sectionTag}>START TODAY</span>
-            <h2 className={styles.ctaTitle}>
-              The only habit tracker<br />
-              built like you mean it.
+            <h2 className={styles.stageTitle}>
+              Every Day A Monolith.<br />
+              Watch Consistency Take Form.
             </h2>
-            <p className={styles.ctaSubtitle}>
-              Join 10,000+ people who stopped relying on willpower
-              and started building systems. Free to start. Powerful from day one.
+            <p className={styles.stageDesc}>
+              Forget flat checkboxes. As you scroll, witness your 3D calendar blocks
+              physically rise, flip, and lock into obsidian permanence. Each completed
+              day solidifies your momentum into an unbroken chain of truth.
             </p>
-            <div className={styles.ctaButtons}>
-              <Link to="/signup" className={styles.ctaPrimary + " " + styles.ctaPrimaryLarge}>
-                <span>Start Your Journey — Free</span>
-                <ArrowRight size={20} strokeWidth={2.75} />
-              </Link>
-              <Link to="/login" className={styles.ctaSecondary}>
-                Already have an account? Log In
-              </Link>
+
+            <div className={styles.featurePills}>
+              <div className={styles.featurePill}>
+                <CheckCircle2 size={16} strokeWidth={2.5} />
+                <span>IST Midnight Safety Net (00:01 IST)</span>
+              </div>
+              <div className={styles.featurePill}>
+                <CheckCircle2 size={16} strokeWidth={2.5} />
+                <span>Extruded 35-Day Consistency Heatmaps</span>
+              </div>
+              <div className={styles.featurePill}>
+                <CheckCircle2 size={16} strokeWidth={2.5} />
+                <span>Zero-Willpower Micro-Habit Scaling</span>
+              </div>
             </div>
-            <p className={styles.ctaMeta}>
-              No credit card · No tracking · Just results
+
+            <Link to="/signup" className={styles.inlineCta}>
+              <span>Build Your 3D Streak</span>
+              <ArrowRight size={16} strokeWidth={2.5} />
+            </Link>
+          </div>
+
+          {/* 3D Viewport Spacer for Calendar */}
+          <div className={styles.viewportSpacer} aria-hidden="true" />
+        </div>
+      </section>
+
+      {/* ─── SECTION 3: 3D AI NEURAL INTELLIGENCE ─── */}
+      <section id="ai-stage" className={styles.storySection}>
+        <div className={styles.storyContainer + " " + styles.storyReverse}>
+          <div className={styles.narrativeBlock}>
+            <div className={styles.stageTag}>
+              <Brain size={14} strokeWidth={2.5} />
+              <span>CHAPTER 02 / NEURAL REASONING</span>
+            </div>
+            <h2 className={styles.stageTitle}>
+              An AI Coach That Understands<br />
+              Your Chronobiology.
+            </h2>
+            <p className={styles.stageDesc}>
+              Powered by Groq Llama 3.3 70B, our Neural Intelligence engine continuously
+              correlates your sleep, mood, hydration, and habit completion. It surfaces
+              explainable insights with confidence scores and fatigue forecasts.
             </p>
+
+            <div className={styles.telemetryCard}>
+              <div className={styles.telemetryHeader}>
+                <span className={styles.telemetryDot} />
+                <span>LIVE TELEMETRY INSIGHT</span>
+              </div>
+              <p className={styles.telemetryBody}>
+                "Morning focus window identified at 09:30 AM. Habit adherence rises by +44%
+                when preceded by 7+ hours of sleep. Pomodoro protocol prepared."
+              </p>
+              <div className={styles.telemetryFooter}>
+                <span>Confidence: 94.8%</span>
+                <span>Explainable AI Engine</span>
+              </div>
+            </div>
+
+            <Link to="/signup" className={styles.inlineCta}>
+              <span>Consult Neural Coach</span>
+              <ArrowRight size={16} strokeWidth={2.5} />
+            </Link>
+          </div>
+
+          <div className={styles.viewportSpacer} aria-hidden="true" />
+        </div>
+      </section>
+
+      {/* ─── SECTION 4: 3D LAYERED DASHBOARD ECOSYSTEM ─── */}
+      <section id="dashboard-stage" className={styles.storySection}>
+        <div className={styles.storyContainer}>
+          <div className={styles.narrativeBlock}>
+            <div className={styles.stageTag}>
+              <Layers size={14} strokeWidth={2.5} />
+              <span>CHAPTER 03 / SPATIAL DASHBOARD</span>
+            </div>
+            <h2 className={styles.stageTitle}>
+              Your Entire Productivity Stack.<br />
+              Unified In Three Dimensions.
+            </h2>
+            <p className={styles.stageDesc}>
+              Seamlessly toggle between your Workout Timetable, Daily Time-blocking Schedule,
+              Calorie Engine, and Pomodoro Timer. Layered floating slabs create instant
+              spatial awareness of what matters right now.
+            </p>
+
+            <div className={styles.stackGrid}>
+              <div className={styles.stackItem}>
+                <div className={styles.stackIcon}><Calendar size={18} /></div>
+                <div>
+                  <h4 className={styles.stackTitle}>Smart Timetable</h4>
+                  <p className={styles.stackSub}>Live 'Happening Now' banner & audio chime</p>
+                </div>
+              </div>
+              <div className={styles.stackItem}>
+                <div className={styles.stackIcon}><Timer size={18} /></div>
+                <div>
+                  <h4 className={styles.stackTitle}>Pomodoro Focus</h4>
+                  <p className={styles.stackSub}>Deep work sprints with velocity analytics</p>
+                </div>
+              </div>
+              <div className={styles.stackItem}>
+                <div className={styles.stackIcon}><Activity size={18} /></div>
+                <div>
+                  <h4 className={styles.stackTitle}>Calorie & Fuel</h4>
+                  <p className={styles.stackSub}>Mifflin-St Jeor TDEE & macro calibration</p>
+                </div>
+              </div>
+            </div>
+
+            <Link to="/signup" className={styles.inlineCta}>
+              <span>Explore Full Dashboard</span>
+              <ArrowRight size={16} strokeWidth={2.5} />
+            </Link>
+          </div>
+
+          <div className={styles.viewportSpacer} aria-hidden="true" />
+        </div>
+      </section>
+
+      {/* ─── SECTION 5: 3D STREAK & CONSISTENCY MONUMENT ─── */}
+      <section id="streak-stage" className={styles.storySection}>
+        <div className={styles.storyContainer + " " + styles.storyReverse}>
+          <div className={styles.narrativeBlock}>
+            <div className={styles.stageTag}>
+              <Flame size={14} strokeWidth={2.5} />
+              <span>CHAPTER 04 / NEUROPLASTICITY</span>
+            </div>
+            <h2 className={styles.stageTitle}>
+              Lock In The 21-Day Shift.<br />
+              Earn XP, Level Up Your Life.
+            </h2>
+            <p className={styles.stageDesc}>
+              Consistency is gamified into an undeniable progression curve. Every completed
+              habit logs verified XP, levels up your tier from Novice to Master, and unlocks
+              tangible reward shop items while rewiring neural pathways.
+            </p>
+
+            <div className={styles.streakMilestones}>
+              {[
+                { days: "7 Days", title: "Activation Threshold", sub: "+50 Bonus XP" },
+                { days: "14 Days", title: "Habit Momentum", sub: "Streak Protection Shield" },
+                { days: "21 Days", title: "Neuroplastic Lock-in", sub: "Permanent Behavioral Rewire" },
+              ].map((m, i) => (
+                <div key={i} className={styles.milestoneRow}>
+                  <div className={styles.milestoneBadge}>{m.days}</div>
+                  <div>
+                    <div className={styles.milestoneTitle}>{m.title}</div>
+                    <div className={styles.milestoneSub}>{m.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Link to="/signup" className={styles.inlineCta}>
+              <span>Start 21-Day Bootcamp</span>
+              <ArrowRight size={16} strokeWidth={2.5} />
+            </Link>
+          </div>
+
+          <div className={styles.viewportSpacer} aria-hidden="true" />
+        </div>
+      </section>
+
+      {/* ─── SECTION 6: FINAL CTA & FULL PULLBACK ─── */}
+      <section className={styles.finalCtaSection}>
+        <div className={styles.ctaBox}>
+          <div className={styles.pillBadge}>
+            <Trophy size={14} strokeWidth={2.5} />
+            <span>THE PRODUCTION-GRADE ENGINE</span>
+          </div>
+
+          <h2 className={styles.ctaHeading}>
+            Stop Relying On Willpower.<br />
+            Start Operating On Systems.
+          </h2>
+
+          <p className={styles.ctaDesc}>
+            Join thousands of high performers building unbreakable daily routines.
+            Free to start, zero credit card required, production-grade from day one.
+          </p>
+
+          <div className={styles.ctaBtnGroup}>
+            <Link to="/signup" className={styles.btnPrimaryLarge}>
+              <span>Start Your Journey Free</span>
+              <ArrowRight size={20} strokeWidth={2.75} />
+            </Link>
+            <Link to="/login" className={styles.btnSecondary}>
+              Log In to Account
+            </Link>
+          </div>
+
+          <div className={styles.trustStrip}>
+            <span>✓ 100% Free Tier</span>
+            <span>•</span>
+            <span>✓ IST Timezone Synchronized</span>
+            <span>•</span>
+            <span>✓ No Credit Card</span>
+            <span>•</span>
+            <span>✓ Instant Access</span>
           </div>
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          FOOTER
-      ═══════════════════════════════════════════════════════════════════ */}
-      <footer className={styles.footer}>
+      {/* ─── FOOTER ─── */}
+      <footer className={styles.siteFooter}>
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
-            <div className={styles.footerLogo}>
-              <span className={styles.navLogoIcon} style={{ width: 30, height: 30 }}>
+            <div className={styles.logo}>
+              <div className={styles.logoIcon} style={{ width: 30, height: 30 }}>
                 <Zap size={16} strokeWidth={3} />
-              </span>
+              </div>
               <span>HabitAI</span>
             </div>
-            <p className={styles.footerTagline}>
-              Intelligent habit architecture for high performers.
+            <p className={styles.footerDesc}>
+              Intelligent habit architecture, schedule optimization, and neural growth systems.
             </p>
           </div>
 
-          <div className={styles.footerLinks}>
-            {[
-              { label: "Features",    action: () => scrollToSection("features") },
-              { label: "How it works",action: () => scrollToSection("how-it-works") },
-              { label: "AI Coach",    action: () => scrollToSection("ai-coach") },
-              { label: "Analytics",   action: () => scrollToSection("analytics") },
-            ].map((l, i) => (
-              <button key={i} className={styles.footerLink} onClick={l.action}>{l.label}</button>
-            ))}
-            <Link to="/about"  className={styles.footerLink}>About</Link>
-            <Link to="/login"  className={styles.footerLink}>Log In</Link>
-            <Link to="/signup" className={styles.footerLink}>Sign Up</Link>
+          <div className={styles.footerNav}>
+            <button onClick={() => scrollTo("calendar-stage")} className={styles.footerLink}>
+              3D Calendar
+            </button>
+            <button onClick={() => scrollTo("ai-stage")} className={styles.footerLink}>
+              Neural Coach
+            </button>
+            <button onClick={() => scrollTo("dashboard-stage")} className={styles.footerLink}>
+              Ecosystem
+            </button>
+            <button onClick={() => scrollTo("streak-stage")} className={styles.footerLink}>
+              Streaks
+            </button>
+            <Link to="/about" className={styles.footerLink}>
+              About
+            </Link>
+            <Link to="/login" className={styles.footerLink}>
+              Log In
+            </Link>
           </div>
         </div>
 
-        <div className={styles.footerBottom}>
-          <p>© {new Date().getFullYear()} HabitAI · Built with precision for ambitious humans.</p>
-          <p>Created by Aayush Bharda · All rights reserved.</p>
+        <div className={styles.footerCopy}>
+          <p>© {new Date().getFullYear()} HabitAI • Engineered by Aayush Bharda • All rights reserved.</p>
         </div>
       </footer>
     </div>
