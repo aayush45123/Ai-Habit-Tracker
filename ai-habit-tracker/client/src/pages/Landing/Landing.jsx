@@ -4,7 +4,7 @@
  * Designed with a light Nihilism Monochrome aesthetic:
  * - Direct integration with pure Three.js HeroCanvas
  * - 6 Storytelling stages driven by continuous scroll choreography
- * - Interactive 3D Calendar, AI Neural Core, Layered Dashboard & Streak Monument
+ * - Clean two-column split layouts preventing any text/3D object congestion
  */
 
 import React, { useEffect, useRef, lazy, Suspense } from "react";
@@ -16,17 +16,14 @@ import {
   ArrowRight,
   Brain,
   Flame,
-  BarChart3,
-  Timer,
-  Trophy,
   Calendar,
   CheckCircle2,
-  TrendingUp,
   Sparkles,
   ChevronDown,
-  ShieldCheck,
   Activity,
   Layers,
+  Timer,
+  Trophy,
 } from "lucide-react";
 
 const HeroCanvas = lazy(() => import("./components/HeroCanvas"));
@@ -161,47 +158,53 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* ─── SECTION 1: HERO EXPERIENCE ─── */}
+      {/* ─── SECTION 1: HERO EXPERIENCE (TWO-COLUMN UNCONGESTED LAYOUT) ─── */}
       <section className={styles.heroSection}>
-        <div className={styles.heroContent}>
-          <div className={`${styles.pillBadge} ${styles.heroStagger}`}>
-            <Sparkles size={14} strokeWidth={2.5} />
-            <span>AI-POWERED HABIT ARCHITECTURE</span>
+        <div className={styles.heroGrid}>
+          {/* Left Column: Typography, CTAs & Metrics */}
+          <div className={styles.heroContent}>
+            <div className={`${styles.pillBadge} ${styles.heroStagger}`}>
+              <Sparkles size={14} strokeWidth={2.5} />
+              <span>AI-POWERED HABIT ARCHITECTURE</span>
+            </div>
+
+            <h1 className={`${styles.heroHeading} ${styles.heroStagger}`}>
+              Build Better Habits.<br />
+              <span className={styles.headingAccent}>Become Your Best Self.</span>
+            </h1>
+
+            <p className={`${styles.heroSub} ${styles.heroStagger}`}>
+              Your personal AI-powered system to build consistency, track progress,
+              and transform your everyday routine with mathematical precision.
+            </p>
+
+            <div className={`${styles.heroActions} ${styles.heroStagger}`}>
+              <Link to="/signup" className={styles.btnPrimary}>
+                <span>Start Your Journey</span>
+                <ArrowRight size={18} strokeWidth={2.5} />
+              </Link>
+              <button onClick={() => scrollTo("calendar-stage")} className={styles.btnSecondary}>
+                <span>Explore 3D Ecosystem</span>
+                <ChevronDown size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Minimalist Stats Strip */}
+            <div className={`${styles.heroMetrics} ${styles.heroStagger}`}>
+              {STATS.map((s, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <div className={styles.metricDivider} />}
+                  <div className={styles.metricItem}>
+                    <span className={styles.metricVal}>{s.value}</span>
+                    <span className={styles.metricLbl}>{s.label}</span>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
           </div>
 
-          <h1 className={`${styles.heroHeading} ${styles.heroStagger}`}>
-            Build Better Habits.<br />
-            <span className={styles.headingAccent}>Become Your Best Self.</span>
-          </h1>
-
-          <p className={`${styles.heroSub} ${styles.heroStagger}`}>
-            Your personal AI-powered system to build consistency, track progress,
-            and transform your everyday routine with mathematical precision.
-          </p>
-
-          <div className={`${styles.heroActions} ${styles.heroStagger}`}>
-            <Link to="/signup" className={styles.btnPrimary}>
-              <span>Start Your Journey</span>
-              <ArrowRight size={18} strokeWidth={2.5} />
-            </Link>
-            <button onClick={() => scrollTo("calendar-stage")} className={styles.btnSecondary}>
-              <span>Explore 3D Ecosystem</span>
-              <ChevronDown size={18} strokeWidth={2.5} />
-            </button>
-          </div>
-
-          {/* Minimalist Stats Strip */}
-          <div className={`${styles.heroMetrics} ${styles.heroStagger}`}>
-            {STATS.map((s, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <div className={styles.metricDivider} />}
-                <div className={styles.metricItem}>
-                  <span className={styles.metricVal}>{s.value}</span>
-                  <span className={styles.metricLbl}>{s.label}</span>
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
+          {/* Right Column: Clean Open Viewport for 3D Habit Core */}
+          <div className={styles.heroVisualSpace} aria-hidden="true" />
         </div>
 
         <div className={styles.scrollIndicator}>
@@ -249,7 +252,6 @@ export default function Landing() {
             </Link>
           </div>
 
-          {/* 3D Viewport Spacer for Calendar */}
           <div className={styles.viewportSpacer} aria-hidden="true" />
         </div>
       </section>
