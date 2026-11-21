@@ -470,13 +470,13 @@ export const logHabit = async (req, res) => {
     purgeUserDashboardCache(req.user);
 
     // Emit real-time socket events
-    const userId = req.user._id ? req.user._id.toString() : req.user.toString();
-    emitDashboardUpdate(userId, { type: "habit:logged", habitId, status, currentStreak, longestStreak });
-    emitStreakUpdate(userId, { habitId, currentStreak, longestStreak });
+    const userIdStr = userId ? userId.toString() : (req.user._id || req.user).toString();
+    emitDashboardUpdate(userIdStr, { type: "habit:logged", habitId, status, currentStreak, longestStreak });
+    emitStreakUpdate(userIdStr, { habitId, currentStreak, longestStreak });
 
     // Milestone notification — every 7-day streak multiple
     if (status === "done" && currentStreak > 0 && currentStreak % 7 === 0) {
-      emitNotification(userId, {
+      emitNotification(userIdStr, {
         type: "milestone",
         title: `🔥 ${currentStreak}-Day Streak!`,
         message: `Amazing! You've maintained a ${currentStreak}-day streak!`,
