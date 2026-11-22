@@ -16,6 +16,25 @@ const habitSchema = new mongoose.Schema(
     frequency: String,
     startDate: Date,
 
+    category: {
+      type: String,
+      default: "General",
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
     // auto-filled when logging daily
     lastDate: String,
     lastStatus: String,

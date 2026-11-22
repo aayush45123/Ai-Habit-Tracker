@@ -1,4 +1,5 @@
 // server/src/services/gamification.service.js
+import mongoose from "mongoose";
 import UserGamification from "../models/UserGamification.js";
 import XPTransaction from "../models/XPTransaction.js";
 import Habit from "../models/Habit.js";
@@ -7,6 +8,7 @@ import Reward from "../models/Reward.js";
 import UserReward from "../models/UserReward.js";
 import GamificationChallenge from "../models/GamificationChallenge.js";
 import UserChallenge from "../models/UserChallenge.js";
+import UserAchievement from "../models/UserAchievement.js";
 import {
   awardXP,
   getOrCreateGamification,
@@ -345,24 +347,116 @@ export async function runRetroactiveBackfill(userId, { userHabits, habitIds, tot
 }
 
 /**
+ * Restores any missing HabitLog records from historical XP transactions
+ * (e.g. for users whose habit logs were wiped previously before the permanence fix).
+ */
+export async function repairMissingHabitLogsFromXP(userId) {
+  try {
+    const xpCompletions = await XPTransaction.find({
+      userId,
+      source: "habit_complete",
+    }).lean();
+
+    if (xpCompletions.length > 0) {
+      // Find all existing logs for this user
+      const existingLogs = await HabitLog.find({ userId, status: "done" }).select("date habitId").lean();
+      const existingDateSet = new Set(
+        existingLogs.map((l) =>
+          typeof l.date === "string" ? l.date.split("T")[0] : l.date.toISOString().split("T")[0]
+        )
+      );
+
+      const logsToCreate = [];
+      for (const tx of xpCompletions) {
+        const dateStr =
+          tx.metadata?.date ||
+          (tx.createdAt ? tx.createdAt.toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+
+        if (!existingDateSet.has(dateStr)) {
+          logsToCreate.push({
+            userId,
+            habitId: tx.metadata?.habitId || tx.refId || new mongoose.Types.ObjectId(),
+            habitTitle: tx.metadata?.habitTitle || "Completed Habit",
+            category: tx.metadata?.category || "General",
+            date: new Date(dateStr + "T12:00:00.000Z"),
+            status: "done",
+            createdAt: tx.createdAt || new Date(),
+          });
+          existingDateSet.add(dateStr);
+        }
+      }
+
+      if (logsToCreate.length > 0) {
+        await HabitLog.insertMany(logsToCreate, { ordered: false }).catch(() => {});
+      }
+    }
+
+    // Check streak milestones from XP or badges to restore allTimeMaxStreak
+    const streakTx = await XPTransaction.find({
+      userId,
+      source: "streak_milestone",
+    }).lean();
+
+    let milestoneStreak = 0;
+    for (const st of streakTx) {
+      const s = parseInt(st.refId || st.metadata?.milestoneStreak || 0, 10);
+      if (s > milestoneStreak) milestoneStreak = s;
+    }
+
+    const userBadges = await UserAchievement.find({ userId }).select("achievementKey").lean();
+    for (const b of userBadges) {
+      if (b.achievementKey?.startsWith("streak_")) {
+        const s = parseInt(b.achievementKey.replace("streak_", ""), 10);
+        if (s > milestoneStreak) milestoneStreak = s;
+      }
+    }
+
+    if (milestoneStreak > 0) {
+      await UserGamification.updateOne(
+        { userId },
+        { $max: { allTimeMaxStreak: milestoneStreak } }
+      );
+    }
+  } catch (err) {
+    console.error("repairMissingHabitLogsFromXP error:", err);
+  }
+}
+
+/**
  * Get comprehensive gamification overview for dashboard & profile page
  */
 export async function getGamificationOverview(userId) {
   let gam = await getOrCreateGamification(userId);
 
-  // ── Gather core stats ──────────────────────────────────────────────────────
-  const userHabits = await Habit.find({ userId }).select("_id title category streak longestStreak").lean();
-  const habitIds = userHabits.map((h) => h._id);
+  // Self-heal / restore any past completions if needed
+  await repairMissingHabitLogsFromXP(userId);
 
-  const totalLogsCount = await HabitLog.countDocuments({
-    habitId: { $in: habitIds },
+  // Re-fetch gamification in case repair updated allTimeMaxStreak
+  gam = await getOrCreateGamification(userId);
+
+  // ── Gather habits (active vs all) ──────────────────────────────────────────
+  const allUserHabits = await Habit.find({ userId }).select("_id title category streak longestStreak isDeleted isArchived").lean();
+  const allHabitIds = allUserHabits.map((h) => h._id);
+  const activeHabits = allUserHabits.filter((h) => !h.isDeleted && !h.isArchived);
+
+  // Query logs by userId OR any habit owned by user (including soft-deleted)
+  const habitLogQuery = {
+    $or: [{ userId }, { habitId: { $in: allHabitIds } }],
     status: "done",
-  });
+  };
 
-  const maxStreak = userHabits.reduce(
-    (max, h) => Math.max(max, h.streak || 0, h.longestStreak || 0),
-    0
+  const totalLogsCount = await HabitLog.countDocuments(habitLogQuery);
+
+  const calculatedMaxStreak = Math.max(
+    gam.allTimeMaxStreak || 0,
+    ...allUserHabits.map((h) => Math.max(h.streak || 0, h.longestStreak || 0, 0))
   );
+
+  const maxStreak = calculatedMaxStreak;
+  if (maxStreak > (gam.allTimeMaxStreak || 0)) {
+    gam.allTimeMaxStreak = maxStreak;
+    await UserGamification.updateOne({ userId }, { $set: { allTimeMaxStreak: maxStreak } });
+  }
 
   // ── Retroactive backfill ───────────────────────────────────────────────────
   // Run whenever the stored XP is below the minimum expected for completions.
@@ -370,7 +464,7 @@ export async function getGamificationOverview(userId) {
   if (totalLogsCount > 0) {
     const expectedMinXP = totalLogsCount * 10; // floor: 10 XP per completion
     if (gam.totalXP < expectedMinXP) {
-      await runRetroactiveBackfill(userId, { userHabits, habitIds, totalLogsCount, maxStreak });
+      await runRetroactiveBackfill(userId, { userHabits: activeHabits, habitIds: allHabitIds, totalLogsCount, maxStreak });
     }
 
     // Count completed challenges for badge evaluation
@@ -411,24 +505,21 @@ export async function getGamificationOverview(userId) {
   const userRewards = await UserReward.find({ userId }).lean();
 
   // Fetch recent habit completions (last 10 done logs) for LeetCode recent activity tab
-  const recentDoneLogs = await HabitLog.find({
-    habitId: { $in: habitIds },
-    status: "done",
-  })
+  const recentDoneLogs = await HabitLog.find(habitLogQuery)
     .sort({ date: -1, createdAt: -1 })
     .limit(10)
     .lean();
 
   const habitMap = new Map();
-  userHabits.forEach((h) => habitMap.set(h._id.toString(), h));
+  allUserHabits.forEach((h) => habitMap.set(h._id.toString(), h));
 
   const recentActivity = recentDoneLogs.map((log) => {
-    const habit = habitMap.get(log.habitId.toString());
+    const habit = log.habitId ? habitMap.get(log.habitId.toString()) : null;
     return {
       _id: log._id,
       habitId: log.habitId,
-      habitTitle: habit?.title || "Habit",
-      category: habit?.category || "general",
+      habitTitle: log.habitTitle || habit?.title || "Habit",
+      category: log.category || habit?.category || "general",
       date: log.date,
       createdAt: log.createdAt || log.date,
       status: log.status,
@@ -440,8 +531,7 @@ export async function getGamificationOverview(userId) {
   oneYearAgo.setDate(oneYearAgo.getDate() - 365);
 
   const yearLogs = await HabitLog.find({
-    habitId: { $in: habitIds },
-    status: "done",
+    ...habitLogQuery,
     date: { $gte: oneYearAgo },
   }).select("date").lean();
 
@@ -460,11 +550,13 @@ export async function getGamificationOverview(userId) {
       habitCoins: gam.habitCoins,
       streakFreezes: gam.streakFreezes,
       featuredBadges: gam.featuredBadges || [],
+      allTimeMaxStreak: gam.allTimeMaxStreak || maxStreak,
       ...progressInfo,
       stats: {
-        totalHabits: userHabits.length,
+        totalHabits: activeHabits.length,
         totalCompletedLogs: totalLogsCount,
         maxStreak,
+        allTimeMaxStreak: gam.allTimeMaxStreak || maxStreak,
         activeDaysCount: Object.keys(activityHeatmap).length,
       },
     },

@@ -141,13 +141,16 @@ export async function getUserAchievementsWithStatus(userId) {
 
     const habitIds = (userHabits || []).map((h) => h._id);
     const totalCompleted = await HabitLog.countDocuments({
-      habitId: { $in: habitIds },
+      $or: [{ userId }, { habitId: { $in: habitIds } }],
       status: "done",
     });
 
-    const maxStreak = (userHabits || []).reduce(
-      (max, h) => Math.max(max, h.streak || 0, h.longestStreak || 0),
-      0
+    const maxStreak = Math.max(
+      userGamification?.allTimeMaxStreak || 0,
+      (userHabits || []).reduce(
+        (max, h) => Math.max(max, h.streak || 0, h.longestStreak || 0),
+        0
+      )
     );
 
     const userLevel = userGamification?.level || 1;

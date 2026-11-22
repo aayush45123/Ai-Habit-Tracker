@@ -1,6 +1,7 @@
 // server/src/controllers/habitController.js
 import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
+import UserGamification from "../models/UserGamification.js";
 import { deletePattern } from "../services/redis.service.js";
 import {
   getTodayIST,
@@ -301,7 +302,11 @@ export const addHabitsBulk = async (req, res) => {
 // ----------------------------------------------------
 export const getAllHabits = async (req, res) => {
   try {
-    const habits = await Habit.find({ userId: req.user }).sort({
+    const habits = await Habit.find({
+      userId: req.user,
+      isDeleted: { $ne: true },
+      isArchived: { $ne: true },
+    }).sort({
       createdAt: -1,
     });
     res.json({ habits });
@@ -381,21 +386,45 @@ export const updateHabit = async (req, res) => {
 export const deleteHabit = async (req, res) => {
   try {
     const userId = req.user._id || req.user;
-    const habit = await Habit.findOneAndDelete({
-      _id: req.params.id,
-      userId,
-    });
+    
+    // Soft-delete the habit so historical records, heatmap, and relations remain intact
+    const habit = await Habit.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId,
+      },
+      {
+        $set: {
+          isDeleted: true,
+          isArchived: true,
+          deletedAt: new Date(),
+        },
+      },
+      { new: true }
+    );
 
     if (!habit) return res.status(404).json({ message: "Habit not found" });
 
-    await HabitLog.deleteMany({ habitId: req.params.id });
+    // CRITICAL (LeetCode-like permanence): DO NOT delete HabitLog entries!
+    // Historical completion logs, activity heatmap submissions, and streak achievements
+    // belong to the user's permanent track record.
+    await HabitLog.updateMany(
+      { habitId: req.params.id },
+      {
+        $set: {
+          userId,
+          habitTitle: habit.title,
+          category: habit.category || "General",
+        },
+      }
+    );
 
     purgeUserDashboardCache(req.user);
 
     recordActivityEvent({
       userId,
       eventType: "HABIT_DELETED",
-      metadata: { habitId: req.params.id },
+      metadata: { habitId: req.params.id, title: habit.title },
       req,
     });
 
@@ -446,11 +475,17 @@ export const logHabit = async (req, res) => {
     if (existingLog) {
       // Update existing log instead of creating duplicate
       existingLog.status = status;
+      existingLog.userId = userId;
+      existingLog.habitTitle = habit.title;
+      existingLog.category = habit.category || "General";
       await existingLog.save();
     } else {
-      // Create new log
+      // Create new log with full user and habit context
       await HabitLog.create({
+        userId,
         habitId,
+        habitTitle: habit.title,
+        category: habit.category || "General",
         date: todayISO,
         status,
       });
@@ -466,6 +501,16 @@ export const logHabit = async (req, res) => {
       streak: currentStreak,
       longestStreak: longestStreak,
     });
+
+    // Permanently record all-time max streak in UserGamification
+    const bestStreak = Math.max(currentStreak, longestStreak);
+    if (bestStreak > 0) {
+      await UserGamification.updateOne(
+        { userId },
+        { $max: { allTimeMaxStreak: bestStreak } },
+        { upsert: true }
+      ).catch(() => {});
+    }
 
     purgeUserDashboardCache(req.user);
 

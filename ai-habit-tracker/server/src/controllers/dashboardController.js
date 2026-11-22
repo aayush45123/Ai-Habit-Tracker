@@ -9,7 +9,7 @@ export const getUserDashboard = async (req, res) => {
     const userId = req.user._id;
 
     // 1. User Habits & Current Streaks
-    const habits = await Habit.find({ userId, isArchived: { $ne: true } });
+    const habits = await Habit.find({ userId, isArchived: { $ne: true }, isDeleted: { $ne: true } });
     const totalHabits = habits.length;
 
     let currentStreak = 0;
@@ -79,31 +79,29 @@ export const getUserDashboard = async (req, res) => {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    const heatmap = userHabitIds.length
-      ? await HabitLog.aggregate([
-          {
-            $match: {
-              habitId: { $in: userHabitIds },
-              date: { $gte: thirtyDaysAgo },
-              status: { $in: ["done", "completed"] },
+    const heatmap = await HabitLog.aggregate([
+      {
+        $match: {
+          $or: [{ userId }, { habitId: { $in: userHabitIds } }],
+          date: { $gte: thirtyDaysAgo },
+          status: { $in: ["done", "completed"] },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$date",
+              timezone: "+05:30",
             },
           },
-          {
-            $group: {
-              _id: {
-                $dateToString: {
-                  format: "%Y-%m-%d",
-                  date: "$date",
-                  timezone: "+05:30",
-                },
-              },
-              count: { $sum: 1 },
-            },
-          },
-          { $project: { _id: 0, date: "$_id", count: 1 } },
-          { $sort: { date: 1 } },
-        ])
-      : [];
+          count: { $sum: 1 },
+        },
+      },
+      { $project: { _id: 0, date: "$_id", count: 1 } },
+      { $sort: { date: 1 } },
+    ]);
 
     // 5. AI Recommendation Snippet
     const aiRecommendation =

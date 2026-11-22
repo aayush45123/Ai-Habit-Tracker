@@ -12,6 +12,8 @@ const userGamificationSchema = new mongoose.Schema(
     lastFreezeEarnedAt: { type: Date, default: null },
     lastFreezeUsedAt: { type: Date, default: null },
     featuredBadges: { type: [String], default: [], validate: [(arr) => arr.length <= 3, "Max 3 featured badges"] },
+    allTimeMaxStreak: { type: Number, default: 0, min: 0 },
+    lifetimeCompletedLogs: { type: Number, default: 0, min: 0 },
     firstHabitGranted: { type: Boolean, default: false },
   },
   { timestamps: true }

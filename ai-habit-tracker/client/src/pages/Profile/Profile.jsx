@@ -556,6 +556,8 @@ const Profile = () => {
   const totalCompletedLogs = profileStats.totalCompletedLogs || 0;
   const maxStreak = Math.max(
     profileStats.maxStreak || 0,
+    profileStats.allTimeMaxStreak || 0,
+    overview?.profile?.allTimeMaxStreak || 0,
     ...habits.map((h) => Math.max(h.streak || 0, h.longestStreak || 0, 0))
   );
 
@@ -879,7 +881,6 @@ const Profile = () => {
                 <div className={styles.circleCenterText}>
                   <div className={styles.circleNumber}>
                     {totalCompletedLogs}
-                    <span className={styles.circleTotal}>/{Math.max(totalHabitsCount, 1)}</span>
                   </div>
                   <div className={styles.circleLabel}>✓ Solved</div>
                   <div className={styles.circleSub}>{activeHabitsCount} Active</div>
@@ -1159,8 +1160,8 @@ const Profile = () => {
                               <FiCheck size={14} />
                             </div>
                             <div className={styles.recentTitleGroup}>
-                              <span className={styles.recentHabitTitle}>{act.habitTitle}</span>
-                              <span className={styles.recentCategoryPill}>{act.category}</span>
+                              <span className={styles.recentHabitTitle}>{act.habitTitle || "Completed Habit"}</span>
+                              <span className={styles.recentCategoryPill}>{act.category || "General"}</span>
                             </div>
                           </div>
                           <div className={styles.recentItemRight}>
