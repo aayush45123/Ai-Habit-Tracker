@@ -15,6 +15,7 @@ import {
   updateHabit,
   deleteHabit,
   logHabit,
+  freezeHabit,
   getHabitLogs,
   getAnalytics,
 } from "../controllers/habitController.js";
@@ -33,5 +34,6 @@ router.get("/:id/logs", getHabitLogs);
 router.patch("/:id", validate(updateHabitSchema), updateHabit);
 router.delete("/:id", deleteHabit);
 router.post("/:id/log", validate(logHabitSchema), logHabit);
+router.post("/:id/freeze", freezeHabit);
 
 export default router;

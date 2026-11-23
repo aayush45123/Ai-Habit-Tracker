@@ -11,6 +11,7 @@ import {
   redeemReward,
   getXPHistory,
   backfillMe,
+  useStreakFreeze,
 } from "../controllers/gamificationController.js";
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.post("/challenges/:id/join", joinChallenge);
 router.post("/challenges/ai-generate", generateAIChallenges);
 router.get("/rewards", getRewards);
 router.post("/rewards/:key/redeem", redeemReward);
+router.post("/use-freeze", useStreakFreeze);
 router.get("/history", getXPHistory);
 router.post("/backfill-me", backfillMe);
 

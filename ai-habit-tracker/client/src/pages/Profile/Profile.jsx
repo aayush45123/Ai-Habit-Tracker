@@ -222,9 +222,15 @@ function getBadgeProgress(badge, stats = {}) {
 
 const Profile = () => {
   const { user, profile, isProfileCompleted, refreshProfile, refreshUser } = useAuth();
-  const { overview, refreshOverview, redeemReward } = useGamification();
+  const { overview, refreshOverview, redeemReward, useStreakFreeze } = useGamification();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+
+  // Streak Freeze modal state
+  const [showFreezeModal, setShowFreezeModal] = useState(false);
+  const [selectedFreezeHabit, setSelectedFreezeHabit] = useState("all");
+  const [isFreezing, setIsFreezing] = useState(false);
+  const [freezeFeedback, setFreezeFeedback] = useState(null);
 
   const isForceComplete = Boolean(
     location.state?.forceComplete || (!isProfileCompleted && profile === null)
@@ -549,6 +555,34 @@ const Profile = () => {
     }
   };
 
+  // Handle applying a streak freeze
+  const handleApplyStreakFreeze = async () => {
+    if (!useStreakFreeze) return;
+    setIsFreezing(true);
+    setFreezeFeedback(null);
+    try {
+      const habitId = selectedFreezeHabit === "all" ? undefined : selectedFreezeHabit;
+      const res = await useStreakFreeze(habitId);
+      if (res.success) {
+        setFreezeFeedback({ type: "success", message: res.message });
+        await Promise.all([refreshOverview(), loadHabits()]);
+        setTimeout(() => {
+          setShowFreezeModal(false);
+          setFreezeFeedback(null);
+        }, 2000);
+      } else {
+        setFreezeFeedback({ type: "error", message: res.message });
+      }
+    } catch (err) {
+      setFreezeFeedback({
+        type: "error",
+        message: err.message || "Failed to activate streak shield",
+      });
+    } finally {
+      setIsFreezing(false);
+    }
+  };
+
   // Compute stats
   const profileStats = overview?.profile?.stats || {};
   const totalHabitsCount = habits.length;
@@ -600,11 +634,10 @@ const Profile = () => {
     return Object.entries(map).map(([name, count]) => ({ name, count }));
   }, [habits]);
 
-  // Heatmap generation (52 weeks of days)
+  // Heatmap generation (53 weeks of days with aligned month labels)
   const heatmapData = useMemo(() => {
     const today = new Date();
     const map = overview?.activityHeatmap || {};
-    const days = [];
 
     // Find the Sunday 52 weeks ago
     const start = new Date(today);
@@ -613,10 +646,13 @@ const Profile = () => {
     const dayOfWeek = start.getDay();
     start.setDate(start.getDate() - dayOfWeek);
 
-    let curr = new Date(start);
+    const weeks = [];
+    let currentWeek = [];
     let totalSubmissions = 0;
     let activeDays = 0;
+    const allDays = [];
 
+    let curr = new Date(start);
     while (curr <= today) {
       const dateStr = toLocalDateString(curr);
       const count = map[dateStr] || 0;
@@ -631,18 +667,56 @@ const Profile = () => {
       else if (count === 2) level = 2;
       else if (count >= 3) level = 3;
 
-      days.push({
+      const dayObj = {
         date: dateStr,
         count,
         level,
         dayOfWeek: curr.getDay(),
         month: curr.toLocaleString("en-US", { month: "short" }),
-      });
+        formattedDate: curr.toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      };
+
+      allDays.push(dayObj);
+      currentWeek.push(dayObj);
+
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
 
       curr.setDate(curr.getDate() + 1);
     }
 
-    return { days, totalSubmissions, activeDays };
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push({ isFuture: true, date: null, count: 0, level: 0 });
+      }
+      weeks.push(currentWeek);
+    }
+
+    // Determine month labels aligned with week columns (minimum 3 weeks apart)
+    const monthLabels = [];
+    let prevMonth = null;
+    weeks.forEach((w, wIndex) => {
+      const firstRealDay = w.find((d) => d && !d.isFuture);
+      if (firstRealDay && firstRealDay.month !== prevMonth) {
+        const lastLabel = monthLabels[monthLabels.length - 1];
+        if (!lastLabel || wIndex - lastLabel.weekIndex >= 3) {
+          monthLabels.push({
+            name: firstRealDay.month,
+            weekIndex: wIndex,
+          });
+          prevMonth = firstRealDay.month;
+        }
+      }
+    });
+
+    return { days: allDays, weeks, monthLabels, totalSubmissions, activeDays };
   }, [overview?.activityHeatmap]);
 
   // Recent activity list
@@ -774,7 +848,19 @@ const Profile = () => {
                   <Shield size={15} className={styles.statIconShield} />
                   <span>Streak Freezes</span>
                 </div>
-                <span className={styles.statNum}>{streakFreezes}/5</span>
+                <div className={styles.freezeActionGroup}>
+                  <span className={styles.statNum}>{streakFreezes}/5</span>
+                  {streakFreezes > 0 && (
+                    <button
+                      type="button"
+                      className={styles.useFreezeMiniBtn}
+                      onClick={() => setShowFreezeModal(true)}
+                      title="Protect today's streak using 1 Freeze"
+                    >
+                      Use
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

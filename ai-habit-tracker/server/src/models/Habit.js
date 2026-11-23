@@ -38,6 +38,14 @@ const habitSchema = new mongoose.Schema(
     // auto-filled when logging daily
     lastDate: String,
     lastStatus: String,
+    isFrozenToday: {
+      type: Boolean,
+      default: false,
+    },
+    lastFrozenDate: {
+      type: String,
+      default: null,
+    },
     streak: {
       type: Number,
       default: 0,

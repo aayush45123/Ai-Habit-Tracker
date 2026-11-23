@@ -14,6 +14,8 @@ import Habit from "../models/Habit.js";
 import HabitLog from "../models/HabitLog.js";
 import UserGamification from "../models/UserGamification.js";
 import { completeWithGroq, extractAndParseJSON } from "../utils/aiClient.js";
+import { getTodayIST } from "../utils/getTodayIST.js";
+import { emitDashboardUpdate, emitNotification } from "../services/socket.service.js";
 
 /**
  * GET /api/gamification/overview
@@ -347,6 +349,99 @@ export async function backfillMe(req, res) {
     });
   } catch (error) {
     console.error("backfillMe error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+/**
+ * POST /api/gamification/use-freeze
+ * Allows user to consume 1 streak freeze to protect their streak today
+ */
+export async function useStreakFreeze(req, res) {
+  try {
+    const userId = req.user._id || req.user.id;
+    const { habitId } = req.body || {};
+
+    const gam = await UserGamification.findOne({ userId });
+    if (!gam || gam.streakFreezes <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You have 0 Streak Freezes available. Get one in the Rewards Store!",
+      });
+    }
+
+    const todayISO = getTodayIST();
+    let targetHabits = [];
+
+    if (habitId) {
+      const habit = await Habit.findOne({ _id: habitId, userId, isDeleted: { $ne: true } });
+      if (!habit) return res.status(404).json({ success: false, message: "Habit not found" });
+      targetHabits = [habit];
+    } else {
+      targetHabits = await Habit.find({ userId, isDeleted: { $ne: true }, isArchived: { $ne: true } });
+      if (targetHabits.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No active habits found to protect.",
+        });
+      }
+    }
+
+    for (const habit of targetHabits) {
+      const existingLog = await HabitLog.findOne({ habitId: habit._id, date: todayISO });
+      if (!existingLog) {
+        await HabitLog.create({
+          userId,
+          habitId: habit._id,
+          habitTitle: habit.title,
+          category: habit.category || "General",
+          date: todayISO,
+          status: "done",
+          isFrozen: true,
+        });
+      } else {
+        existingLog.status = "done";
+        existingLog.isFrozen = true;
+        await existingLog.save();
+      }
+
+      await Habit.findByIdAndUpdate(habit._id, {
+        lastDate: todayISO,
+        lastStatus: "done",
+        isFrozenToday: true,
+        lastFrozenDate: todayISO,
+      });
+    }
+
+    // Deduct 1 freeze
+    await UserGamification.updateOne(
+      { userId },
+      { $inc: { streakFreezes: -1 }, $set: { lastFreezeUsedAt: new Date() } }
+    );
+
+    const updatedGam = await UserGamification.findOne({ userId });
+
+    const emitUid = userId.toString();
+    emitDashboardUpdate(emitUid, {
+      type: "streak:frozen",
+      habitId,
+      remainingFreezes: updatedGam.streakFreezes,
+    });
+    emitNotification(emitUid, {
+      type: "success",
+      title: "🛡️ Streak Shield Activated!",
+      message: `Your streak for today is protected from breaking! (${updatedGam.streakFreezes} freezes remaining)`,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `🛡️ Streak Shield applied successfully! Protected for today. (${updatedGam.streakFreezes} freezes remaining)`,
+      data: {
+        remainingFreezes: updatedGam.streakFreezes,
+      },
+    });
+  } catch (error) {
+    console.error("useStreakFreeze error:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }

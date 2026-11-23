@@ -113,6 +113,20 @@ export const GamificationProvider = ({ children }) => {
     }
   };
 
+  const useFreeze = async (habitId) => {
+    try {
+      const res = await api.post("/gamification/use-freeze", { habitId });
+      if (res.data?.success) {
+        await fetchOverview();
+        return { success: true, message: res.data.message || "Streak shield applied!" };
+      }
+      return { success: false, message: res.data?.message || "Failed to use freeze" };
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "Failed to apply streak freeze";
+      return { success: false, message: msg };
+    }
+  };
+
   return (
     <GamificationContext.Provider
       value={{
@@ -122,6 +136,7 @@ export const GamificationProvider = ({ children }) => {
         redeemReward: redeem,
         joinChallenge: join,
         generateAIChallenges: generateAI,
+        useStreakFreeze: useFreeze,
         xpToast,
         setXpToast,
         achievementModal,

@@ -187,6 +187,41 @@ export const checkAndResetMissedStreaks = async () => {
       const yesterdayDone = yesterdayLog && yesterdayLog.status === "done";
 
       if (!todayDone && !yesterdayDone && habit.streak > 0) {
+        // Check if user has streak freeze available to auto-protect the streak
+        const gam = await UserGamification.findOne({ userId: habit.userId });
+        if (gam && gam.streakFreezes > 0) {
+          console.log(`🛡️ Auto-consuming streak freeze for "${habit.title}" (protecting streak ${habit.streak})`);
+          await UserGamification.updateOne(
+            { userId: habit.userId },
+            { $inc: { streakFreezes: -1 }, $set: { lastFreezeUsedAt: new Date() } }
+          );
+
+          await HabitLog.create({
+            userId: habit.userId,
+            habitId: habit._id,
+            habitTitle: habit.title,
+            category: habit.category || "General",
+            date: yesterdayISO,
+            status: "done",
+            isFrozen: true,
+          });
+
+          await Habit.findByIdAndUpdate(habit._id, {
+            lastDate: yesterdayISO,
+            lastStatus: "done",
+            isFrozenToday: true,
+            lastFrozenDate: yesterdayISO,
+          });
+
+          const emitUid = habit.userId.toString();
+          emitNotification(emitUid, {
+            type: "milestone",
+            title: "🛡️ Streak Shield Activated!",
+            message: `A Streak Freeze automatically protected your ${habit.streak}-day streak on "${habit.title}"! (${gam.streakFreezes - 1} freezes remaining)`,
+          });
+          continue;
+        }
+
         console.log(
           `❌ Resetting streak for "${habit.title}" (was ${habit.streak})`,
         );
@@ -866,5 +901,85 @@ export const getAnalytics = async (req, res) => {
   } catch (error) {
     console.error("Analytics error:", error);
     res.status(500).json({ message: "Analytics error" });
+  }
+};
+
+// ----------------------------------------------------
+// FREEZE / SHIELD HABIT (USE 1 STREAK FREEZE)
+// ----------------------------------------------------
+export const freezeHabit = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user;
+    const habitId = req.params.id;
+
+    const habit = await Habit.findOne({ _id: habitId, userId, isDeleted: { $ne: true } });
+    if (!habit) return res.status(404).json({ message: "Habit not found" });
+
+    const gam = await UserGamification.findOne({ userId });
+    if (!gam || gam.streakFreezes <= 0) {
+      return res.status(400).json({
+        message: "You have 0 Streak Freezes available. Get one in the Rewards Store!",
+      });
+    }
+
+    const todayISO = getTodayIST();
+    const existingLog = await HabitLog.findOne({ habitId, date: todayISO });
+
+    if (!existingLog) {
+      await HabitLog.create({
+        userId,
+        habitId,
+        habitTitle: habit.title,
+        category: habit.category || "General",
+        date: todayISO,
+        status: "done",
+        isFrozen: true,
+      });
+    } else {
+      existingLog.status = "done";
+      existingLog.isFrozen = true;
+      await existingLog.save();
+    }
+
+    const updatedHabit = await Habit.findByIdAndUpdate(
+      habitId,
+      {
+        lastDate: todayISO,
+        lastStatus: "done",
+        isFrozenToday: true,
+        lastFrozenDate: todayISO,
+      },
+      { new: true }
+    );
+
+    // Consume 1 freeze
+    await UserGamification.updateOne(
+      { userId },
+      { $inc: { streakFreezes: -1 }, $set: { lastFreezeUsedAt: new Date() } }
+    );
+
+    const updatedGam = await UserGamification.findOne({ userId });
+    purgeUserDashboardCache(req.user);
+
+    const emitUid = userId.toString();
+    emitDashboardUpdate(emitUid, {
+      type: "habit:frozen",
+      habitId,
+      remainingFreezes: updatedGam.streakFreezes,
+    });
+    emitNotification(emitUid, {
+      type: "success",
+      title: "🛡️ Streak Shield Activated!",
+      message: `"${habit.title}" is frozen and protected for today! (${updatedGam.streakFreezes} freezes remaining)`,
+    });
+
+    res.json({
+      message: `🛡️ Streak Freeze applied! "${habit.title}" is protected today.`,
+      habit: updatedHabit,
+      remainingFreezes: updatedGam.streakFreezes,
+    });
+  } catch (error) {
+    console.error("Error freezing habit:", error);
+    res.status(500).json({ message: "Error applying streak freeze" });
   }
 };

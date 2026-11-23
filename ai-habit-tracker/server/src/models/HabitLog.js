@@ -31,6 +31,10 @@ const habitLogSchema = new mongoose.Schema(
       enum: ["done", "missed"],
       required: true,
     },
+    isFrozen: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
