@@ -51,5 +51,5 @@ jobs:
         run: npm test
 
       - name: Verify Production Bundle (Vite Build)
-        run: npm run build
+        run: cd ai-habit-tracker/client && npm run build
 
