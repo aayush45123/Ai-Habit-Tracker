@@ -146,75 +146,74 @@ export async function closeSession({ userId, sessionId }) {
  * Handle active usage heartbeat (every ~60s)
  * Server-side validated: duration increments cannot exceed realistic delta
  */
-export async function heartbeatSession({ userId, sessionId }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// server/src/services/activity.service.js
+// REPLACE the existing `heartbeatSession` function with this one.
+// Fixes: expired/missing sessions used to re-create the SAME sessionId, which
+// violates the unique index and silently failed, so returning users were never
+// tracked again. Now a fresh sessionId is issued and returned to the client.
+// ─────────────────────────────────────────────────────────────────────────────
+export async function heartbeatSession({ userId, sessionId, req = null }) {
   try {
-    if (!sessionId) {
-      return { success: false, message: "Missing sessionId" };
-    }
-
-    let session = await UserSession.findOne({ sessionId, userId });
-
     const now = new Date();
 
-    if (!session) {
-      // If session not found, initialize a fresh active session
-      session = await UserSession.create({
+    const startNewSession = async (source) => {
+      const ua = req?.headers?.["user-agent"] || "";
+      const { deviceType, browser } = parseUserAgent(ua);
+      const newSessionId = crypto.randomUUID();
+
+      await UserSession.create({
         userId,
-        sessionId,
+        sessionId: newSessionId,
         loginAt: now,
         lastActivityAt: now,
         activeDurationSeconds: 0,
         status: "active",
+        deviceType,
+        browser,
       });
+
+      // Counts as a login in the admin "Activity" tab (a returning user opened the app)
+      await recordActivityEvent({
+        userId,
+        sessionId: newSessionId,
+        eventType: "LOGIN_SUCCESS",
+        metadata: { deviceType, browser, source },
+      });
+
       return {
         success: true,
+        sessionId: newSessionId, // client must store this
         activeDurationSeconds: 0,
         status: "active",
+        renewed: true,
       };
+    };
+
+    const session = sessionId
+      ? await UserSession.findOne({ sessionId, userId })
+      : null;
+
+    // No session on record, or it was closed by a logout → start a new one
+    if (!session || session.status === "closed") {
+      return await startNewSession("resume");
     }
 
-    // Check if session was already closed
-    if (session.status === "closed") {
-      return { success: false, message: "Session is closed", status: "closed" };
-    }
+    const elapsedSeconds =
+      (now.getTime() - new Date(session.lastActivityAt).getTime()) / 1000;
 
-    const elapsedSeconds = (now.getTime() - new Date(session.lastActivityAt).getTime()) / 1000;
-
-    // If inactivity gap > 30 minutes, mark previous session expired and revive/restart cleanly
+    // Idle > 30 min → expire the old session and start a NEW one (new id)
     if (elapsedSeconds > 1800) {
       session.status = "expired";
       await session.save();
-
-      await recordActivityEvent({
-        userId,
-        sessionId,
-        eventType: "SESSION_EXPIRED",
-      });
-
-      // Revive or restart new active session
-      const newSession = await UserSession.create({
-        userId,
-        sessionId,
-        loginAt: now,
-        lastActivityAt: now,
-        activeDurationSeconds: 0,
-        status: "active",
-        deviceType: session.deviceType,
-        browser: session.browser,
-      });
-
-      return {
-        success: true,
-        activeDurationSeconds: 0,
-        status: "active",
-      };
+      await recordActivityEvent({ userId, sessionId, eventType: "SESSION_EXPIRED" });
+      return await startNewSession("idle_return");
     }
 
-    // Valid heartbeat window: between 10s and 300s
     if (elapsedSeconds >= 10) {
-      // Bound increment: max 90 seconds per heartbeat to prevent tampering
       const increment = Math.min(Math.round(elapsedSeconds), 90);
-      session.activeDurationSeconds = (session.activeDurationSeconds || 0) + increment;
+      session.activeDurationSeconds =
+        (session.activeDurationSeconds || 0) + increment;
     }
 
     session.lastActivityAt = now;
@@ -223,6 +222,7 @@ export async function heartbeatSession({ userId, sessionId }) {
 
     return {
       success: true,
+      sessionId: session.sessionId,
       activeDurationSeconds: session.activeDurationSeconds,
       status: "active",
     };
@@ -232,6 +232,24 @@ export async function heartbeatSession({ userId, sessionId }) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// server/src/controllers/activityController.js  (two small edits)
+//
+// 1) sendHeartbeat: sessionId is no longer required, and pass req through:
+//
+//      const sessionId = req.body.sessionId || req.headers["x-session-id"] || null;
+//      const result = await heartbeatSession({ userId, sessionId, req });
+//      return res.json(result);
+//
+//    (delete the `if (!sessionId) return res.status(400)...` block)
+//
+// 2) initSession: pass req too:
+//
+//      const result = await heartbeatSession({ userId, sessionId: existingSessionId, req });
+//      if (result.success && result.status === "active") {
+//        return res.json({ sessionId: result.sessionId, status: "active" });
+//      }
+// ─────────────────────────────────────────────────────────────────────────────
 /**
  * Record an activity event in a non-blocking, safe manner
  */

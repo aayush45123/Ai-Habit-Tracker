@@ -1,16 +1,10 @@
+// client/src/hooks/useActivityTracker.js  (full replacement)
 import { useEffect, useRef, useCallback } from "react";
 import api from "../utils/api";
 
-const HEARTBEAT_INTERVAL_MS = 60 * 1000; // 60 seconds
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const HEARTBEAT_INTERVAL_MS = 60 * 1000;
+const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 
-/**
- * useActivityTracker
- * Tracks user activity via browser events and sends heartbeat pings to the server.
- * - Pauses when tab is hidden or user is inactive
- * - Resumes on return
- * - Gracefully handles network failures
- */
 export default function useActivityTracker({ isAuthenticated }) {
   const heartbeatTimerRef = useRef(null);
   const inactivityTimerRef = useRef(null);
@@ -20,13 +14,20 @@ export default function useActivityTracker({ isAuthenticated }) {
   const sendHeartbeat = useCallback(async () => {
     if (!isAuthenticated || !isActiveRef.current || !isVisibleRef.current) return;
 
-    const sessionId = localStorage.getItem("sessionId");
-    if (!sessionId) return;
-
     try {
-      await api.post("/activity/heartbeat", { sessionId });
+      // No stored session (user was already logged in before tracking, or
+      // storage was cleared) → ask the server to create one.
+      const existing = localStorage.getItem("sessionId");
+      const { data } = existing
+        ? await api.post("/activity/heartbeat", { sessionId: existing })
+        : await api.post("/activity/session/init", {});
+
+      // Server may issue a NEW id (idle > 30 min, or session closed)
+      if (data?.sessionId && data.sessionId !== existing) {
+        localStorage.setItem("sessionId", data.sessionId);
+      }
     } catch {
-      // Silent failure — never block user for analytics
+      // never block the user for analytics
     }
   }, [isAuthenticated]);
 
@@ -56,30 +57,25 @@ export default function useActivityTracker({ isAuthenticated }) {
     const handleVisibilityChange = () => {
       isVisibleRef.current = !document.hidden;
       if (!document.hidden) {
-        // Resuming — send immediate heartbeat and restart timer
         resetInactivityTimer();
         startHeartbeat();
         sendHeartbeat();
       } else {
-        // Tab hidden — stop heartbeat
         stopHeartbeat();
       }
     };
 
-    const handleActivity = () => {
-      resetInactivityTimer();
-    };
+    const handleActivity = () => resetInactivityTimer();
 
-    // Browser activity events
     const activityEvents = ["mousemove", "keydown", "click", "scroll", "touchstart"];
     activityEvents.forEach((evt) =>
       window.addEventListener(evt, handleActivity, { passive: true })
     );
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Bootstrap
     resetInactivityTimer();
     startHeartbeat();
+    sendHeartbeat(); // ← NEW: register/refresh immediately on app load, not after 60s
 
     return () => {
       stopHeartbeat();
