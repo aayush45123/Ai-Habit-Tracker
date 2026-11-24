@@ -196,6 +196,28 @@
   flex-shrink: 0;
 }
 
+.shieldIcon {
+  flex-shrink: 0;
+  color: #0284c7;
+}
+
+.hcStreakFrozen {
+  border-color: #0284c7;
+  background-color: #f0f9ff;
+}
+
+.frozenTag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #0284c7;
+  background: #e0f2fe;
+  border: 1px solid #0284c7;
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+  margin-left: 0.2rem;
+  text-transform: uppercase;
+}
+
 .habitCard.done .hcStreak {
   background-color: var(--color-accent-primary);
   color: var(--color-bg-primary);

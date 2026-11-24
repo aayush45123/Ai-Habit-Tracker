@@ -1149,33 +1149,45 @@ const Profile = () => {
 
             {/* Heatmap Grid */}
             <div className={styles.heatmapGridWrapper}>
-              <div className={styles.heatmapGrid}>
-                {heatmapData.days.map((d) => (
-                  <div
-                    key={d.date}
-                    className={`${styles.heatmapCell} ${styles[`level${d.level}`]}`}
-                    data-tooltip={`${d.count} completion${d.count === 1 ? "" : "s"} on ${d.date}`}
-                    title={`${d.count} completions on ${d.date}`}
-                  />
-                ))}
+              <div className={styles.heatmapColumnsContainer}>
+                {/* Dynamically aligned Month Labels Row */}
+                <div className={styles.heatmapMonthRow}>
+                  {heatmapData.monthLabels.map((ml) => (
+                    <span
+                      key={`${ml.name}-${ml.weekIndex}`}
+                      className={styles.heatmapMonthLabel}
+                      style={{ gridColumnStart: ml.weekIndex + 1 }}
+                    >
+                      {ml.name}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Week Columns Grid */}
+                <div className={styles.heatmapGrid}>
+                  {heatmapData.weeks.map((week, wi) => (
+                    <div key={wi} className={styles.heatmapWeekCol}>
+                      {week.map((d, di) =>
+                        d.isFuture ? (
+                          <div
+                            key={`future-${di}`}
+                            className={`${styles.heatmapCell} ${styles.level0} ${styles.futurePlaceholder}`}
+                          />
+                        ) : (
+                          <div
+                            key={d.date || `cell-${di}`}
+                            className={`${styles.heatmapCell} ${styles[`level${d.level}`]}`}
+                            data-tooltip={`${d.count} completion${d.count === 1 ? "" : "s"} on ${d.formattedDate || d.date}`}
+                            title={`${d.count} completion${d.count === 1 ? "" : "s"} — ${d.formattedDate || d.date}`}
+                          />
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className={styles.heatmapFooter}>
-                <div className={styles.heatmapMonths}>
-                  <span>Jan</span>
-                  <span>Feb</span>
-                  <span>Mar</span>
-                  <span>Apr</span>
-                  <span>May</span>
-                  <span>Jun</span>
-                  <span>Jul</span>
-                  <span>Aug</span>
-                  <span>Sep</span>
-                  <span>Oct</span>
-                  <span>Nov</span>
-                  <span>Dec</span>
-                </div>
-
                 <div className={styles.heatmapLegend}>
                   <span className={styles.legendLabel}>Less</span>
                   <span className={`${styles.legendCell} ${styles.level0}`} />
@@ -1805,6 +1817,74 @@ const Profile = () => {
           </section>
         </main>
       </div>
+
+      {/* Streak Freeze Modal */}
+      {showFreezeModal && (
+        <div className={styles.freezeModalOverlay} onClick={() => setShowFreezeModal(false)}>
+          <div className={styles.freezeModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.freezeModalHeader}>
+              <div className={styles.freezeModalIconWrap}>
+                <Shield size={24} />
+              </div>
+              <div className={styles.freezeModalTitleGroup}>
+                <h3 className={styles.freezeModalTitle}>Activate Streak Shield</h3>
+                <span className={styles.freezeModalSub}>Protect today's habit streak</span>
+              </div>
+            </div>
+
+            <p className={styles.freezeModalDesc}>
+              Using 1 Streak Freeze will preserve your streak even if you don't complete your habits today.
+              You currently have <strong>{streakFreezes}</strong> freeze{streakFreezes !== 1 ? "s" : ""} remaining.
+            </p>
+
+            <div className={styles.freezeHabitSelect}>
+              <label htmlFor="freezeHabitOption" className={styles.freezeSelectLabel}>
+                Target:
+              </label>
+              <select
+                id="freezeHabitOption"
+                className={styles.freezeDropdown}
+                value={selectedFreezeHabit}
+                onChange={(e) => setSelectedFreezeHabit(e.target.value)}
+              >
+                <option value="all">Protect all active habits (Recommended)</option>
+                {habits.map((h) => (
+                  <option key={h._id} value={h._id}>
+                    {h.title} ({h.streak || 0}-day streak)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {freezeFeedback && (
+              <div className={`${styles.freezeFeedbackBox} ${styles[`feedback_${freezeFeedback.type}`]}`}>
+                {freezeFeedback.type === "success" ? <FiCheckCircle size={15} /> : <FiAlertCircle size={15} />}
+                <span>{freezeFeedback.message}</span>
+              </div>
+            )}
+
+            <div className={styles.freezeModalActions}>
+              <button
+                type="button"
+                onClick={() => setShowFreezeModal(false)}
+                className={styles.cancelBtn}
+                disabled={isFreezing}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyStreakFreeze}
+                disabled={isFreezing || streakFreezes <= 0}
+                className={styles.freezeConfirmBtn}
+              >
+                <Shield size={15} />
+                {isFreezing ? "Applying Shield..." : "Activate Shield"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

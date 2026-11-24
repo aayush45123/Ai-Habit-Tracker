@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Flame, Check, Circle, Trash2, Loader2 } from "lucide-react";
+import { Flame, Shield, Check, Circle, Trash2, Loader2 } from "lucide-react";
 import styles from "./HabitCard.module.css";
 
 /**
@@ -101,9 +101,14 @@ function HabitCard({ habit, onToggle, onDelete }) {
         </button>
 
         {/* STREAK */}
-        <div className={styles.hcStreak}>
-          <Flame size={18} strokeWidth={2.5} className={styles.flameIcon} />
+        <div className={`${styles.hcStreak} ${habit.isFrozenToday ? styles.hcStreakFrozen : ""}`}>
+          {habit.isFrozenToday ? (
+            <Shield size={18} strokeWidth={2.5} className={styles.shieldIcon} title="Streak protected today with Streak Shield" />
+          ) : (
+            <Flame size={18} strokeWidth={2.5} className={styles.flameIcon} />
+          )}
           <span>{habit.streak || 0}</span>
+          {habit.isFrozenToday && <span className={styles.frozenTag}>SHIELD</span>}
         </div>
       </div>
     </div>

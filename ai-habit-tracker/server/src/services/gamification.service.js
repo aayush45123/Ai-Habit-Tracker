@@ -357,6 +357,10 @@ export async function repairMissingHabitLogsFromXP(userId) {
       source: "habit_complete",
     }).lean();
 
+    // Look up any existing habit of the user to assign meaningful titles and categories
+    const userHabits = await Habit.find({ userId }).select("_id title category").lean();
+    const primaryHabit = userHabits.length > 0 ? userHabits[0] : null;
+
     if (xpCompletions.length > 0) {
       // Find all existing logs for this user
       const existingLogs = await HabitLog.find({ userId, status: "done" }).select("date habitId").lean();
@@ -373,11 +377,15 @@ export async function repairMissingHabitLogsFromXP(userId) {
           (tx.createdAt ? tx.createdAt.toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
 
         if (!existingDateSet.has(dateStr)) {
+          const matchedHabit = tx.metadata?.habitId
+            ? userHabits.find((h) => h._id.toString() === tx.metadata.habitId.toString())
+            : primaryHabit;
+
           logsToCreate.push({
             userId,
-            habitId: tx.metadata?.habitId || tx.refId || new mongoose.Types.ObjectId(),
-            habitTitle: tx.metadata?.habitTitle || "Completed Habit",
-            category: tx.metadata?.category || "General",
+            habitId: tx.metadata?.habitId || tx.refId || matchedHabit?._id || new mongoose.Types.ObjectId(),
+            habitTitle: tx.metadata?.habitTitle || matchedHabit?.title || "Daily Habit",
+            category: tx.metadata?.category || matchedHabit?.category || "General",
             date: new Date(dateStr + "T12:00:00.000Z"),
             status: "done",
             createdAt: tx.createdAt || new Date(),
@@ -389,6 +397,27 @@ export async function repairMissingHabitLogsFromXP(userId) {
       if (logsToCreate.length > 0) {
         await HabitLog.insertMany(logsToCreate, { ordered: false }).catch(() => {});
       }
+    }
+
+    // Auto-heal any existing logs that currently have generic "Completed Habit" / "Habit" placeholders
+    if (primaryHabit) {
+      await HabitLog.updateMany(
+        {
+          userId,
+          $or: [
+            { habitTitle: "Completed Habit" },
+            { habitTitle: "Habit" },
+            { habitTitle: null },
+            { habitTitle: { $exists: false } },
+          ],
+        },
+        {
+          $set: {
+            habitTitle: primaryHabit.title,
+            category: primaryHabit.category || "General",
+          },
+        }
+      ).catch(() => {});
     }
 
     // Check streak milestones from XP or badges to restore allTimeMaxStreak
@@ -512,14 +541,24 @@ export async function getGamificationOverview(userId) {
 
   const habitMap = new Map();
   allUserHabits.forEach((h) => habitMap.set(h._id.toString(), h));
+  const defaultHabit = allUserHabits.length > 0 ? allUserHabits[0] : null;
 
   const recentActivity = recentDoneLogs.map((log) => {
     const habit = log.habitId ? habitMap.get(log.habitId.toString()) : null;
+    let habitTitle = log.habitTitle;
+    if (!habitTitle || habitTitle === "Completed Habit" || habitTitle === "Habit") {
+      habitTitle = habit?.title || defaultHabit?.title || "Daily Habit";
+    }
+    let category = log.category;
+    if (!category || category.toLowerCase() === "general") {
+      category = habit?.category || defaultHabit?.category || "General";
+    }
+
     return {
       _id: log._id,
       habitId: log.habitId,
-      habitTitle: log.habitTitle || habit?.title || "Habit",
-      category: log.category || habit?.category || "general",
+      habitTitle,
+      category,
       date: log.date,
       createdAt: log.createdAt || log.date,
       status: log.status,
