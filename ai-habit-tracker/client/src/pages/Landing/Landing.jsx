@@ -4,8 +4,7 @@ import { Zap, ArrowRight } from "lucide-react";
 import styles from "./Landing.module.css";
 
 // 3D Scroll-Driven Components
-import Hero3DScrollStage from "./components/Hero3DScrollStage";
-import LiveCommunityTicker from "./components/LiveCommunityTicker";
+import Hero3D from "./components/Hero3D";
 import InteractiveHabitSimulator from "./components/InteractiveHabitSimulator";
 import Feature3DScrollVault from "./components/Feature3DScrollVault";
 import Steps3DScroll from "./components/Steps3DScroll";
@@ -54,7 +53,7 @@ export default function Landing() {
               }}
               className={styles.navLink}
             >
-              3D Feature Vault
+              Features
             </a>
             <a
               href="#simulator"
@@ -64,7 +63,7 @@ export default function Landing() {
               }}
               className={styles.navLink}
             >
-              Interactive Demo
+              Live demo
             </a>
             <a
               href="#how-it-works"
@@ -74,7 +73,7 @@ export default function Landing() {
               }}
               className={styles.navLink}
             >
-              Architecture
+              How it works
             </a>
             <a
               href="#testimonials"
@@ -84,7 +83,7 @@ export default function Landing() {
               }}
               className={styles.navLink}
             >
-              Proof
+              Reviews
             </a>
           </div>
 
@@ -101,10 +100,7 @@ export default function Landing() {
       </nav>
 
       {/* ─── 1. Pinned 3D Hero Camera Zoom & Device Unfold ─── */}
-      <Hero3DScrollStage />
-
-      {/* ─── 2. Real-Time Community Ticker ─── */}
-      <LiveCommunityTicker />
+      <Hero3D />
 
       {/* ─── 3. Pinned 3D Unfolding Feature Vault ─── */}
       <Feature3DScrollVault />
