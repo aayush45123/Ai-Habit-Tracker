@@ -232,24 +232,6 @@ export async function heartbeatSession({ userId, sessionId, req = null }) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// server/src/controllers/activityController.js  (two small edits)
-//
-// 1) sendHeartbeat: sessionId is no longer required, and pass req through:
-//
-//      const sessionId = req.body.sessionId || req.headers["x-session-id"] || null;
-//      const result = await heartbeatSession({ userId, sessionId, req });
-//      return res.json(result);
-//
-//    (delete the `if (!sessionId) return res.status(400)...` block)
-//
-// 2) initSession: pass req too:
-//
-//      const result = await heartbeatSession({ userId, sessionId: existingSessionId, req });
-//      if (result.success && result.status === "active") {
-//        return res.json({ sessionId: result.sessionId, status: "active" });
-//      }
-// ─────────────────────────────────────────────────────────────────────────────
 /**
  * Record an activity event in a non-blocking, safe manner
  */
