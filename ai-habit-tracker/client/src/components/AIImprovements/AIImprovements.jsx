@@ -18,8 +18,6 @@ export default function AIImprovements({
   assessment,
   currentSchedule,
   timetableId, // ✅ NEW: Need timetable ID to save decisions
-  onApplySuggestion,
-  onRejectSuggestion,
 }) {
   const [appliedSuggestions, setAppliedSuggestions] = useState([]);
   const [removedSuggestions, setRemovedSuggestions] = useState([]);
@@ -72,9 +70,6 @@ export default function AIImprovements({
       setRemovedSuggestions(
         removedSuggestions.filter((i) => i !== suggestionIndex),
       );
-      if (onApplySuggestion) {
-        onApplySuggestion(suggestions[suggestionIndex]);
-      }
     }
   };
 
@@ -85,9 +80,6 @@ export default function AIImprovements({
       setAppliedSuggestions(
         appliedSuggestions.filter((i) => i !== suggestionIndex),
       );
-      if (onRejectSuggestion) {
-        onRejectSuggestion(suggestions[suggestionIndex]);
-      }
     }
   };
 
@@ -170,7 +162,7 @@ export default function AIImprovements({
           <h3 className={styles.title}>AI Improvement Analysis</h3>
           <p className={styles.subtitle}>
             Review {totalRemaining} recommendation
-            {totalRemaining !== 1 ? "s" : ""} and choose what works best for you
+            {totalRemaining !== 1 ? "s" : ""}             and choose what you plan to apply
           </p>
         </div>
         {/* ✅ NEW: Reset button */}
@@ -254,7 +246,7 @@ export default function AIImprovements({
                     <div className={styles.sugStatus}>
                       {isApplied(originalIndex) && (
                         <span className={styles.statusApplied}>
-                          <Check size={16} /> Applied
+                          <Check size={16} /> Planned
                         </span>
                       )}
                     </div>
@@ -329,7 +321,7 @@ export default function AIImprovements({
                         onClick={() => handleApply(originalIndex)}
                       >
                         <Check className={styles.btnIcon} />
-                        <span>Apply AI Suggestion</span>
+                        <span>Mark as Planned</span>
                       </button>
                     </div>
                   )}
@@ -339,7 +331,7 @@ export default function AIImprovements({
                     <div className={styles.appliedMessage}>
                       <Check />
                       <span>
-                        This suggestion has been noted. Click{" "}
+                        This suggestion is marked as planned. Click{" "}
                         <strong>EDIT</strong> above to manually update your
                         schedule.
                       </span>
@@ -362,7 +354,7 @@ export default function AIImprovements({
             <span className={styles.summaryNumber}>
               {appliedSuggestions.length}
             </span>
-            <span className={styles.summaryLabel}>AI Suggestions Applied</span>
+            <span className={styles.summaryLabel}>AI Suggestions Planned</span>
           </div>
         </div>
         <div className={styles.summaryCard}>
@@ -397,9 +389,8 @@ export default function AIImprovements({
           <p className={styles.noteText}>
             <strong>How it works:</strong> Your decisions are automatically
             saved. Click "Keep Mine & Remove" to dismiss suggestions you don't
-            want. Click "Apply AI Suggestion" to mark recommendations you plan
-            to implement. Then use the <strong>EDIT</strong> button to manually
-            update your schedule.
+            want. Mark recommendations as planned, then use the <strong>EDIT</strong>
+            button to manually update your schedule.
           </p>
         </div>
       )}

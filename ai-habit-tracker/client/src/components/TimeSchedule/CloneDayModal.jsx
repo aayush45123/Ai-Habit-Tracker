@@ -1,15 +1,20 @@
-import React, { useState } from "react";
-import { FiX, FiCopy, FiCheck } from "react-icons/fi";
+import React, { useEffect, useState } from "react";
+import { FiX, FiCopy } from "react-icons/fi";
 import styles from "./TimeSchedule.module.css";
 import { formatDateISO } from "../../utils/dateHelpers";
 
 export default function CloneDayModal({ isOpen, onClose, onCloneDay, currentSelectedDate }) {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = formatDateISO(yesterday);
-
-  const [sourceDate, setSourceDate] = useState(yesterdayStr);
+  const [sourceDate, setSourceDate] = useState("");
   const [targetDate, setTargetDate] = useState(currentSelectedDate || formatDateISO());
+  const sameDate = sourceDate && sourceDate === targetDate;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    setSourceDate(formatDateISO(yesterday));
+    setTargetDate(currentSelectedDate || formatDateISO());
+  }, [isOpen, currentSelectedDate]);
 
   if (!isOpen) return null;
 
@@ -57,11 +62,21 @@ export default function CloneDayModal({ isOpen, onClose, onCloneDay, currentSele
           <button type="button" className={styles.btnSecondary} onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className={styles.btnPrimary} onClick={handleClone}>
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            onClick={handleClone}
+            disabled={!sourceDate || !targetDate || sameDate}
+          >
             <FiCopy size={16} />
             <span>Copy Timetable</span>
           </button>
         </div>
+        {sameDate && (
+          <p className={styles.formError} role="alert">
+            Choose a different destination date to avoid duplicating events on the same day.
+          </p>
+        )}
       </div>
     </div>
   );

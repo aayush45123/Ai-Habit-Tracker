@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
+import { formatDateISO } from "../../utils/dateHelpers";
 import JournalEntryDetail, { getTemplateDisplayName } from "./JournalEntryDetail";
 import {
   FiChevronLeft,
@@ -45,11 +46,14 @@ function formatDateNice(dateStr) {
   }
 }
 
-export default function JournalCalendar({ onSelectDate }) {
+export default function JournalCalendar({ onSelectDate, onChanged }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [entriesMap, setEntriesMap] = useState({});
   const [templates, setTemplates] = useState({ systemTemplates: [], customTemplates: [] });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [loadNonce, setLoadNonce] = useState(0);
+  const monthRequestIdRef = useRef(0);
 
   // Selected date modal state
   const [selectedDate, setSelectedDate] = useState(null);
@@ -62,7 +66,7 @@ export default function JournalCalendar({ onSelectDate }) {
 
   useEffect(() => {
     fetchMonthEntries();
-  }, [currentMonth]);
+  }, [currentMonth, loadNonce]);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -85,8 +89,10 @@ export default function JournalCalendar({ onSelectDate }) {
   }
 
   async function fetchMonthEntries() {
+    const requestId = ++monthRequestIdRef.current;
     try {
       setLoading(true);
+      setLoadError("");
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth() + 1;
 
@@ -102,11 +108,14 @@ export default function JournalCalendar({ onSelectDate }) {
       (res.data.entries || []).forEach((e) => {
         map[e.date] = e;
       });
-      setEntriesMap(map);
+      if (requestId === monthRequestIdRef.current) setEntriesMap(map);
     } catch (err) {
       console.error("Error loading month entries:", err);
+      if (requestId === monthRequestIdRef.current) {
+        setLoadError(err.response?.data?.message || "Could not load journal entries for this month.");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === monthRequestIdRef.current) setLoading(false);
     }
   }
 
@@ -143,6 +152,7 @@ export default function JournalCalendar({ onSelectDate }) {
         return next;
       });
       setIsModalOpen(false);
+      onChanged?.();
     } catch (err) {
       console.error("Failed to delete entry:", err);
       alert("Failed to delete entry. Please try again.");
@@ -166,7 +176,7 @@ export default function JournalCalendar({ onSelectDate }) {
     calendarCells.push({ day: d, dateStr });
   }
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = formatDateISO();
 
   return (
     <div className={styles.formCard}>
@@ -188,22 +198,29 @@ export default function JournalCalendar({ onSelectDate }) {
 
       {loading ? (
         <div style={{ padding: "2rem", textAlign: "center" }}>Loading calendar...</div>
+      ) : loadError ? (
+        <div className={styles.errorNotice} role="alert">
+          <span>{loadError}</span>
+          <button type="button" onClick={() => setLoadNonce((value) => value + 1)}>
+            Retry
+          </button>
+        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {/* Day Names */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.5rem", textAlign: "center", fontWeight: 800 }}>
+          <div className={styles.calendarWeekdays}>
             {weekDays.map((w) => (
-              <div key={w} style={{ padding: "0.5rem", textTransform: "uppercase", fontSize: "0.85rem" }}>
+              <div key={w} className={styles.calendarWeekday}>
                 {w}
               </div>
             ))}
           </div>
 
           {/* Grid Cells */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.5rem" }}>
+          <div className={styles.calendarGrid}>
             {calendarCells.map((cell, idx) => {
               if (!cell) {
-                return <div key={`empty_${idx}`} style={{ minHeight: "95px", background: "rgba(0,0,0,0.02)" }} />;
+                return <div key={`empty_${idx}`} className={styles.calendarDayEmpty} aria-hidden="true" />;
               }
 
               const entry = entriesMap[cell.dateStr];
@@ -211,28 +228,20 @@ export default function JournalCalendar({ onSelectDate }) {
               const moodInfo = entry ? MOOD_META[entry.mood] || MOOD_META.good : null;
 
               return (
-                <div
+                <button
+                  type="button"
                   key={cell.dateStr}
                   onClick={() => handleCellClick(cell.dateStr)}
-                  className={styles.calendarCellActive}
-                  style={{
-                    minHeight: "95px",
-                    padding: "0.6rem",
-                    border: isToday
-                      ? "3px solid var(--color-accent-primary, #10b981)"
-                      : entry
-                      ? "2px solid var(--color-border, #000)"
-                      : "1.5px solid var(--color-border, #000)",
-                    background: entry ? "var(--color-bg-secondary, #ffffff)" : "var(--color-bg-primary, #f9fafb)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "0.35rem",
-                  }}
+                  className={`${styles.calendarCellActive} ${isToday ? styles.calendarDayToday : ""} ${entry ? styles.calendarDayHasEntry : ""}`}
                   title={
                     entry
                       ? `Click to view entry for ${cell.dateStr}: ${entry.title || "Logged"}`
                       : `Click to log entry for ${cell.dateStr}`
+                  }
+                  aria-label={
+                    entry
+                      ? `${cell.dateStr}: ${entry.title || "Journal entry"}, mood ${moodInfo.label}`
+                      : `${cell.dateStr}: no journal entry`
                   }
                 >
                   {/* Top row: day number + mood icon */}
@@ -299,7 +308,7 @@ export default function JournalCalendar({ onSelectDate }) {
                       + Add
                     </span>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>

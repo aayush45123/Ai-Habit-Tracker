@@ -124,6 +124,10 @@ const timetableSchema = new mongoose.Schema(
     },
     weeklySchedule: [dayScheduleSchema],
     aiImprovements: [improvementSuggestionSchema],
+    aiAssessment: {
+      strengths: { type: [String], default: [] },
+      weaknesses: { type: [String], default: [] },
+    },
     hasRequestedAI: {
       type: Boolean,
       default: false,

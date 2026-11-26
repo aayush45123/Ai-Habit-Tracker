@@ -32,18 +32,20 @@ export default function WeeklyGridView({
 
           return (
             <div key={day.dateStr} className={styles.weekDayCol}>
-              <div
+              <button
+                type="button"
                 className={`${styles.weekColHeader} ${
                   day.isToday ? styles.colHeaderToday : ""
                 } ${isSelected && !day.isToday ? styles.colHeaderSelected : ""}`}
                 onClick={() => onSelectDate(day.dateStr)}
+                aria-label={`View ${day.dateStr}`}
               >
                 <div className={styles.colDayName}>{day.dayName}</div>
                 <div className={styles.colDayNumber}>{day.dayNumber}</div>
                 {day.isToday && (
                   <span style={{ fontSize: "0.65rem", fontWeight: 800 }}>TODAY</span>
                 )}
-              </div>
+              </button>
 
               <div className={styles.weekEventsList}>
                 {dayItems.length === 0 ? (
@@ -59,19 +61,21 @@ export default function WeeklyGridView({
                   </div>
                 ) : (
                   dayItems.map((item) => (
-                    <div
+                    <button
+                      type="button"
                       key={item._id}
                       className={`${styles.weekMiniCard} ${
                         item.status === "completed" ? styles.weekMiniCardDone : ""
                       }`}
                       onClick={() => onEditEvent(item)}
                       title={`${item.title} (${item.startTime} - ${item.endTime})`}
+                      aria-label={`Edit ${item.title}, ${item.startTime} to ${item.endTime}`}
                     >
                       <div className={styles.weekCardTime}>
                         {formatTime12(item.startTime)}
                       </div>
                       <div className={styles.weekCardTitle}>{item.title}</div>
-                    </div>
+                    </button>
                   ))
                 )}
               </div>

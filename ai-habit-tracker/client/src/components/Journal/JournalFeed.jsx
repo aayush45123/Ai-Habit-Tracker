@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
+import { formatDateISO } from "../../utils/dateHelpers";
 import JournalEntryDetail, { getTemplateDisplayName, getFieldLabel } from "./JournalEntryDetail";
 import {
   FiSearch,
@@ -39,21 +40,25 @@ function formatDateNice(dateStr) {
   }
 }
 
-export default function JournalFeed({ onSelectEdit }) {
+export default function JournalFeed({ onSelectEdit, onChanged }) {
   const [entries, setEntries] = useState([]);
   const [templates, setTemplates] = useState({ systemTemplates: [], customTemplates: [] });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [moodFilter, setMoodFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [loadNonce, setLoadNonce] = useState(0);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     fetchTemplates();
   }, []);
 
   useEffect(() => {
-    fetchFeed();
-  }, [search, moodFilter, tagFilter]);
+    const timer = window.setTimeout(fetchFeed, search ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [search, moodFilter, tagFilter, loadNonce]);
 
   async function fetchTemplates() {
     try {
@@ -65,19 +70,26 @@ export default function JournalFeed({ onSelectEdit }) {
   }
 
   async function fetchFeed() {
+    const requestId = ++requestIdRef.current;
     try {
       setLoading(true);
+      setLoadError("");
       const params = {};
       if (search) params.search = search;
       if (moodFilter) params.mood = moodFilter;
       if (tagFilter) params.tag = tagFilter;
 
       const res = await api.get("/journal/entries", { params });
-      setEntries(res.data.entries || []);
+      if (requestId === requestIdRef.current) {
+        setEntries(res.data.entries || []);
+      }
     } catch (err) {
       console.error("Failed to load feed:", err);
+      if (requestId === requestIdRef.current) {
+        setLoadError(err.response?.data?.message || "Could not load journal entries.");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   }
 
@@ -86,9 +98,21 @@ export default function JournalFeed({ onSelectEdit }) {
     try {
       await api.delete(`/journal/entries/${id}`);
       setEntries((prev) => prev.filter((e) => e._id !== id));
+      onChanged?.();
     } catch (err) {
       console.error("Failed to delete entry:", err);
+      window.alert(err.response?.data?.message || "Could not delete this journal entry.");
     }
+  }
+
+  function downloadExport(content, fileName, contentType) {
+    const blob = new Blob([content], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   function exportMarkdown() {
@@ -131,21 +155,19 @@ ${e.tags && e.tags.length > 0 ? `**Tags:** ${e.tags.map((t) => `#${t}`).join(" "
       })
       .join("\n\n");
 
-    const blob = new Blob([mdContent], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `HabitAI_Journal_Export_${new Date().toISOString().split("T")[0]}.md`;
-    a.click();
+    downloadExport(
+      mdContent,
+      `HabitAI_Journal_Export_${formatDateISO()}.md`,
+      "text/markdown",
+    );
   }
 
   function exportJSON() {
-    const blob = new Blob([JSON.stringify(entries, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `HabitAI_Journal_Export_${new Date().toISOString().split("T")[0]}.json`;
-    a.click();
+    downloadExport(
+      JSON.stringify(entries, null, 2),
+      `HabitAI_Journal_Export_${formatDateISO()}.json`,
+      "application/json",
+    );
   }
 
   return (
@@ -163,6 +185,15 @@ ${e.tags && e.tags.length > 0 ? `**Tags:** ${e.tags.map((t) => `#${t}`).join(" "
           />
         </div>
 
+        <input
+          type="search"
+          className={styles.select}
+          aria-label="Filter by tag"
+          placeholder="Filter by tag"
+          value={tagFilter}
+          onChange={(e) => setTagFilter(e.target.value.trim())}
+        />
+
         <select className={styles.select} value={moodFilter} onChange={(e) => setMoodFilter(e.target.value)}>
           <option value="">All Moods</option>
           <option value="great">Great</option>
@@ -172,11 +203,11 @@ ${e.tags && e.tags.length > 0 ? `**Tags:** ${e.tags.map((t) => `#${t}`).join(" "
           <option value="terrible">Terrible</option>
         </select>
 
-        <button className={styles.tabBtn} onClick={exportMarkdown} title="Export as Markdown">
+        <button className={styles.tabBtn} onClick={exportMarkdown} title="Export as Markdown" disabled={entries.length === 0}>
           <FiDownload /> Export MD
         </button>
 
-        <button className={styles.tabBtn} onClick={exportJSON} title="Export as JSON">
+        <button className={styles.tabBtn} onClick={exportJSON} title="Export as JSON" disabled={entries.length === 0}>
           <FiDownload /> Export JSON
         </button>
       </div>
@@ -184,6 +215,13 @@ ${e.tags && e.tags.length > 0 ? `**Tags:** ${e.tags.map((t) => `#${t}`).join(" "
       {/* Feed List */}
       {loading ? (
         <div style={{ padding: "2rem", textAlign: "center" }}>Loading journal feed...</div>
+      ) : loadError ? (
+        <div className={styles.errorNotice} role="alert">
+          <span>{loadError}</span>
+          <button type="button" onClick={() => setLoadNonce((value) => value + 1)}>
+            Retry
+          </button>
+        </div>
       ) : entries.length === 0 ? (
         <div className={styles.formCard} style={{ textAlign: "center" }}>
           <h3>No Journal Entries Found</h3>

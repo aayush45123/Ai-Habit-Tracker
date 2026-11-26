@@ -125,6 +125,34 @@ describe("Schedule Controller In-Process Endpoint Tests (/api/schedule)", () => 
     assert.strictEqual(capturedData.success, false);
   });
 
+  it("cloneDaySchedule rejects copying a day onto itself", async () => {
+    let capturedCode = null;
+    let capturedData = null;
+
+    const mockRes = {
+      status: (code) => {
+        capturedCode = code;
+        return mockRes;
+      },
+      json: (data) => {
+        capturedData = data;
+        return data;
+      },
+    };
+
+    await cloneDaySchedule(
+      {
+        user: { _id: "650000000000000000000001" },
+        body: { sourceDate: "2026-11-01", targetDate: "2026-11-01" },
+      },
+      mockRes,
+    );
+
+    assert.strictEqual(capturedCode, 400);
+    assert.strictEqual(capturedData.success, false);
+    assert.match(capturedData.message, /must be different/);
+  });
+
   it("applyPresetSchedule rejects unknown preset keys", async () => {
     let capturedCode = null;
     let capturedData = null;

@@ -1,6 +1,9 @@
 /* client/src/pages/TimeSchedule/TimeSchedulePage.module.css */
 
 .root {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
@@ -60,6 +63,40 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+}
+
+.selectedDateLabel {
+  margin-left: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.loadingState {
+  color: var(--color-text-secondary, #555);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.errorNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #b91c1c;
+  background: #fef2f2;
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.errorNotice button {
+  border: 1px solid currentColor;
+  background: #fff;
+  color: inherit;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
 }
 
 .actionBtnPrimary {
@@ -208,6 +245,11 @@
 
 /* ── TOAST NOTIFICATION ── */
 .toastNotice {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1101;
+  width: min(100% - 2rem, 480px);
   background: #000000;
   color: #ffffff;
   padding: 0.75rem 1.25rem;
@@ -251,6 +293,11 @@
 }
 
 @media (max-width: 768px) {
+  .root {
+    padding: 1.25rem 1rem;
+    gap: 1.25rem;
+  }
+
   .header {
     flex-direction: column;
     align-items: flex-start;
@@ -272,6 +319,47 @@
 
   .viewSwitcher {
     justify-content: space-between;
+    overflow-x: auto;
+  }
+
+  .dateNavGroup {
+    width: 100%;
+  }
+
+  .selectedDateLabel {
+    flex-basis: 100%;
+    margin: 0.25rem 0 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .root {
+    padding: 1rem 0.75rem;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .headerActions > button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .datePickerInput {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .viewBtn {
+    flex: 1 0 auto;
+    justify-content: center;
+  }
+
+  .toastNotice {
+    top: 0.5rem;
+    right: 0.5rem;
+    width: calc(100% - 1rem);
   }
 }
 

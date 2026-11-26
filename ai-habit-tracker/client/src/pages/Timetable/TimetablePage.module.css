@@ -244,6 +244,32 @@
   font-weight: 600;
 }
 
+.errorState {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid #b91c1c;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.errorState p {
+  margin: 0;
+}
+
+.errorState button {
+  flex: 0 0 auto;
+  padding: 0.6rem 0.9rem;
+  border: 2px solid currentColor;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* ===== INFO CARD ===== */
 .infoCard {
   background-color: var(--color-bg-primary);
@@ -637,6 +663,11 @@
     font-size: 0.85rem;
     width: 100%;
     justify-content: center;
+  }
+
+  .errorState {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

@@ -15,18 +15,22 @@ export default function JournalTemplatesManager() {
     { key: "customField1", label: "Custom Note 1", type: "text", required: false },
   ]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     fetchTemplates();
-  }, []);
+  }, [reloadKey]);
 
   async function fetchTemplates() {
     try {
       setLoading(true);
+      setError("");
       const res = await api.get("/journal/templates");
       setTemplates(res.data);
     } catch (err) {
       console.error("Error fetching templates:", err);
+      setError(err.response?.data?.message || "Could not load journal templates.");
     } finally {
       setLoading(false);
     }
@@ -66,9 +70,10 @@ export default function JournalTemplatesManager() {
       setName("");
       setDescription("");
       setFields([{ key: "customField1", label: "Custom Note 1", type: "text", required: false }]);
-      fetchTemplates();
+      await fetchTemplates();
     } catch (err) {
       console.error("Failed to create template:", err);
+      setError(err.response?.data?.message || "Could not create this template.");
     } finally {
       setSaving(false);
     }
@@ -78,14 +83,23 @@ export default function JournalTemplatesManager() {
     if (!confirm("Delete custom template?")) return;
     try {
       await api.delete(`/journal/templates/${id}`);
-      fetchTemplates();
+      await fetchTemplates();
     } catch (err) {
       console.error("Failed to delete template:", err);
+      setError(err.response?.data?.message || "Could not delete this template.");
     }
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+      {error && (
+        <div className={styles.errorNotice} role="alert">
+          <span>{error}</span>
+          <button type="button" onClick={() => setReloadKey((value) => value + 1)}>
+            Retry
+          </button>
+        </div>
+      )}
       {/* 🚀 System Pre-built Templates Showcase */}
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         <h2 style={{ margin: 0, textTransform: "uppercase" }}>System Templates</h2>

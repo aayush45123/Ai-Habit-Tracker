@@ -20,13 +20,16 @@ import TimetableCheckpointPanel from "../../components/TimetableCheckpointPanel/
 import TimetableAnalyticsPanel from "../../components/TimetableAnalyticsPanel/TimetableAnalyticsPanel";
 import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
 
+function formatLocalDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function TimetablePage() {
   function getTodayDateString() {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return formatLocalDate(new Date());
   }
 
   function getWorkoutCacheKey(timetableId, date = getTodayDateString()) {
@@ -35,25 +38,6 @@ export default function TimetablePage() {
 
   function getWorkoutHistoryKey(timetableId) {
     return `workout_log_history_${timetableId}`;
-  }
-
-  function getWorkoutApiStatusKey(timetableId) {
-    return `workout_log_api_available_${timetableId}`;
-  }
-
-  function isWorkoutApiAvailable(timetableId) {
-    if (!timetableId) return false;
-
-    const value = localStorage.getItem(getWorkoutApiStatusKey(timetableId));
-    return value !== "false";
-  }
-
-  function setWorkoutApiAvailable(timetableId, available) {
-    if (!timetableId) return;
-    localStorage.setItem(
-      getWorkoutApiStatusKey(timetableId),
-      available ? "true" : "false",
-    );
   }
 
   function readLocalWorkoutHistory(timetableId) {
@@ -152,7 +136,7 @@ export default function TimetablePage() {
     for (let offset = 0; offset < 56; offset += 1) {
       const date = new Date();
       date.setDate(date.getDate() - offset);
-      const iso = date.toISOString().split("T")[0];
+      const iso = formatLocalDate(date);
       const weekday = daysOfWeek[date.getDay()];
       const schedule = weeklySchedule.find((day) => day.day === weekday);
       if (!schedule || schedule.isRestDay) continue;
@@ -184,7 +168,7 @@ export default function TimetablePage() {
       for (let offset = weekStart; offset > weekStart - 7; offset -= 1) {
         const date = new Date();
         date.setDate(date.getDate() - offset);
-        const iso = date.toISOString().split("T")[0];
+        const iso = formatLocalDate(date);
         const weekday = daysOfWeek[date.getDay()];
         const schedule = weeklySchedule.find((day) => day.day === weekday);
         if (!schedule || schedule.isRestDay) continue;
@@ -269,6 +253,7 @@ export default function TimetablePage() {
   const [showCreator, setShowCreator] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [pageError, setPageError] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [aiAssessment, setAiAssessment] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
@@ -280,6 +265,7 @@ export default function TimetablePage() {
   const [draftStatus, setDraftStatus] = useState("partial");
   const [logLoading, setLogLoading] = useState(false);
   const [logSaving, setLogSaving] = useState(false);
+  const [timetableSaving, setTimetableSaving] = useState(false);
 
   const isWorkoutSubmitted = !!workoutLog?.checkpoint?.submitted;
 
@@ -290,6 +276,7 @@ export default function TimetablePage() {
   async function loadActiveTimetable() {
     try {
       setLoading(true);
+      setPageError("");
       const res = await api.get("/timetable/active");
 
       if (res.data.active) {
@@ -302,19 +289,26 @@ export default function TimetablePage() {
         // Load AI improvements if already requested
         if (timetable.hasRequestedAI) {
           setAiSuggestions(timetable.aiImprovements || []);
+          setAiAssessment(timetable.aiAssessment || null);
+        } else {
+          setAiSuggestions(null);
+          setAiAssessment(null);
         }
 
         await loadWorkoutLog(timetable._id, timetable, todayWorkout);
       } else {
-        setShowCreator(true);
+        setShowCreator(false);
+        setActiveTimetable(null);
+        setTodaysWorkout(null);
         setWorkoutLog(null);
         setWorkoutAnalytics(null);
       }
     } catch (err) {
       console.error(err);
-      setShowCreator(true);
-      setWorkoutLog(null);
-      setWorkoutAnalytics(null);
+      setPageError(
+        err.response?.data?.message ||
+          "Could not load your workout timetable. Check your connection and try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -324,19 +318,14 @@ export default function TimetablePage() {
     if (!timetableId) return;
 
     setLogLoading(true);
+    try {
     const todayDate = getTodayDateString();
 
     // 1. Immediately restore today's cached progress if present to avoid 0% flicker on refresh
     const cachedHistory = readLocalWorkoutHistory(timetableId);
-    const cachedToday =
-      cachedHistory[todayDate] ||
-      Object.values(cachedHistory).find(
-        (entry) =>
-          entry?.date === todayDate ||
-          (entry?.scheduledDay && entry.scheduledDay === currentTodayWorkout?.day),
-      );
+    const cachedToday = cachedHistory[todayDate];
 
-    if (cachedToday && Array.isArray(cachedToday.completedExerciseIds) && cachedToday.completedExerciseIds.length > 0) {
+    if (cachedToday) {
       setWorkoutLog(cachedToday);
       setCompletedExerciseIds(cachedToday.completedExerciseIds);
       setDraftNote(cachedToday?.checkpoint?.note || "");
@@ -350,7 +339,6 @@ export default function TimetablePage() {
     // 2. Fetch fresh workout log and analytics from backend API
     try {
       const res = await api.get(`/timetables/${timetableId}/workout-log/today`);
-      setWorkoutApiAvailable(timetableId, true);
 
       if (res.data?.workoutLog) {
         const incomingLog = res.data.workoutLog;
@@ -429,7 +417,9 @@ export default function TimetablePage() {
       setWorkoutAnalytics(buildLocalAnalytics(currentTimetable, {}));
     }
 
-    setLogLoading(false);
+    } finally {
+      setLogLoading(false);
+    }
   }
 
   const workoutExerciseIds =
@@ -508,7 +498,6 @@ export default function TimetablePage() {
         },
       );
 
-      setWorkoutApiAvailable(activeTimetable._id, true);
       if (res.data?.workoutLog) {
         setWorkoutLog(res.data.workoutLog);
         setWorkoutAnalytics(res.data.analytics || null);
@@ -545,21 +534,39 @@ export default function TimetablePage() {
   }
 
   async function handleSaveTimetable(timetableData) {
+    const timetableId = activeTimetable?._id;
     try {
-      setLoading(true);
-      const res = await api.post("/timetables/create", timetableData);
+      setTimetableSaving(true);
+      const res = timetableId
+        ? await api.put(`/timetables/${timetableId}`, timetableData)
+        : await api.post("/timetables/create", timetableData);
 
       setActiveTimetable(res.data.timetable);
       setShowCreator(false);
-      setMessage("Timetable created successfully!");
+      if (timetableId) {
+        try {
+          localStorage.removeItem(`timetable_decisions_${timetableId}`);
+        } catch (error) {
+          console.warn("Could not clear saved AI decisions after editing:", error);
+        }
+      }
+      setPageError("");
+      setMessage(
+        timetableId
+          ? "Timetable updated successfully!"
+          : "Timetable created successfully!",
+      );
       await loadActiveTimetable();
 
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data?.message || "Error creating timetable");
+      setMessage(
+        err.response?.data?.message ||
+          `Error ${activeTimetable?._id ? "updating" : "creating"} timetable`,
+      );
     } finally {
-      setLoading(false);
+      setTimetableSaving(false);
     }
   }
 
@@ -631,7 +638,6 @@ export default function TimetablePage() {
       setWorkoutLog(returnedLog);
       setWorkoutAnalytics(res.data.analytics || null);
       setDraftStatus(returnedLog?.status || resolvedStatus);
-      setWorkoutApiAvailable(activeTimetable._id, true);
       if (returnedLog) {
         writeLocalWorkoutHistory(
           activeTimetable._id,
@@ -722,6 +728,10 @@ export default function TimetablePage() {
       // ✅ ADDED: Clear localStorage when timetable is deleted
       if (activeTimetable._id) {
         localStorage.removeItem(`timetable_decisions_${activeTimetable._id}`);
+        localStorage.removeItem(getWorkoutHistoryKey(activeTimetable._id));
+        Object.keys(localStorage)
+          .filter((key) => key.startsWith(`workout_log_cache_${activeTimetable._id}_`))
+          .forEach((key) => localStorage.removeItem(key));
       }
 
       setActiveTimetable(null);
@@ -846,7 +856,7 @@ export default function TimetablePage() {
           </div>
         )}
 
-        {!activeTimetable && (
+        {!activeTimetable && !pageError && (
           <button
             className={styles.createBtn}
             onClick={() => setShowCreator(true)}
@@ -865,7 +875,15 @@ export default function TimetablePage() {
         </div>
       )}
 
-      {/* CREATOR MODE */}
+      {pageError && (
+        <div className={styles.errorState} role="alert">
+          <p>{pageError}</p>
+          <button type="button" onClick={loadActiveTimetable}>
+            Try again
+          </button>
+        </div>
+      )}
+
       {/* CREATOR MODE */}
       {showCreator && (
         <>
@@ -877,6 +895,7 @@ export default function TimetablePage() {
 
           <TimetableCreator
             onSave={handleSaveTimetable}
+            saving={timetableSaving}
             onCancel={() => {
               setShowCreator(false);
 
@@ -939,8 +958,6 @@ export default function TimetablePage() {
                 assessment={aiAssessment}
                 currentSchedule={activeTimetable.weeklySchedule}
                 timetableId={activeTimetable._id}
-                onApplySuggestion={() => {}}
-                onRejectSuggestion={() => {}}
               />
             )}
 
@@ -1026,7 +1043,7 @@ export default function TimetablePage() {
       )}
 
       {/* EMPTY STATE */}
-      {!showCreator && !activeTimetable && (
+      {!showCreator && !activeTimetable && !pageError && (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>
             <Dumbbell />

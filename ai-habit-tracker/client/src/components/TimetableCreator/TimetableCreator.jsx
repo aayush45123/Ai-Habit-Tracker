@@ -47,7 +47,12 @@ const createEmptyDay = (dayName) => ({
   },
 });
 
-export default function TimetableCreator({ onSave, onCancel, initialData }) {
+export default function TimetableCreator({
+  onSave,
+  onCancel,
+  initialData,
+  saving = false,
+}) {
   const [name, setName] = useState(initialData?.name || "My Workout Schedule");
   const [category, setCategory] = useState(
     initialData?.category || "bodybuilding",
@@ -168,7 +173,9 @@ export default function TimetableCreator({ onSave, onCancel, initialData }) {
     <div className={styles.root}>
       {/* HEADER INFO */}
       <div className={styles.headerCard}>
-        <h3 className={styles.headerTitle}>Create Your Workout Timetable</h3>
+        <h3 className={styles.headerTitle}>
+          {initialData ? "Edit Your Workout Timetable" : "Create Your Workout Timetable"}
+        </h3>
 
         <div className={styles.basicInfo}>
           <div className={styles.infoGroup}>
@@ -558,13 +565,29 @@ export default function TimetableCreator({ onSave, onCancel, initialData }) {
 
       {/* ACTIONS */}
       <div className={styles.actions}>
-        <button className={styles.cancelBtn} onClick={onCancel}>
+        <button
+          type="button"
+          className={styles.cancelBtn}
+          onClick={onCancel}
+          disabled={saving}
+        >
           <X className={styles.btnIcon} />
           <span>Cancel</span>
         </button>
-        <button className={styles.saveBtn} onClick={handleSave}>
+        <button
+          type="button"
+          className={styles.saveBtn}
+          onClick={handleSave}
+          disabled={saving}
+        >
           <Save className={styles.btnIcon} />
-          <span>Save Timetable</span>
+          <span>
+            {saving
+              ? "Saving..."
+              : initialData
+                ? "Update Timetable"
+                : "Save Timetable"}
+          </span>
         </button>
       </div>
     </div>

@@ -669,6 +669,13 @@ export async function cloneDaySchedule(req, res) {
       });
     }
 
+    if (sourceDate === targetDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Source and destination dates must be different",
+      });
+    }
+
     const sourceEvents = await ScheduleEvent.find({ userId, date: sourceDate });
     if (!sourceEvents.length) {
       return res.status(404).json({

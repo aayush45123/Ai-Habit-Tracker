@@ -29,6 +29,7 @@ export default function EventModal({
   initialDate,
   editEvent = null,
   existingEvents = [],
+  requestError = "",
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -118,10 +119,10 @@ export default function EventModal({
 
         <form onSubmit={handleSubmit}>
           <div className={styles.modalBody}>
-            {error && (
+            {(error || requestError) && (
               <div className={styles.conflictBadge} style={{ padding: "0.5rem" }}>
                 <FiAlertTriangle size={16} />
-                <span>{error}</span>
+                <span>{error || requestError}</span>
               </div>
             )}
 

@@ -8,6 +8,7 @@ import JournalAnalytics from "../../components/Journal/JournalAnalytics";
 import JournalReports from "../../components/Journal/JournalReports";
 import JournalTemplatesManager from "../../components/Journal/JournalTemplatesManager";
 import { JournalSkeleton } from "../../components/Skeleton/Skeleton.jsx";
+import { formatDateISO } from "../../utils/dateHelpers";
 
 import {
   FiBookOpen,
@@ -24,8 +25,9 @@ import {
 
 export default function JournalPage() {
   const [activeTab, setActiveTab] = useState("form");
-  const [targetDate, setTargetDate] = useState(new Date().toISOString().split("T")[0]);
+  const [targetDate, setTargetDate] = useState(formatDateISO());
   const [loading, setLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState("");
   const [summary, setSummary] = useState({
     totalEntries: 0,
     currentStreak: 0,
@@ -43,8 +45,10 @@ export default function JournalPage() {
       if (res.data && res.data.summary) {
         setSummary(res.data.summary);
       }
+      setSummaryError("");
     } catch (err) {
       console.error("Failed to load journal summary:", err);
+      setSummaryError(err.response?.data?.message || "Could not refresh journal summary.");
     } finally {
       setLoading(false);
     }
@@ -68,6 +72,13 @@ export default function JournalPage() {
           </p>
         </div>
       </div>
+
+      {summaryError && (
+        <div className={styles.errorNotice} role="alert">
+          <span>{summaryError}</span>
+          <button type="button" onClick={fetchHeaderSummary}>Retry</button>
+        </div>
+      )}
 
       {/* ── STATS BAR ── */}
       <div className={styles.statsGrid}>
@@ -142,9 +153,19 @@ export default function JournalPage() {
         <JournalEntryForm initialDate={targetDate} onSaved={fetchHeaderSummary} />
       )}
 
-      {activeTab === "feed" && <JournalFeed onSelectEdit={handleSelectDateForEdit} />}
+      {activeTab === "feed" && (
+        <JournalFeed
+          onSelectEdit={handleSelectDateForEdit}
+          onChanged={fetchHeaderSummary}
+        />
+      )}
 
-      {activeTab === "calendar" && <JournalCalendar onSelectDate={handleSelectDateForEdit} />}
+      {activeTab === "calendar" && (
+        <JournalCalendar
+          onSelectDate={handleSelectDateForEdit}
+          onChanged={fetchHeaderSummary}
+        />
+      )}
 
       {activeTab === "analytics" && <JournalAnalytics />}
 

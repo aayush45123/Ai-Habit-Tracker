@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../utils/api";
 import styles from "./Journal.module.css";
+import { formatDateISO } from "../../utils/dateHelpers";
 import { FiCheck, FiSave, FiCalendar, FiSmile, FiZap, FiTarget, FiThumbsUp, FiMeh, FiThumbsDown, FiAlertCircle, FiStar } from "react-icons/fi";
 
 const MOODS = [
@@ -11,28 +12,21 @@ const MOODS = [
   { id: "terrible", label: "Terrible", score: 1 },
 ];
 
-export default function JournalEntryForm({ initialDate, onSaved }) {
-  const [date, setDate] = useState(initialDate || new Date().toISOString().split("T")[0]);
-  const [templates, setTemplates] = useState({ systemTemplates: [], customTemplates: [] });
-  const [selectedTemplate, setSelectedTemplate] = useState("sys_default");
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const [form, setForm] = useState({
+function createEmptyForm() {
+  return {
     title: "",
     content: "",
     mood: "good",
     moodScore: 4,
     energyLevel: 3,
     stressLevel: 2,
-    productivityHours: 6,
-    learningHours: 2,
-    sleepHours: 7,
-    waterIntake: 2.5,
-    weight: 70,
-    steps: 8000,
-    caloriesBurned: 350,
+    productivityHours: 0,
+    learningHours: 0,
+    sleepHours: 0,
+    waterIntake: 0,
+    weight: 0,
+    steps: 0,
+    caloriesBurned: 0,
     workoutSummary: "",
     topPriorities: "",
     todayGoal: "",
@@ -45,17 +39,102 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
     tomorrowsFocus: "",
     tags: "",
     customFieldsData: {},
-  });
+  };
+}
+
+export default function JournalEntryForm({ initialDate, onSaved }) {
+  const [date, setDate] = useState(initialDate || formatDateISO());
+  const [templates, setTemplates] = useState({ systemTemplates: [], customTemplates: [] });
+  const [selectedTemplate, setSelectedTemplate] = useState("sys_default");
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [loadNonce, setLoadNonce] = useState(0);
+  const [entryExists, setEntryExists] = useState(false);
+  const [form, setForm] = useState(createEmptyForm);
 
   useEffect(() => {
     fetchTemplates();
   }, []);
 
   useEffect(() => {
-    if (date) {
-      loadEntryForDate(date);
+    if (initialDate) setDate(initialDate);
+  }, [initialDate]);
+
+  useEffect(() => {
+    if (!date) return undefined;
+    let active = true;
+
+    async function loadEntryForDate() {
+      setLoading(true);
+      setLoadError("");
+      setMessage("");
+      setEntryExists(false);
+      setSelectedTemplate("sys_default");
+      setForm(createEmptyForm());
+
+      try {
+        const res = await api.get(`/journal/entries/date/${date}`);
+        if (!active) return;
+        const e = res.data.entry;
+        if (!e) return;
+
+        setEntryExists(true);
+        setForm({
+          ...createEmptyForm(),
+          title: e.title ?? "",
+          content: e.content ?? "",
+          mood: e.mood ?? "good",
+          moodScore: e.moodScore ?? 4,
+          energyLevel: e.energyLevel ?? 3,
+          stressLevel: e.stressLevel ?? 2,
+          productivityHours: e.productivityHours ?? 0,
+          learningHours: e.learningHours ?? 0,
+          sleepHours: e.sleepHours ?? 0,
+          waterIntake: e.waterIntake ?? 0,
+          weight: e.weight ?? 0,
+          steps: e.steps ?? 0,
+          caloriesBurned: e.caloriesBurned ?? 0,
+          workoutSummary: e.workoutSummary ?? "",
+          topPriorities: Array.isArray(e.topPriorities)
+            ? e.topPriorities.join("\n")
+            : e.topPriorities ?? "",
+          todayGoal: e.todayGoal ?? "",
+          learningLog: e.learningLog ?? "",
+          biggestAchievement: e.biggestAchievement ?? "",
+          mistakesMade: e.mistakesMade ?? "",
+          challengesFaced: e.challengesFaced ?? "",
+          lessonsLearned: e.lessonsLearned ?? "",
+          gratitude: Array.isArray(e.gratitude)
+            ? e.gratitude.join("\n")
+            : e.gratitude ?? "",
+          tomorrowsFocus: e.tomorrowsFocus ?? "",
+          tags: Array.isArray(e.tags) ? e.tags.join(", ") : e.tags ?? "",
+          customFieldsData: e.customFieldsData ?? {},
+        });
+        setSelectedTemplate(
+          e.templateId ||
+            (e.templateType ? `sys_${e.templateType}` : "sys_default"),
+        );
+      } catch (err) {
+        if (active) {
+          console.error("Error loading date entry:", err);
+          setLoadError(
+            err.response?.data?.message ||
+              "Could not load this date's journal entry. Try again before saving.",
+          );
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
     }
-  }, [date]);
+
+    loadEntryForDate();
+    return () => {
+      active = false;
+    };
+  }, [date, loadNonce]);
 
   async function fetchTemplates() {
     try {
@@ -63,52 +142,6 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
       setTemplates(res.data);
     } catch (err) {
       console.error("Failed to load templates:", err);
-    }
-  }
-
-  async function loadEntryForDate(targetDate) {
-    try {
-      setLoading(true);
-      const res = await api.get(`/journal/entries/date/${targetDate}`);
-      if (res.data.entry) {
-        const e = res.data.entry;
-        setForm({
-          title: e.title || "",
-          content: e.content || "",
-          mood: e.mood || "good",
-          moodScore: e.moodScore || 4,
-          energyLevel: e.energyLevel || 3,
-          stressLevel: e.stressLevel || 2,
-          productivityHours: e.productivityHours || 0,
-          learningHours: e.learningHours || 0,
-          sleepHours: e.sleepHours || 0,
-          waterIntake: e.waterIntake || 0,
-          weight: e.weight || 0,
-          steps: e.steps || 0,
-          caloriesBurned: e.caloriesBurned || 0,
-          workoutSummary: e.workoutSummary || "",
-          topPriorities: Array.isArray(e.topPriorities) ? e.topPriorities.join("\n") : e.topPriorities || "",
-          todayGoal: e.todayGoal || "",
-          learningLog: e.learningLog || "",
-          biggestAchievement: e.biggestAchievement || "",
-          mistakesMade: e.mistakesMade || "",
-          challengesFaced: e.challengesFaced || "",
-          lessonsLearned: e.lessonsLearned || "",
-          gratitude: Array.isArray(e.gratitude) ? e.gratitude.join("\n") : e.gratitude || "",
-          tomorrowsFocus: e.tomorrowsFocus || "",
-          tags: Array.isArray(e.tags) ? e.tags.join(", ") : e.tags || "",
-          customFieldsData: e.customFieldsData || {},
-        });
-        if (e.templateId) {
-          setSelectedTemplate(e.templateId);
-        } else if (e.templateType) {
-          setSelectedTemplate(`sys_${e.templateType}`);
-        }
-      }
-    } catch (err) {
-      console.error("Error loading date entry:", err);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -140,11 +173,12 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
       };
 
       await api.post("/journal/entries", payload);
-      setMessage("Journal entry saved successfully!");
+      setEntryExists(true);
+      setMessage(entryExists ? "Journal entry updated successfully!" : "Journal entry saved successfully!");
       if (onSaved) onSaved();
     } catch (err) {
       console.error("Failed to save entry:", err);
-      setMessage("Failed to save entry. Please try again.");
+      setMessage(err.response?.data?.message || "Failed to save entry. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -198,6 +232,14 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
         <div style={{ padding: "2rem", textAlign: "center" }}>Loading entry...</div>
       ) : (
         <>
+          {loadError && (
+            <div className={styles.errorNotice} role="alert">
+              <span>{loadError}</span>
+              <button type="button" onClick={() => setLoadNonce((value) => value + 1)}>
+                Retry
+              </button>
+            </div>
+          )}
           {/* Quick Title & Mood */}
           <div className={styles.sectionGrid}>
             <div className={styles.fieldGroup}>
@@ -405,11 +447,11 @@ export default function JournalEntryForm({ initialDate, onSaved }) {
 
           {/* Action Footer */}
           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <button type="submit" className={styles.submitBtn} disabled={saving}>
+            <button type="submit" className={styles.submitBtn} disabled={saving || Boolean(loadError)}>
               <FiSave size={18} />
-              {saving ? "Saving Entry..." : "Save Daily Entry"}
+              {saving ? "Saving Entry..." : entryExists ? "Update Daily Entry" : "Save Daily Entry"}
             </button>
-            {message && <span style={{ fontWeight: 700 }}>{message}</span>}
+            {message && <span style={{ fontWeight: 700 }} role="status">{message}</span>}
           </div>
         </>
       )}

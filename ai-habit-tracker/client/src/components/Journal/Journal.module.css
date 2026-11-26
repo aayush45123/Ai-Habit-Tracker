@@ -1,6 +1,9 @@
 /* Journal.module.css */
 
 .journalContainer {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
@@ -213,6 +216,36 @@
 .submitBtn:hover {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0px var(--color-border, #000000);
+}
+
+.errorNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #b91c1c;
+  background: #fef2f2;
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.errorNotice button {
+  border: 1px solid currentColor;
+  background: #fff;
+  color: inherit;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.submitBtn:disabled,
+.tabBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Feed List */
@@ -515,8 +548,51 @@
 }
 
 .calendarCellActive {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 95px;
+  padding: 0.6rem;
+  border: 1.5px solid var(--color-border, #000000);
+  background: var(--color-bg-primary, #f9fafb);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.35rem;
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.calendarDayToday {
+  border-width: 3px;
+  border-color: var(--color-accent-primary, #10b981);
+}
+
+.calendarDayHasEntry {
+  background: var(--color-bg-secondary, #fff);
+}
+
+.calendarWeekdays,
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.calendarWeekday {
+  padding: 0.5rem 0.2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.calendarDayEmpty {
+  min-height: 95px;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .calendarCellActive:hover {
@@ -562,6 +638,20 @@
   .submitBtn {
     width: 100%;
   }
+
+  .calendarWeekdays,
+  .calendarGrid {
+    gap: 0.25rem;
+  }
+
+  .calendarCellActive,
+  .calendarDayEmpty {
+    min-height: 68px;
+  }
+
+  .calendarCellActive {
+    padding: 0.3rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -583,6 +673,20 @@
   .moodBtn {
     padding: 0.4rem 0.6rem;
     font-size: 0.75rem;
+  }
+
+  .calendarWeekday {
+    font-size: 0.65rem;
+    padding: 0.25rem 0;
+  }
+
+  .calendarCellActive,
+  .calendarDayEmpty {
+    min-height: 58px;
+  }
+
+  .calendarCellActive {
+    gap: 0.15rem;
   }
 }
 

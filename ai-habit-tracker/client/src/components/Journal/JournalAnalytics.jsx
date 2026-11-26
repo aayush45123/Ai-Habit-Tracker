@@ -6,18 +6,22 @@ import { FiTrendingUp, FiCpu, FiCheckCircle, FiActivity, FiZap, FiTarget, FiBook
 export default function JournalAnalytics() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     fetchAnalytics();
-  }, []);
+  }, [reloadKey]);
 
   async function fetchAnalytics() {
     try {
       setLoading(true);
+      setError("");
       const res = await api.get("/journal/analytics");
       setData(res.data);
     } catch (err) {
       console.error("Failed to fetch journal analytics:", err);
+      setError(err.response?.data?.message || "Could not load journal analytics.");
     } finally {
       setLoading(false);
     }
@@ -27,7 +31,18 @@ export default function JournalAnalytics() {
     return <div style={{ padding: "2rem", textAlign: "center" }}>Computing intelligence analytics...</div>;
   }
 
-  if (!data || data.summary.totalEntries === 0) {
+  if (error) {
+    return (
+      <div className={styles.errorNotice} role="alert">
+        <span>{error}</span>
+        <button type="button" onClick={() => setReloadKey((value) => value + 1)}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!data || !data.summary || data.summary.totalEntries === 0) {
     return (
       <div className={styles.formCard} style={{ textAlign: "center" }}>
         <h2 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}><FiCpu /> Journal Intelligence Engine</h2>
@@ -47,7 +62,7 @@ export default function JournalAnalytics() {
         </h2>
 
         <div className={styles.statsGrid}>
-          {intelligenceInsights.map((ins, idx) => (
+          {(intelligenceInsights || []).map((ins, idx) => (
             <div key={idx} className={styles.insightCard}>
               <span className={styles.insightCategory}>{ins.category}</span>
               <div className={styles.insightTitle}>{ins.title}</div>
@@ -63,13 +78,13 @@ export default function JournalAnalytics() {
           <FiTrendingUp color="var(--color-accent-primary)" /> Habit Correlation Discoveries
         </h2>
 
-        {correlations.length === 0 ? (
+        {(correlations || []).length === 0 ? (
           <div className={styles.formCard}>
             <p className={styles.subtitle}>Continue logging to build statistical power for lifestyle correlation discovery.</p>
           </div>
         ) : (
           <div className={styles.statsGrid}>
-            {correlations.map((corr, idx) => (
+            {(correlations || []).map((corr, idx) => (
               <div
                 key={idx}
                 className={styles.insightCard}

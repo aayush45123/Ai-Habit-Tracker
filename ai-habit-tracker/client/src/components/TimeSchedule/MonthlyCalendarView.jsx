@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import styles from "./TimeSchedule.module.css";
 import { formatDateISO } from "../../utils/dateHelpers";
@@ -24,6 +24,7 @@ export default function MonthlyCalendarView({
   selectedDate,
   onSelectDate,
   monthlyCounts = {},
+  onMonthChange,
 }) {
   const [currentDateObj, setCurrentDateObj] = useState(() => {
     const [y, m, d] = (selectedDate || formatDateISO()).split("-").map(Number);
@@ -33,12 +34,24 @@ export default function MonthlyCalendarView({
   const year = currentDateObj.getFullYear();
   const month = currentDateObj.getMonth();
 
+  useEffect(() => {
+    if (!selectedDate) return;
+    const [selectedYear, selectedMonth, selectedDay] = selectedDate
+      .split("-")
+      .map(Number);
+    setCurrentDateObj(new Date(selectedYear, selectedMonth - 1, selectedDay || 1));
+  }, [selectedDate]);
+
   const handlePrevMonth = () => {
-    setCurrentDateObj(new Date(year, month - 1, 1));
+    const nextMonth = new Date(year, month - 1, 1);
+    setCurrentDateObj(nextMonth);
+    onMonthChange?.(formatDateISO(nextMonth));
   };
 
   const handleNextMonth = () => {
-    setCurrentDateObj(new Date(year, month + 1, 1));
+    const nextMonth = new Date(year, month + 1, 1);
+    setCurrentDateObj(nextMonth);
+    onMonthChange?.(formatDateISO(nextMonth));
   };
 
   // Build month cells
@@ -120,7 +133,8 @@ export default function MonthlyCalendarView({
           const countInfo = monthlyCounts[cell.dateStr] || { total: 0, completed: 0 };
 
           return (
-            <div
+            <button
+              type="button"
               key={idx}
               className={`${styles.monthDayCell} ${
                 !cell.isCurrentMonth ? styles.cellOtherMonth : ""
@@ -128,6 +142,7 @@ export default function MonthlyCalendarView({
                 cell.isSelected ? styles.cellSelected : ""
               }`}
               onClick={() => onSelectDate(cell.dateStr)}
+              aria-label={`${cell.dateStr}${countInfo.total ? `, ${countInfo.total} scheduled slots, ${countInfo.completed} completed` : ", no scheduled slots"}`}
             >
               <span className={styles.cellDayNum}>{cell.dayNumber}</span>
 
@@ -138,7 +153,7 @@ export default function MonthlyCalendarView({
                   </span>
                 </div>
               )}
-            </div>
+            </button>
           );
         })}
       </div>

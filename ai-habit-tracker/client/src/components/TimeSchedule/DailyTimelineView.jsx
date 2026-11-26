@@ -36,29 +36,41 @@ export default function DailyTimelineView({
   onOpenAddModal,
   onOpenPresetModal,
   onOpenCloneModal,
+  hasAnyEvents = false,
+  onClearFilters,
 }) {
   if (events.length === 0) {
     return (
       <div className={styles.timelineEmpty}>
         <FiClock className={styles.emptyIcon} />
-        <h3 className={styles.emptyTitle}>No Time Slots Scheduled</h3>
+        <h3 className={styles.emptyTitle}>
+          {hasAnyEvents ? "No Matching Time Slots" : "No Time Slots Scheduled"}
+        </h3>
         <p className={styles.emptyText}>
-          You have no events scheduled for <strong>{selectedDate}</strong>. Add tasks with start and end times or choose a pre-built daily routine.
+          {hasAnyEvents
+            ? "Try changing the category or status filters to see more of your schedule."
+            : <>You have no events scheduled for <strong>{selectedDate}</strong>. Add tasks with start and end times or choose a pre-built daily routine.</>}
         </p>
-        <div className={styles.emptyActions}>
-          <button className={styles.btnPrimary} onClick={onOpenAddModal}>
-            <FiPlus size={16} />
-            <span>Add First Slot</span>
+        {hasAnyEvents ? (
+          <button className={styles.btnSecondary} onClick={onClearFilters}>
+            Clear filters
           </button>
-          <button className={styles.btnSecondary} onClick={onOpenPresetModal}>
-            <FiSliders size={16} />
-            <span>Use Template</span>
-          </button>
-          <button className={styles.btnSecondary} onClick={onOpenCloneModal}>
-            <FiCopy size={16} />
-            <span>Copy From Another Day</span>
-          </button>
-        </div>
+        ) : (
+          <div className={styles.emptyActions}>
+            <button className={styles.btnPrimary} onClick={onOpenAddModal}>
+              <FiPlus size={16} />
+              <span>Add First Slot</span>
+            </button>
+            <button className={styles.btnSecondary} onClick={onOpenPresetModal}>
+              <FiSliders size={16} />
+              <span>Use Template</span>
+            </button>
+            <button className={styles.btnSecondary} onClick={onOpenCloneModal}>
+              <FiCopy size={16} />
+              <span>Copy From Another Day</span>
+            </button>
+          </div>
+        )}
       </div>
     );
   }

@@ -140,6 +140,19 @@
   gap: 1rem;
 }
 
+.formError {
+  margin: 0 1.5rem 1rem;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.weekGrid {
+  min-width: 0;
+  grid-template-columns: repeat(7, minmax(140px, 1fr));
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+}
+
 .emptyIcon {
   width: 52px;
   height: 52px;
@@ -354,15 +367,22 @@
   border: 2px solid var(--color-border, #000000);
   box-shadow: 3px 3px 0px var(--color-border, #000000);
   min-width: 140px;
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   min-height: 400px;
 }
 
 .weekColHeader {
+  width: 100%;
   padding: 0.75rem;
   border-bottom: 2px solid var(--color-border, #000000);
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
   background: var(--color-bg-primary, #ffffff);
+  color: inherit;
+  font: inherit;
   text-align: center;
   cursor: pointer;
   transition: background 0.15s;
@@ -403,6 +423,7 @@
 }
 
 .weekMiniCard {
+  width: 100%;
   background: var(--color-bg-primary, #ffffff);
   border: 1.5px solid var(--color-border, #000000);
   padding: 0.55rem;
@@ -412,6 +433,9 @@
   gap: 0.25rem;
   cursor: pointer;
   transition: transform 0.1s ease;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
 .weekMiniCard:hover {
@@ -499,6 +523,8 @@
 }
 
 .monthDayCell {
+  appearance: none;
+  width: 100%;
   min-height: 84px;
   background: var(--color-bg-primary, #ffffff);
   border: 1.5px solid var(--color-border, #000000);
@@ -508,6 +534,9 @@
   justify-content: space-between;
   cursor: pointer;
   transition: all 0.15s ease;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
 .monthDayCell:hover {
@@ -569,6 +598,28 @@
   align-items: center;
   justify-content: center;
   padding: 1.25rem;
+}
+
+.errorNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #b91c1c;
+  background: #fef2f2;
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.errorNotice button {
+  border: 1px solid currentColor;
+  background: #fff;
+  color: inherit;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
 }
 
 .modalBox {
@@ -707,6 +758,14 @@
   box-shadow: 5px 5px 0px #000000;
 }
 
+.btnPrimary:disabled,
+.btnSecondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ── Preset Cards ── */
 .presetsGrid {
   display: flex;
@@ -802,6 +861,23 @@
 
   .formRow {
     grid-template-columns: 1fr;
+  }
+
+  .monthContainer {
+    padding: 0.75rem;
+  }
+
+  .monthDayCell {
+    min-height: 62px;
+    padding: 0.3rem;
+  }
+
+  .eventCountBadge {
+    font-size: 0.6rem;
+  }
+
+  .weekGrid {
+    grid-template-columns: repeat(7, minmax(155px, 1fr));
   }
 }
 

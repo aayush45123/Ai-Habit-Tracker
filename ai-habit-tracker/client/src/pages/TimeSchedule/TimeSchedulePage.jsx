@@ -27,7 +27,6 @@ import {
   formatDateISO,
   formatDisplayDate,
   playChimeSound,
-  timeToMinutes,
 } from "../../utils/dateHelpers";
 
 // Local storage cache keys
@@ -37,7 +36,8 @@ function getCachedSchedule(date) {
   try {
     const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}${date}`);
     return raw ? JSON.parse(raw) : null;
-  } catch {
+  } catch (error) {
+    console.warn("Could not read the cached timetable:", error);
     return null;
   }
 }
@@ -45,7 +45,9 @@ function getCachedSchedule(date) {
 function setCachedSchedule(date, events) {
   try {
     localStorage.setItem(`${CACHE_KEY_PREFIX}${date}`, JSON.stringify(events));
-  } catch {}
+  } catch (error) {
+    console.warn("Could not cache the timetable:", error);
+  }
 }
 
 export default function TimeSchedulePage() {
@@ -73,22 +75,32 @@ export default function TimeSchedulePage() {
 
   // Reminder tracking ref to prevent duplicate chimes
   const alertedEventIdsRef = useRef(new Set());
+  const dayRequestIdRef = useRef(0);
+  const weekRequestIdRef = useRef(0);
+  const monthRequestIdRef = useRef(0);
+  const [dataError, setDataError] = useState("");
+  const [eventRequestError, setEventRequestError] = useState("");
+  const [weekError, setWeekError] = useState("");
+  const [monthError, setMonthError] = useState("");
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(""), 4000);
+    window.setTimeout(() => setToastMessage(""), 4000);
   };
 
   /**
    * Fetch events for selected day & summary
    */
   const fetchDayData = useCallback(async (date) => {
+    const requestId = ++dayRequestIdRef.current;
     try {
       setLoading(true);
+      setDataError("");
+      setSummary(null);
 
       // Try local cache first for instant display
       const cached = getCachedSchedule(date);
-      if (cached && cached.length) {
+      if (Array.isArray(cached)) {
         setEvents(cached);
       }
 
@@ -98,19 +110,30 @@ export default function TimeSchedulePage() {
         api.get(`/schedule?date=${date}`),
       ]);
 
+      if (requestId !== dayRequestIdRef.current) return;
+
+      const failures = [];
       if (eventsRes.status === "fulfilled" && eventsRes.value.data.success) {
         const fetched = eventsRes.value.data.events || [];
         setEvents(fetched);
         setCachedSchedule(date, fetched);
+      } else {
+        failures.push("Could not refresh scheduled events.");
       }
 
       if (summaryRes.status === "fulfilled" && summaryRes.value.data.success) {
         setSummary(summaryRes.value.data);
+      } else {
+        failures.push("Could not refresh timetable summary.");
       }
+      setDataError(failures.join(" "));
     } catch (err) {
-      console.warn("Using offline / local schedule data:", err);
+      console.error("Could not load timetable data:", err);
+      if (requestId === dayRequestIdRef.current) {
+        setDataError("Could not load timetable data. Please try again.");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === dayRequestIdRef.current) setLoading(false);
     }
   }, []);
 
@@ -118,14 +141,23 @@ export default function TimeSchedulePage() {
    * Fetch month counts for monthly calendar view
    */
   const fetchMonthlyData = useCallback(async (date) => {
+    const requestId = ++monthRequestIdRef.current;
+    setMonthlyCounts({});
+    setMonthError("");
     try {
       const monthStr = date.slice(0, 7); // YYYY-MM
       const res = await api.get(`/schedule/monthly-counts?month=${monthStr}`);
+      if (requestId !== monthRequestIdRef.current) return;
       if (res.data.success) {
         setMonthlyCounts(res.data.countsByDate || {});
+      } else {
+        setMonthError("Could not load monthly timetable counts.");
       }
     } catch (err) {
-      console.warn("Could not load monthly counts:", err);
+      console.error("Could not load monthly counts:", err);
+      if (requestId === monthRequestIdRef.current) {
+        setMonthError("Could not load monthly timetable counts.");
+      }
     }
   }, []);
 
@@ -133,6 +165,9 @@ export default function TimeSchedulePage() {
    * Fetch weekly events for grid view
    */
   const fetchWeekData = useCallback(async (date) => {
+    const requestId = ++weekRequestIdRef.current;
+    setWeekEvents([]);
+    setWeekError("");
     try {
       // Calculate current week range
       const [y, m, d] = date.split("-").map(Number);
@@ -149,11 +184,17 @@ export default function TimeSchedulePage() {
       const endDate = formatDateISO(sunday);
 
       const res = await api.get(`/schedule?startDate=${startDate}&endDate=${endDate}`);
+      if (requestId !== weekRequestIdRef.current) return;
       if (res.data.success) {
         setWeekEvents(res.data.events || []);
+      } else {
+        setWeekError("Could not load weekly timetable events.");
       }
     } catch (err) {
-      console.warn("Could not load weekly events:", err);
+      console.error("Could not load weekly events:", err);
+      if (requestId === weekRequestIdRef.current) {
+        setWeekError("Could not load weekly timetable events.");
+      }
     }
   }, []);
 
@@ -215,12 +256,6 @@ export default function TimeSchedulePage() {
     tm.setDate(tm.getDate() + 1);
     setSelectedDate(formatDateISO(tm));
   };
-  const handleSelectYesterday = () => {
-    const yest = new Date();
-    yest.setDate(yest.getDate() - 1);
-    setSelectedDate(formatDateISO(yest));
-  };
-
   const handlePrevDay = () => {
     const [y, m, d] = selectedDate.split("-").map(Number);
     const prev = new Date(y, m - 1, d - 1);
@@ -235,21 +270,20 @@ export default function TimeSchedulePage() {
 
   // CRUD Actions
   const handleSaveEvent = async (eventData, editId) => {
+    setEventRequestError("");
     try {
       if (editId) {
         const res = await api.put(`/schedule/${editId}`, eventData);
-        if (res.data.success) {
-          showToast("Schedule slot updated successfully");
-        }
+        if (!res.data?.success) throw new Error("The schedule slot could not be updated.");
+        showToast("Schedule slot updated successfully");
       } else {
         const res = await api.post("/schedule", eventData);
-        if (res.data.success) {
-          showToast(
-            res.data.hasConflict
-              ? "Slot added (Note: Contains time overlap with an existing task)"
-              : "Time slot added to timetable"
-          );
-        }
+        if (!res.data?.success) throw new Error("The schedule slot could not be added.");
+        showToast(
+          res.data.hasConflict
+            ? "Slot added with a time overlap. Review the conflict warning."
+            : "Time slot added to timetable",
+        );
       }
 
       setIsEventModalOpen(false);
@@ -259,55 +293,23 @@ export default function TimeSchedulePage() {
       await fetchMonthlyData(selectedDate);
     } catch (err) {
       console.error("Save error:", err);
-      // Fallback local save if server fails
-      const currentList = [...events];
-      if (editId) {
-        const idx = currentList.findIndex((x) => x._id === editId);
-        if (idx !== -1) {
-          currentList[idx] = { ...currentList[idx], ...eventData };
-        }
-      } else {
-        const localDoc = {
-          ...eventData,
-          _id: `local_${Date.now()}`,
-          startMinutes: timeToMinutes(eventData.startTime),
-          endMinutes: timeToMinutes(eventData.endTime),
-          status: "pending",
-        };
-        currentList.push(localDoc);
-      }
-      currentList.sort((a, b) => a.startMinutes - b.startMinutes);
-      setEvents(currentList);
-      setCachedSchedule(selectedDate, currentList);
-      setIsEventModalOpen(false);
-      setEditingEvent(null);
-      showToast("Saved to local timetable!");
+      setEventRequestError(
+        err.response?.data?.message || err.message || "Could not save this time slot.",
+      );
     }
   };
 
   const handleToggleStatus = async (id) => {
     try {
       const res = await api.patch(`/schedule/${id}/status`, {});
-      if (res.data.success) {
-        showToast(res.data.message);
-      }
+      if (!res.data?.success) throw new Error("Could not update task status.");
+      showToast(res.data.message);
       await fetchDayData(selectedDate);
       await fetchWeekData(selectedDate);
       await fetchMonthlyData(selectedDate);
     } catch (err) {
-      // Local toggle fallback
-      const updated = events.map((ev) => {
-        if (ev._id === id) {
-          return {
-            ...ev,
-            status: ev.status === "completed" ? "pending" : "completed",
-          };
-        }
-        return ev;
-      });
-      setEvents(updated);
-      setCachedSchedule(selectedDate, updated);
-      showToast("Status updated");
+      console.error("Status update error:", err);
+      showToast(err.response?.data?.message || "Could not update task status.");
     }
   };
 
@@ -317,20 +319,21 @@ export default function TimeSchedulePage() {
     }
 
     try {
-      await api.delete(`/schedule/${id}`);
+      const res = await api.delete(`/schedule/${id}`);
+      if (!res.data?.success) throw new Error("Could not remove this time slot.");
       showToast("Schedule slot removed");
+      setEventRequestError("");
       setIsEventModalOpen(false);
       setEditingEvent(null);
       await fetchDayData(selectedDate);
       await fetchWeekData(selectedDate);
       await fetchMonthlyData(selectedDate);
     } catch (err) {
-      const filtered = events.filter((ev) => ev._id !== id);
-      setEvents(filtered);
-      setCachedSchedule(selectedDate, filtered);
-      setIsEventModalOpen(false);
-      setEditingEvent(null);
-      showToast("Removed slot");
+      console.error("Delete error:", err);
+      setEventRequestError(
+        err.response?.data?.message || "Could not remove this time slot.",
+      );
+      showToast(err.response?.data?.message || "Could not remove this time slot.");
     }
   };
 
@@ -341,9 +344,8 @@ export default function TimeSchedulePage() {
         targetDate,
         clearExisting,
       });
-      if (res.data.success) {
-        showToast(res.data.message);
-      }
+      if (!res.data?.success) throw new Error("Could not apply this template.");
+      showToast(res.data.message);
       setIsPresetModalOpen(false);
       setSelectedDate(targetDate);
       await fetchDayData(targetDate);
@@ -361,9 +363,8 @@ export default function TimeSchedulePage() {
         sourceDate,
         targetDate,
       });
-      if (res.data.success) {
-        showToast(res.data.message);
-      }
+      if (!res.data?.success) throw new Error("Could not copy this day.");
+      showToast(res.data.message);
       setIsCloneModalOpen(false);
       setSelectedDate(targetDate);
       await fetchDayData(targetDate);
@@ -395,7 +396,7 @@ export default function TimeSchedulePage() {
     totalEvents > 0 ? Math.round((completedCount / totalEvents) * 100) : 0;
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} aria-busy={loading}>
       {/* ── TOAST ALERT ── */}
       {toastMessage && (
         <div className={styles.toastNotice}>
@@ -428,6 +429,7 @@ export default function TimeSchedulePage() {
             className={styles.actionBtnPrimary}
             onClick={() => {
               setEditingEvent(null);
+              setEventRequestError("");
               setIsEventModalOpen(true);
             }}
           >
@@ -459,6 +461,20 @@ export default function TimeSchedulePage() {
         nextUpcomingEvent={summary?.nextUpcomingEvent}
         onToggleStatus={handleToggleStatus}
       />
+
+      {dataError && (
+        <div className={styles.errorNotice} role="alert">
+          <span>{dataError}</span>
+          <button type="button" onClick={() => fetchDayData(selectedDate)}>
+            Retry
+          </button>
+        </div>
+      )}
+      {loading && (
+        <div className={styles.loadingState} role="status" aria-live="polite">
+          Updating timetable…
+        </div>
+      )}
 
       {/* ── METRICS SUMMARY ROW ── */}
       <div className={styles.statsGrid}>
@@ -522,7 +538,7 @@ export default function TimeSchedulePage() {
             onChange={(e) => setSelectedDate(e.target.value)}
           />
 
-          <span style={{ fontSize: "0.9rem", fontWeight: 800, marginLeft: "0.5rem" }}>
+          <span className={styles.selectedDateLabel}>
             {formatDisplayDate(selectedDate)}
           </span>
         </div>
@@ -601,6 +617,7 @@ export default function TimeSchedulePage() {
           events={filteredEvents}
           selectedDate={selectedDate}
           onEditEvent={(event) => {
+            setEventRequestError("");
             setEditingEvent(event);
             setIsEventModalOpen(true);
           }}
@@ -608,14 +625,29 @@ export default function TimeSchedulePage() {
           onToggleStatus={handleToggleStatus}
           onOpenAddModal={() => {
             setEditingEvent(null);
+            setEventRequestError("");
             setIsEventModalOpen(true);
           }}
           onOpenPresetModal={() => setIsPresetModalOpen(true)}
           onOpenCloneModal={() => setIsCloneModalOpen(true)}
+          hasAnyEvents={events.length > 0}
+          onClearFilters={() => {
+            setCategoryFilter("all");
+            setStatusFilter("all");
+          }}
         />
       )}
 
-      {activeView === "weekly" && (
+      {activeView === "weekly" && weekError && (
+        <div className={styles.errorNotice} role="alert">
+          <span>{weekError}</span>
+          <button type="button" onClick={() => fetchWeekData(selectedDate)}>
+            Retry
+          </button>
+        </div>
+      )}
+
+      {activeView === "weekly" && !weekError && (
         <WeeklyGridView
           weekEvents={weekEvents}
           selectedDate={selectedDate}
@@ -624,18 +656,29 @@ export default function TimeSchedulePage() {
             setActiveView("timeline");
           }}
           onEditEvent={(event) => {
+            setEventRequestError("");
             setEditingEvent(event);
             setIsEventModalOpen(true);
           }}
           onAddForDate={(date) => {
             setSelectedDate(date);
             setEditingEvent(null);
+            setEventRequestError("");
             setIsEventModalOpen(true);
           }}
         />
       )}
 
-      {activeView === "monthly" && (
+      {activeView === "monthly" && monthError && (
+        <div className={styles.errorNotice} role="alert">
+          <span>{monthError}</span>
+          <button type="button" onClick={() => fetchMonthlyData(selectedDate)}>
+            Retry
+          </button>
+        </div>
+      )}
+
+      {activeView === "monthly" && !monthError && (
         <MonthlyCalendarView
           selectedDate={selectedDate}
           onSelectDate={(date) => {
@@ -643,6 +686,7 @@ export default function TimeSchedulePage() {
             setActiveView("timeline");
           }}
           monthlyCounts={monthlyCounts}
+          onMonthChange={fetchMonthlyData}
         />
       )}
 
@@ -650,6 +694,7 @@ export default function TimeSchedulePage() {
       <EventModal
         isOpen={isEventModalOpen}
         onClose={() => {
+          setEventRequestError("");
           setIsEventModalOpen(false);
           setEditingEvent(null);
         }}
@@ -658,6 +703,7 @@ export default function TimeSchedulePage() {
         initialDate={selectedDate}
         editEvent={editingEvent}
         existingEvents={events}
+        requestError={eventRequestError}
       />
 
       <PresetModal

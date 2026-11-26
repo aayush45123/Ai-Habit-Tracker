@@ -314,6 +314,7 @@ export const getAIImprovements = async (req, res) => {
 
     // Save suggestions to timetable
     timetable.aiImprovements = suggestions;
+    timetable.aiAssessment = overallAssessment;
     timetable.hasRequestedAI = true;
     timetable.lastImprovedAt = new Date();
     await timetable.save();
@@ -424,6 +425,7 @@ export const updateTimetable = async (req, res) => {
       // Reset AI improvements when schedule changes
       timetable.hasRequestedAI = false;
       timetable.aiImprovements = [];
+      timetable.aiAssessment = undefined;
     }
 
     await timetable.save();

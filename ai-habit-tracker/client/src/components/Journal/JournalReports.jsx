@@ -8,14 +8,17 @@ export default function JournalReports() {
   const [monthly, setMonthly] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeReport, setActiveReport] = useState("weekly");
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     fetchReports();
-  }, []);
+  }, [reloadKey]);
 
   async function fetchReports() {
     try {
       setLoading(true);
+      setError("");
       const [wRes, mRes] = await Promise.all([
         api.get("/journal/reports/weekly"),
         api.get("/journal/reports/monthly"),
@@ -24,6 +27,7 @@ export default function JournalReports() {
       setMonthly(mRes.data);
     } catch (err) {
       console.error("Failed to load reports:", err);
+      setError(err.response?.data?.message || "Could not load journal reports.");
     } finally {
       setLoading(false);
     }
@@ -33,7 +37,22 @@ export default function JournalReports() {
     return <div style={{ padding: "2rem", textAlign: "center" }}>Generating reports...</div>;
   }
 
+  if (error) {
+    return (
+      <div className={styles.errorNotice} role="alert">
+        <span>{error}</span>
+        <button type="button" onClick={() => setReloadKey((value) => value + 1)}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const report = activeReport === "weekly" ? weekly : monthly;
+  const takeaways = [
+    ...(report?.improvements || []),
+    ...(report?.commonMistakes || []),
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
@@ -98,7 +117,7 @@ export default function JournalReports() {
           {report.wins && report.wins.length > 0 && (
             <div className={styles.fieldGroup}>
               <h3 style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
-                <FiAward color="#10b981" /> Top Achievements This Week
+                <FiAward color="#10b981" /> Top Achievements This {activeReport === "weekly" ? "Week" : "Month"}
               </h3>
               <ul style={{ margin: 0, paddingLeft: "1.25rem", lineHeight: "1.6" }}>
                 {report.wins.map((w, idx) => (
@@ -111,14 +130,13 @@ export default function JournalReports() {
           )}
 
           {/* Areas for Improvement / Common Mistakes */}
-          {((report.improvements && report.improvements.length > 0) ||
-            (report.commonMistakes && report.commonMistakes.length > 0)) && (
+          {takeaways.length > 0 && (
             <div className={styles.fieldGroup}>
               <h3 style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
                 <FiAlertCircle color="#f59e0b" /> Key Takeaways & Lessons
               </h3>
               <ul style={{ margin: 0, paddingLeft: "1.25rem", lineHeight: "1.6" }}>
-                {(report.improvements || report.commonMistakes).map((m, idx) => (
+                {takeaways.map((m, idx) => (
                   <li key={idx}>{m}</li>
                 ))}
               </ul>
