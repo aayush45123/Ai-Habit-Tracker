@@ -317,28 +317,31 @@ export async function getEntries(req, res) {
     }
 
     if (search) {
+      const safeSearch = String(search).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { content: { $regex: search, $options: "i" } },
-        { learningLog: { $regex: search, $options: "i" } },
-        { biggestAchievement: { $regex: search, $options: "i" } },
-        { lessonsLearned: { $regex: search, $options: "i" } },
+        { title: { $regex: safeSearch, $options: "i" } },
+        { content: { $regex: safeSearch, $options: "i" } },
+        { learningLog: { $regex: safeSearch, $options: "i" } },
+        { biggestAchievement: { $regex: safeSearch, $options: "i" } },
+        { lessonsLearned: { $regex: safeSearch, $options: "i" } },
       ];
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    const safePage = Math.max(1, parseInt(page, 10) || 1);
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
     const entries = await JournalEntry.find(filter)
       .sort({ date: -1 })
       .skip(skip)
-      .limit(Number(limit));
+      .limit(safeLimit);
 
     const total = await JournalEntry.countDocuments(filter);
 
     res.json({
       entries,
       total,
-      page: Number(page),
-      totalPages: Math.ceil(total / Number(limit)) || 1,
+      page: safePage,
+      totalPages: Math.ceil(total / safeLimit) || 1,
     });
   } catch (err) {
     console.error("Error listing journal entries:", err);
@@ -421,10 +424,19 @@ export async function updateCustomTemplate(req, res) {
     const userId = req.user._id || req.user;
     const { id } = req.params;
 
+    const { name, description, category, icon, fields, prompts } = req.body;
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (description !== undefined) updates.description = description;
+    if (category !== undefined) updates.category = category;
+    if (icon !== undefined) updates.icon = icon;
+    if (fields !== undefined) updates.fields = fields;
+    if (prompts !== undefined) updates.prompts = prompts;
+
     const updated = await JournalTemplate.findOneAndUpdate(
       { _id: id, userId },
-      { $set: req.body },
-      { new: true }
+      { $set: updates },
+      { new: true, runValidators: true }
     );
 
     if (!updated) {

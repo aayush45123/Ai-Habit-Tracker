@@ -1,6 +1,5 @@
 import admin from "firebase-admin";
 import axios from "axios";
-import jwt from "jsonwebtoken";
 
 let isFirebaseInitialized = false;
 
@@ -99,20 +98,6 @@ export const verifyFirebaseIdToken = async (idToken) => {
     } catch (apiErr) {
       console.warn("Identity Toolkit API lookup failed:", apiErr.response?.data?.error?.message || apiErr.message);
     }
-  }
-
-  // 3. Fallback JWT decode (handles token parsing when service account isn't loaded yet)
-  const decoded = jwt.decode(idToken);
-  if (decoded && (decoded.sub || decoded.user_id)) {
-    return {
-      uid: decoded.sub || decoded.user_id,
-      email: decoded.email || null,
-      phoneNumber: decoded.phone_number || null,
-      name: decoded.name || "",
-      picture: decoded.picture || "",
-      emailVerified: decoded.email_verified ?? true,
-      signInProvider: decoded.firebase?.sign_in_provider || "firebase",
-    };
   }
 
   throw new Error("Unable to verify ID token. Invalid token signature or format.");

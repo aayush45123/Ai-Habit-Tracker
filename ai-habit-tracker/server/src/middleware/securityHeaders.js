@@ -22,6 +22,12 @@ export default function securityHeaders(req, res, next) {
   // Clickjacking protection
   res.setHeader("X-Frame-Options", "DENY");
 
+  // Content Security Policy
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://res.cloudinary.com; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+  );
+
   // Modern Cross-site scripting filter behavior
   res.setHeader("X-XSS-Protection", "0");
 

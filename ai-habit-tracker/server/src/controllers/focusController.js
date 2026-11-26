@@ -8,12 +8,16 @@ import { recordActivityEvent } from "../services/activity.service.js";
 export const logFocus = async (req, res) => {
   try {
     const userId = req.user._id || req.user;
-    const durationMin = Number(req.body.durationMin) || 0;
-    const sessionType = req.body.sessionType || "focus";
-    const status = req.body.status || "completed";
+    const durationMin = Math.round(Number(req.body.durationMin) || 0);
+    const sessionType = ["focus", "short_break", "long_break"].includes(req.body.sessionType)
+      ? req.body.sessionType
+      : "focus";
+    const status = ["completed", "skipped"].includes(req.body.status)
+      ? req.body.status
+      : "completed";
 
-    if (durationMin <= 0 && status === "completed") {
-      return res.status(400).json({ message: "Invalid duration" });
+    if (durationMin < 0 || durationMin > 480 || (durationMin <= 0 && status === "completed")) {
+      return res.status(400).json({ message: "Invalid duration (must be between 1 and 480 minutes)" });
     }
 
     const date = getTodayIST();
@@ -37,7 +41,10 @@ export const logFocus = async (req, res) => {
     return res.status(201).json({ message: "Focus logged", log });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Server error", err: err.message });
+    return res.status(500).json({
+      message: "Server error",
+      ...(process.env.NODE_ENV !== "production" && { err: err.message }),
+    });
   }
 };
 
@@ -76,7 +83,10 @@ export const getTodayCount = async (req, res) => {
 
     return res.json({ date, count, skipped, totalMin });
   } catch (err) {
-    return res.status(500).json({ message: "Server error", err: err.message });
+    return res.status(500).json({
+      message: "Server error",
+      ...(process.env.NODE_ENV !== "production" && { err: err.message }),
+    });
   }
 };
 
@@ -84,7 +94,7 @@ export const getTodayCount = async (req, res) => {
 export const getStats = async (req, res) => {
   try {
     const userId = req.user._id || req.user;
-    const days = Number(req.query.days) || 30;
+    const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
 
     const now = new Date();
     const istNow = new Date(now.getTime() + 330 * 60000);
@@ -156,6 +166,9 @@ export const getStats = async (req, res) => {
 
     return res.json({ docs });
   } catch (err) {
-    return res.status(500).json({ message: "Server error", err: err.message });
+    return res.status(500).json({
+      message: "Server error",
+      ...(process.env.NODE_ENV !== "production" && { err: err.message }),
+    });
   }
 };

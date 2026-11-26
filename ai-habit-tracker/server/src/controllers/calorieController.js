@@ -6,6 +6,18 @@ import User from "../models/User.js";
 import { normalizeDateIST } from "../utils/getTodayIST.js";
 import { trainFoodMemory } from "../services/foodMemoryService.js";
 
+const sanitizeImageUrl = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  const trimmed = rawUrl.trim();
+  if (trimmed.length > 500) return "";
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "https:" ? parsed.toString() : "";
+  } catch {
+    return "";
+  }
+};
+
 /* ============================
    SAVE FOOD LOG (Single or Batch)
 ============================ */
@@ -13,6 +25,7 @@ export const addFoodLog = async (req, res) => {
   try {
     const userId = req.user?._id;
     const { foodName, calories, protein, imageUrl, date, items } = req.body;
+    const safeImageUrl = sanitizeImageUrl(imageUrl);
 
     // Determine the log date — default to today, allow past dates only
     let logDate = normalizeDateIST(new Date());
@@ -36,7 +49,7 @@ export const addFoodLog = async (req, res) => {
           foodName: item.foodName.trim(),
           calories: Math.max(0, Math.round(Number(item.calories))),
           protein: Math.max(0, Math.round(Number(item.protein || 0))),
-          imageUrl,
+          imageUrl: sanitizeImageUrl(item.imageUrl) || safeImageUrl,
           date: logDate,
         });
         createdItems.push(food);
@@ -68,7 +81,7 @@ export const addFoodLog = async (req, res) => {
       foodName: foodName.trim(),
       calories: Math.max(0, Math.round(Number(calories))),
       protein: Math.max(0, Math.round(Number(protein || 0))),
-      imageUrl,
+      imageUrl: safeImageUrl,
       date: logDate,
     });
 

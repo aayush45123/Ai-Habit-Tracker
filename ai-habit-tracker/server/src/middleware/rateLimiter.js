@@ -5,7 +5,9 @@
  * Tracks requests per IP with sliding window buckets.
  */
 
-// In-memory sliding window store
+import { redisClient, isRedisConnected } from "../config/redis.js";
+
+// In-memory sliding window store (fallback when Redis is unavailable)
 const memoryBuckets = new Map();
 
 // Periodic cleanup of stale memory records every 5 minutes
@@ -32,40 +34,66 @@ export function createRateLimiter({
   message = "Too many requests, please try again later.",
   keyPrefix = "rl",
 }) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     // Skip rate limiting in automated test mode
     if (process.env.NODE_ENV === "test" && !req.headers["x-test-ratelimit"]) {
       return next();
     }
 
+    const forwarded = req.headers["x-forwarded-for"];
+    const rightmostForwarded = typeof forwarded === "string"
+      ? forwarded.split(",").pop()?.trim()
+      : undefined;
     const clientIp =
-      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.ip ||
+      rightmostForwarded ||
       req.socket?.remoteAddress ||
       "unknown-ip";
 
     const key = `${keyPrefix}:${clientIp}`;
     const now = Date.now();
+    const windowSec = Math.ceil(windowMs / 1000);
 
-    let record = memoryBuckets.get(key);
+    let count;
+    let resetTime = now + windowMs;
 
-    if (!record || now > record.resetTime) {
-      record = {
-        count: 1,
-        resetTime: now + windowMs,
-      };
-      memoryBuckets.set(key, record);
-    } else {
-      record.count += 1;
+    if (isRedisConnected && redisClient && process.env.NODE_ENV !== "test") {
+      try {
+        count = await redisClient.incr(key);
+        if (count === 1) {
+          await redisClient.expire(key, windowSec);
+        } else {
+          const ttl = await redisClient.ttl(key);
+          if (ttl > 0) resetTime = now + ttl * 1000;
+        }
+      } catch {
+        count = undefined;
+      }
     }
 
-    const remaining = Math.max(0, max - record.count);
-    const retryAfterSec = Math.ceil((record.resetTime - now) / 1000);
+    if (count === undefined) {
+      let record = memoryBuckets.get(key);
+      if (!record || now > record.resetTime) {
+        record = {
+          count: 1,
+          resetTime: now + windowMs,
+        };
+        memoryBuckets.set(key, record);
+      } else {
+        record.count += 1;
+      }
+      count = record.count;
+      resetTime = record.resetTime;
+    }
+
+    const remaining = Math.max(0, max - count);
+    const retryAfterSec = Math.max(1, Math.ceil((resetTime - now) / 1000));
 
     res.setHeader("X-RateLimit-Limit", max);
     res.setHeader("X-RateLimit-Remaining", remaining);
-    res.setHeader("X-RateLimit-Reset", Math.ceil(record.resetTime / 1000));
+    res.setHeader("X-RateLimit-Reset", Math.ceil(resetTime / 1000));
 
-    if (record.count > max) {
+    if (count > max) {
       res.setHeader("Retry-After", retryAfterSec);
       return res.status(429).json({
         success: false,

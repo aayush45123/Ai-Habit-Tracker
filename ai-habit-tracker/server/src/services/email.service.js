@@ -27,6 +27,15 @@ function getBrevoHeaders() {
   };
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ──────────────────────────────────────────
 // Helper: Load & interpolate HTML template
 // ──────────────────────────────────────────
@@ -40,7 +49,8 @@ function loadTemplate(templateName, variables = {}) {
   let html = fs.readFileSync(filePath, "utf-8");
 
   for (const [key, value] of Object.entries(variables)) {
-    html = html.replace(new RegExp(`{{${key}}}`, "g"), value);
+    const safeVal = key === "HABIT_LIST" ? String(value ?? "") : escapeHtml(value);
+    html = html.replace(new RegExp(`{{${key}}}`, "g"), safeVal);
   }
 
   return html;
@@ -85,7 +95,7 @@ async function sendEmail({ to, subject, html }) {
  */
 export async function sendDailyReminderEmail(user, incompleteHabits) {
   const habitListHtml = incompleteHabits
-    .map((title) => `<li style="padding:6px 0;border-bottom:1px solid #f0f0f0;">${title}</li>`)
+    .map((title) => `<li style="padding:6px 0;border-bottom:1px solid #f0f0f0;">${escapeHtml(title)}</li>`)
     .join("");
 
   const html = loadTemplate("dailyReminder.html", {

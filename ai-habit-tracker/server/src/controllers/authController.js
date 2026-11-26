@@ -242,7 +242,6 @@ export const login = async (req, res) => {
     res.json({
       message: "Login successful",
       token: accessToken, // Backward compatibility for Bearer auth
-      refreshToken,
       sessionId,
       user: {
         id: user._id,
@@ -314,7 +313,6 @@ export const refreshTokens = async (req, res) => {
     return res.json({
       message: "Tokens refreshed successfully",
       token: accessToken,
-      refreshToken: newRefreshToken,
     });
   } catch (error) {
     console.error("Refresh token error:", error);
@@ -571,7 +569,6 @@ export const firebaseAuth = async (req, res) => {
     return res.json({
       message: "Authentication successful",
       token: accessToken,
-      refreshToken,
       sessionId,
       user: {
         id: user._id,

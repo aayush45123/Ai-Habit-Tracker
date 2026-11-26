@@ -82,18 +82,21 @@ export const getUsers = async (req, res) => {
     }
 
     if (search) {
+      const safeSearch = String(search).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { name: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
       ];
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    const safePage = Math.max(1, parseInt(page, 10) || 1);
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
     const users = await User.find(query)
       .select("-password")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Number(limit));
+      .limit(safeLimit);
 
     const total = await User.countDocuments(query);
 
@@ -101,8 +104,8 @@ export const getUsers = async (req, res) => {
       users,
       pagination: {
         total,
-        page: Number(page),
-        pages: Math.ceil(total / Number(limit)),
+        page: safePage,
+        pages: Math.ceil(total / safeLimit) || 1,
       },
     });
   } catch (error) {

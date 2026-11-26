@@ -46,13 +46,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = (newToken, newSessionId, newRefreshToken) => {
+  const login = (newToken, newSessionId) => {
     localStorage.setItem("token", newToken);
+    localStorage.removeItem("refreshToken");
     if (newSessionId) {
       localStorage.setItem("sessionId", newSessionId);
-    }
-    if (newRefreshToken) {
-      localStorage.setItem("refreshToken", newRefreshToken);
     }
     setToken(newToken);
   };
@@ -60,11 +58,10 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     const currentSessionId = localStorage.getItem("sessionId");
     const currentToken = localStorage.getItem("token");
-    const currentRefreshToken = localStorage.getItem("refreshToken");
 
-    // Call server-side revocation
+    // Call server-side revocation (HttpOnly refreshToken cookie sent automatically)
     try {
-      api.post("/auth/logout", { refreshToken: currentRefreshToken }).catch(() => {});
+      api.post("/auth/logout", {}).catch(() => {});
     } catch {}
 
     // Use native fetch with keepalive so it fires even during page unload,

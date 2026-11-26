@@ -54,7 +54,10 @@ export const sendMessage = async (req, res) => {
 
     const messages = history
       .reverse()
-      .map((m) => ({ role: m.role, content: m.message }));
+      .map((m) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: String(m.message || "").slice(0, 2000),
+      }));
 
     let reply = "";
     try {

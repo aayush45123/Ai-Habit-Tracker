@@ -2,11 +2,16 @@ import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
 import requireProfileCompleted from "../middleware/requireProfileCompleted.js";
 import validate from "../middleware/validate.middleware.js";
+import { z } from "zod";
 import {
   createHabitSchema,
   updateHabitSchema,
   logHabitSchema,
 } from "../validators/habit.validator.js";
+
+const bulkHabitsSchema = z.object({
+  habits: z.array(createHabitSchema).min(1).max(20),
+});
 import {
   addHabit,
   addHabitsBulk,
@@ -26,7 +31,7 @@ router.use(authMiddleware);
 router.use(requireProfileCompleted);
 
 router.post("/add", validate(createHabitSchema), addHabit);
-router.post("/add-bulk", addHabitsBulk);
+router.post("/add-bulk", validate(bulkHabitsSchema), addHabitsBulk);
 router.get("/all", getAllHabits);
 router.get("/analytics/all", getAnalytics);
 router.get("/:id", getHabitById);

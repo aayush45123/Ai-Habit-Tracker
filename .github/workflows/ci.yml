@@ -31,21 +31,25 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: |
+            package-lock.json
             ai-habit-tracker/package-lock.json
 
-      - name: Install Workspace Dependencies
-        run: cd ai-habit-tracker && npm ci --include=dev
+      - name: Install Client Dependencies
+        run: cd ai-habit-tracker/client && npm ci --include=dev
+
+      - name: Install Server Dependencies
+        run: cd ai-habit-tracker/server && npm ci --include=dev
 
       - name: Check Server Syntax (node --check)
         run: npm run lint:server
 
       - name: Lint Client Source (ESLint)
-        run: cd ai-habit-tracker/client && npm run lint
+        run: cd ai-habit-tracker/client && npx eslint .
         continue-on-error: true
 
       - name: Run Full Test Suite (41 Tests)
         run: npm test
 
       - name: Verify Production Bundle (Vite Build)
-        run: npm run build
+        run: cd ai-habit-tracker/client && npx vite build
 

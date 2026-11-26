@@ -29,7 +29,7 @@ router.post("/signup", authLimiter, validate(signupSchema), signup);
 router.post("/login", authLimiter, validate(loginSchema), login);
 
 // Token refresh & session revocation
-router.post("/refresh", refreshTokens);
+router.post("/refresh", authLimiter, refreshTokens);
 router.post("/logout", logout);
 
 // Password recovery with rate limiting & Zod validation
