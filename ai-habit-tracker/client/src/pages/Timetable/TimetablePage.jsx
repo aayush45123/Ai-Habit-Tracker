@@ -1,5 +1,6 @@
 // client/src/pages/TimetablePage/TimetablePage.jsx - COMPLETE FIXED VERSION
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dumbbell,
   Sparkles,
@@ -8,6 +9,8 @@ import {
   Target,
   Edit,
   Lightbulb,
+  Calendar,
+  Flame,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./TimetablePage.module.css";
@@ -266,6 +269,24 @@ export default function TimetablePage() {
   const [logLoading, setLogLoading] = useState(false);
   const [logSaving, setLogSaving] = useState(false);
   const [timetableSaving, setTimetableSaving] = useState(false);
+  const [syncingToPlanner, setSyncingToPlanner] = useState(false);
+  const navigate = useNavigate();
+
+  async function handleSyncToPlanner() {
+    try {
+      setSyncingToPlanner(true);
+      const today = getTodayDateString();
+      const res = await api.post("/schedule/sync-workout", { date: today });
+      setMessage(res.data?.message || "Workout successfully synced to Daily Planner!");
+      setTimeout(() => setMessage(""), 4000);
+    } catch (err) {
+      console.error(err);
+      setMessage(err.response?.data?.message || "Could not sync workout to planner.");
+      setTimeout(() => setMessage(""), 4000);
+    } finally {
+      setSyncingToPlanner(false);
+    }
+  }
 
   const isWorkoutSubmitted = !!workoutLog?.checkpoint?.submitted;
 
@@ -816,17 +837,34 @@ export default function TimetablePage() {
             <Dumbbell className={styles.icon} />
           </div>
           <div className={styles.headerText}>
-            <h2 className={styles.title}>Workout Timetable</h2>
+            <h2 className={styles.title}>Fitness & Training</h2>
             <p className={styles.subtitle}>
               {showCreator
-                ? "Create your personalized workout schedule"
-                : "Your weekly workout plan"}
+                ? "Create your personalized workout schedule & training splits"
+                : "Weekly workout schedule, exercise progression, and planner integration"}
             </p>
           </div>
         </div>
 
         {activeTimetable && !showCreator && (
           <div className={styles.headerActions}>
+            <button
+              className={styles.editBtn}
+              onClick={handleSyncToPlanner}
+              disabled={syncingToPlanner}
+              title="Add today's workout to your Daily Planner timeline"
+            >
+              <Calendar className={styles.btnIcon} />
+              <span>{syncingToPlanner ? "Syncing..." : "Sync to Planner"}</span>
+            </button>
+            <button
+              className={styles.editBtn}
+              onClick={() => navigate("/calories")}
+              title="View your nutrition and calorie log"
+            >
+              <Flame className={styles.btnIcon} />
+              <span>Nutrition</span>
+            </button>
             {!activeTimetable.hasRequestedAI && (
               <button
                 className={styles.aiBtn}

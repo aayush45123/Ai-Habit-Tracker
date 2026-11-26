@@ -13,6 +13,8 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiX,
+  FiCheckSquare,
+  FiTrash2,
 } from "react-icons/fi";
 import api from "../../utils/api";
 import styles from "./TimeSchedulePage.module.css";
@@ -67,6 +69,11 @@ export default function TimeSchedulePage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Unscheduled Backlog state (Reclaim style)
+  const [unscheduledTasks, setUnscheduledTasks] = useState([]);
+  const [newBacklogTitle, setNewBacklogTitle] = useState("");
+  const [syncingWorkout, setSyncingWorkout] = useState(false);
+
   // Modal states
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -104,10 +111,11 @@ export default function TimeSchedulePage() {
         setEvents(cached);
       }
 
-      // Fetch summary & day events
-      const [summaryRes, eventsRes] = await Promise.allSettled([
+      // Fetch summary, day events & unscheduled backlog tasks
+      const [summaryRes, eventsRes, unscheduledRes] = await Promise.allSettled([
         api.get(`/schedule/summary?date=${date}`),
         api.get(`/schedule?date=${date}`),
+        api.get(`/schedule?isUnscheduled=true`),
       ]);
 
       if (requestId !== dayRequestIdRef.current) return;
@@ -119,6 +127,10 @@ export default function TimeSchedulePage() {
         setCachedSchedule(date, fetched);
       } else {
         failures.push("Could not refresh scheduled events.");
+      }
+
+      if (unscheduledRes.status === "fulfilled" && unscheduledRes.value.data.success) {
+        setUnscheduledTasks(unscheduledRes.value.data.events || []);
       }
 
       if (summaryRes.status === "fulfilled" && summaryRes.value.data.success) {
@@ -376,6 +388,61 @@ export default function TimeSchedulePage() {
     }
   };
 
+  const handleSyncWorkout = async () => {
+    try {
+      setSyncingWorkout(true);
+      const res = await api.post("/schedule/sync-workout", { date: selectedDate });
+      if (res.data?.success) {
+        showToast(res.data.message || "Today's workout synced to Daily Planner!");
+        await fetchDayData(selectedDate);
+        await fetchWeekData(selectedDate);
+      } else {
+        showToast(res.data?.message || "Could not sync workout.");
+      }
+    } catch (err) {
+      console.error("Sync workout error", err);
+      showToast(err.response?.data?.message || "Workout sync failed.");
+    } finally {
+      setSyncingWorkout(false);
+    }
+  };
+
+  const handleAddBacklogTask = async (e) => {
+    e.preventDefault();
+    if (!newBacklogTitle.trim()) return;
+    try {
+      const res = await api.post("/schedule", {
+        title: newBacklogTitle.trim(),
+        date: selectedDate,
+        isTask: true,
+        isUnscheduled: true,
+        startTime: "00:00",
+        endTime: "00:30",
+        category: "work",
+        priority: "medium",
+      });
+      if (res.data?.success) {
+        setNewBacklogTitle("");
+        showToast("Task added to unscheduled backlog");
+        await fetchDayData(selectedDate);
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Could not add task to backlog.");
+    }
+  };
+
+  const handleScheduleBacklogTask = (task) => {
+    setEditingEvent({
+      ...task,
+      isUnscheduled: false,
+      isTask: true,
+      startTime: task.startTime && task.startTime !== "00:00" ? task.startTime : "09:00",
+      endTime: task.endTime && task.endTime !== "00:00" ? task.endTime : "09:30",
+    });
+    setEventRequestError("");
+    setIsEventModalOpen(true);
+  };
+
   // Filter events for display
   const filteredEvents = events.filter((ev) => {
     if (categoryFilter !== "all" && ev.category !== categoryFilter) return false;
@@ -414,12 +481,12 @@ export default function TimeSchedulePage() {
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.headerIcon}>
-            <FiClock size={28} />
+            <FiCalendar size={28} />
           </div>
           <div>
-            <h1 className={styles.title}>Time Timetable</h1>
+            <h1 className={styles.title}>Daily Planner</h1>
             <p className={styles.subtitle}>
-              Schedule specific tasks day-by-day from start to end time with conflict detection and live reminders.
+              Schedule time blocks, track priority tasks, manage your backlog, and synchronize your daily workouts.
             </p>
           </div>
         </div>
@@ -434,7 +501,17 @@ export default function TimeSchedulePage() {
             }}
           >
             <FiPlus size={18} />
-            <span>Add Time Slot</span>
+            <span>Add Event / Task</span>
+          </button>
+
+          <button
+            className={styles.actionBtnSecondary}
+            onClick={handleSyncWorkout}
+            disabled={syncingWorkout}
+            title="Import scheduled workout into today's timeline"
+          >
+            <FiActivity size={16} />
+            <span>{syncingWorkout ? "Syncing..." : "Sync Workout"}</span>
           </button>
 
           <button
@@ -442,7 +519,7 @@ export default function TimeSchedulePage() {
             onClick={() => setIsPresetModalOpen(true)}
           >
             <FiSliders size={16} />
-            <span>Daily Templates</span>
+            <span>Daily Routines</span>
           </button>
 
           <button
@@ -613,29 +690,119 @@ export default function TimeSchedulePage() {
 
       {/* ── MAIN VIEW CONTENT ── */}
       {activeView === "timeline" && (
-        <DailyTimelineView
-          events={filteredEvents}
-          selectedDate={selectedDate}
-          onEditEvent={(event) => {
-            setEventRequestError("");
-            setEditingEvent(event);
-            setIsEventModalOpen(true);
-          }}
-          onDeleteEvent={handleDeleteEvent}
-          onToggleStatus={handleToggleStatus}
-          onOpenAddModal={() => {
-            setEditingEvent(null);
-            setEventRequestError("");
-            setIsEventModalOpen(true);
-          }}
-          onOpenPresetModal={() => setIsPresetModalOpen(true)}
-          onOpenCloneModal={() => setIsCloneModalOpen(true)}
-          hasAnyEvents={events.length > 0}
-          onClearFilters={() => {
-            setCategoryFilter("all");
-            setStatusFilter("all");
-          }}
-        />
+        <div className={styles.plannerLayout}>
+          <div className={styles.timelineMain}>
+            <DailyTimelineView
+              events={filteredEvents}
+              selectedDate={selectedDate}
+              onEditEvent={(event) => {
+                setEventRequestError("");
+                setEditingEvent(event);
+                setIsEventModalOpen(true);
+              }}
+              onDeleteEvent={handleDeleteEvent}
+              onToggleStatus={handleToggleStatus}
+              onOpenAddModal={() => {
+                setEditingEvent(null);
+                setEventRequestError("");
+                setIsEventModalOpen(true);
+              }}
+              onOpenPresetModal={() => setIsPresetModalOpen(true)}
+              onOpenCloneModal={() => setIsCloneModalOpen(true)}
+              hasAnyEvents={events.length > 0}
+              onClearFilters={() => {
+                setCategoryFilter("all");
+                setStatusFilter("all");
+              }}
+            />
+          </div>
+
+          {/* ── UNSCHEDULED / PRIORITY BACKLOG (Reclaim.ai style) ── */}
+          <aside className={styles.backlogPanel}>
+            <div className={styles.backlogHeader}>
+              <h3 className={styles.backlogTitle}>
+                <FiCheckSquare size={18} />
+                <span>Tasks & Backlog</span>
+              </h3>
+              <span className={styles.backlogBadge}>
+                {unscheduledTasks.filter((t) => t.status !== "completed").length} Open
+              </span>
+            </div>
+
+            <form onSubmit={handleAddBacklogTask} className={styles.backlogAddForm}>
+              <input
+                type="text"
+                placeholder="Add task to backlog..."
+                value={newBacklogTitle}
+                onChange={(e) => setNewBacklogTitle(e.target.value)}
+                className={styles.backlogInput}
+              />
+              <button type="submit" className={styles.backlogAddBtn} title="Add to Backlog">
+                <FiPlus size={16} />
+              </button>
+            </form>
+
+            <div className={styles.backlogList}>
+              {unscheduledTasks.length === 0 ? (
+                <div className={styles.emptyBacklog}>
+                  No backlog tasks. Create one above to schedule later!
+                </div>
+              ) : (
+                unscheduledTasks.map((task) => {
+                  const isDone = task.status === "completed";
+                  return (
+                    <div
+                      key={task._id}
+                      className={`${styles.backlogItem} ${isDone ? styles.backlogItemDone : ""}`}
+                    >
+                      <div className={styles.backlogItemTop}>
+                        <input
+                          type="checkbox"
+                          checked={isDone}
+                          onChange={() => handleToggleStatus(task._id)}
+                          className={styles.backlogCheckbox}
+                          title={isDone ? "Mark as pending" : "Mark as done"}
+                        />
+                        <span
+                          className={`${styles.backlogItemTitle} ${
+                            isDone ? styles.completedTaskTitle : ""
+                          }`}
+                        >
+                          {task.title}
+                        </span>
+                        <button
+                          className={styles.deleteTaskBtn}
+                          onClick={() => handleDeleteEvent(task._id)}
+                          title="Delete task"
+                        >
+                          <FiTrash2 size={13} />
+                        </button>
+                      </div>
+
+                      <div className={styles.backlogItemMeta}>
+                        <div className={styles.backlogMetaLeft}>
+                          <span>{task.priority || "Normal"}</span>
+                          <span>•</span>
+                          <span>{task.plannedDurationMinutes || 30}m</span>
+                        </div>
+                        {!isDone && (
+                          <button
+                            className={styles.scheduleTaskBtn}
+                            onClick={() => handleScheduleBacklogTask(task)}
+                            title="Assign a time block to this task"
+                          >
+                            <FiClock size={12} />
+                            <span>Schedule</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </aside>
+        </div>
       )}
 
       {activeView === "weekly" && weekError && (

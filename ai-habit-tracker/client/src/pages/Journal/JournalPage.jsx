@@ -123,7 +123,7 @@ export default function JournalPage() {
           className={`${styles.tabBtn} ${activeTab === "calendar" ? styles.tabActive : ""}`}
           onClick={() => setActiveTab("calendar")}
         >
-          <FiCalendar size={16} /> Calendar View
+          <FiCalendar size={16} /> Emotional Landscape
         </button>
 
         <button
@@ -150,7 +150,47 @@ export default function JournalPage() {
 
       {/* ── TAB CONTENT RENDER ── */}
       {activeTab === "form" && (
-        <JournalEntryForm initialDate={targetDate} onSaved={fetchHeaderSummary} />
+        <>
+          {/* Reflection Quick Starter Cards (Image C style) */}
+          <div className={styles.reflectionCards}>
+            <div
+              className={styles.reflectionCard}
+              onClick={() => {
+                setActiveTab("form");
+                // focus on writing
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <div className={styles.reflectionCardIcon}>🌅</div>
+              <div className={styles.reflectionCardContent}>
+                <h3 className={styles.reflectionCardTitle}>Morning Intention</h3>
+                <p className={styles.reflectionCardDesc}>
+                  Start your day with clarity, gratitude, and top priorities.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={styles.reflectionCard}
+              onClick={() => {
+                setActiveTab("form");
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <div className={styles.reflectionCardIcon}>🌙</div>
+              <div className={styles.reflectionCardContent}>
+                <h3 className={styles.reflectionCardTitle}>Evening Reflection</h3>
+                <p className={styles.reflectionCardDesc}>
+                  Unwind, log what went well, and process emotions before sleep.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <JournalEntryForm initialDate={targetDate} onSaved={fetchHeaderSummary} />
+        </>
       )}
 
       {activeTab === "feed" && (

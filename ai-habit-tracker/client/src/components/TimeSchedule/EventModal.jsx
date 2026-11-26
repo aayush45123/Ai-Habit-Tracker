@@ -39,6 +39,8 @@ export default function EventModal({
   const [category, setCategory] = useState("work");
   const [priority, setPriority] = useState("medium");
   const [reminderMinutesBefore, setReminderMinutesBefore] = useState(15);
+  const [isTask, setIsTask] = useState(false);
+  const [isUnscheduled, setIsUnscheduled] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -53,6 +55,8 @@ export default function EventModal({
       setReminderMinutesBefore(
         editEvent.reminderMinutesBefore !== undefined ? editEvent.reminderMinutesBefore : 15
       );
+      setIsTask(!!editEvent.isTask);
+      setIsUnscheduled(!!editEvent.isUnscheduled);
     } else {
       setTitle("");
       setDescription("");
@@ -62,6 +66,8 @@ export default function EventModal({
       setCategory("work");
       setPriority("medium");
       setReminderMinutesBefore(15);
+      setIsTask(false);
+      setIsUnscheduled(false);
     }
     setError("");
   }, [editEvent, initialDate, isOpen]);
@@ -95,11 +101,14 @@ export default function EventModal({
       title: title.trim(),
       description: description.trim(),
       date,
-      startTime,
-      endTime,
+      startTime: isUnscheduled ? "09:00" : startTime,
+      endTime: isUnscheduled ? "09:30" : endTime,
       category,
       priority,
       reminderMinutesBefore: Number(reminderMinutesBefore),
+      isTask,
+      isUnscheduled,
+      entityType: isTask ? "task" : "event",
     };
 
     onSave(payload, editEvent?._id);
@@ -110,7 +119,7 @@ export default function EventModal({
       <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>
-            {editEvent ? "Edit Scheduled Slot" : "Add Time Slot"}
+            {editEvent ? (editEvent.isTask ? "Edit Task" : "Edit Scheduled Slot") : (isTask ? "Add New Task" : "Add Time Block")}
           </h3>
           <button className={styles.closeModalBtn} onClick={onClose} aria-label="Close">
             <FiX size={20} />
@@ -119,6 +128,57 @@ export default function EventModal({
 
         <form onSubmit={handleSubmit}>
           <div className={styles.modalBody}>
+            {/* Type selector: Time Block vs Task */}
+            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <button
+                type="button"
+                onClick={() => { setIsTask(false); setIsUnscheduled(false); }}
+                style={{
+                  flex: 1,
+                  padding: "0.5rem",
+                  border: "2px solid #000",
+                  background: !isTask ? "#000" : "#fff",
+                  color: !isTask ? "#fff" : "#000",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  borderRadius: "6px",
+                  boxShadow: !isTask ? "none" : "2px 2px 0 #000",
+                }}
+              >
+                📅 Time Block
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsTask(true)}
+                style={{
+                  flex: 1,
+                  padding: "0.5rem",
+                  border: "2px solid #000",
+                  background: isTask ? "#000" : "#fff",
+                  color: isTask ? "#fff" : "#000",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  borderRadius: "6px",
+                  boxShadow: isTask ? "none" : "2px 2px 0 #000",
+                }}
+              >
+                ✓ Task / To-Do
+              </button>
+            </div>
+
+            {isTask && (
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", marginBottom: "0.5rem" }}>
+                <input
+                  type="checkbox"
+                  checked={isUnscheduled}
+                  onChange={(e) => setIsUnscheduled(e.target.checked)}
+                />
+                <span>Keep unscheduled (add to backlog without specific time)</span>
+              </label>
+            )}
+
             {(error || requestError) && (
               <div className={styles.conflictBadge} style={{ padding: "0.5rem" }}>
                 <FiAlertTriangle size={16} />

@@ -23,11 +23,11 @@ import {
 } from "react-icons/fi";
 
 const MOOD_META = {
-  great: { label: "Great", color: "#10b981", icon: <FiThumbsUp size={14} color="#10b981" /> },
-  good: { label: "Good", color: "#3b82f6", icon: <FiSmile size={14} color="#3b82f6" /> },
-  neutral: { label: "Neutral", color: "#f59e0b", icon: <FiMeh size={14} color="#f59e0b" /> },
-  bad: { label: "Bad", color: "#ef4444", icon: <FiThumbsDown size={14} color="#ef4444" /> },
-  terrible: { label: "Terrible", color: "#991b1b", icon: <FiAlertCircle size={14} color="#991b1b" /> },
+  great: { label: "Great", emoji: "😃", color: "#10b981", icon: <FiThumbsUp size={14} color="#10b981" /> },
+  good: { label: "Good", emoji: "🙂", color: "#3b82f6", icon: <FiSmile size={14} color="#3b82f6" /> },
+  neutral: { label: "Neutral", emoji: "😐", color: "#f59e0b", icon: <FiMeh size={14} color="#f59e0b" /> },
+  bad: { label: "Bad", emoji: "🙁", color: "#ef4444", icon: <FiThumbsDown size={14} color="#ef4444" /> },
+  terrible: { label: "Terrible", emoji: "😫", color: "#991b1b", icon: <FiAlertCircle size={14} color="#991b1b" /> },
 };
 
 function formatDateNice(dateStr) {
@@ -259,14 +259,14 @@ export default function JournalCalendar({ onSelectDate, onChanged }) {
                     {entry && moodInfo && (
                       <span
                         style={{
-                          fontSize: "0.85rem",
+                          fontSize: "1.1rem",
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: "0.2rem",
+                          lineHeight: 1,
                         }}
                         title={`Mood: ${moodInfo.label}`}
                       >
-                        {moodInfo.icon}
+                        {moodInfo.emoji || moodInfo.icon}
                       </span>
                     )}
                   </div>

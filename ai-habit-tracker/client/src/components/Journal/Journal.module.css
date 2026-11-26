@@ -654,6 +654,64 @@
   }
 }
 
+/* ── PROMPT & INTENTION CARDS (Image C style) ── */
+.reflectionCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.reflectionCard {
+  background: var(--color-bg-primary, #ffffff);
+  border: 2px solid var(--color-border, #000000);
+  box-shadow: 4px 4px 0px var(--color-border, #000000);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.reflectionCard:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--color-border, #000000);
+}
+
+.reflectionCardIcon {
+  width: 52px;
+  height: 52px;
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 2px solid var(--color-border, #000000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.reflectionCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.reflectionCardTitle {
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--color-text-primary, #000000);
+}
+
+.reflectionCardDesc {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #555555);
+  margin: 0;
+}
+
 @media (max-width: 480px) {
   .titleArea h1 {
     font-size: 1.4rem;

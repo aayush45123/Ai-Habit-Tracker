@@ -1,5 +1,6 @@
 import Timetable from "../models/Timetable.js";
 import WorkoutLog from "../models/WorkoutLog.js";
+import ScheduleEvent from "../models/ScheduleEvent.js";
 
 const WEEKDAYS = [
   "Sunday",
@@ -526,6 +527,28 @@ export const updateWorkoutLogDraft = async (req, res) => {
 
     await log.save();
 
+    // Synchronize completion with Daily Planner schedule if a workout event exists for this day
+    try {
+      if (finalStatus === "completed") {
+        await ScheduleEvent.updateMany(
+          {
+            userId: req.user._id,
+            date: logDate,
+            $or: [{ entityType: "workout" }, { category: "fitness" }],
+          },
+          {
+            $set: {
+              status: "completed",
+              completedAt: new Date(),
+              actualDurationMinutes: Number(actualDuration) || log.actualDuration || 45,
+            },
+          }
+        );
+      }
+    } catch (schedErr) {
+      console.warn("Could not sync workout status to schedule event:", schedErr.message);
+    }
+
     const logs = await WorkoutLog.find({
       userId: req.user._id,
       timetableId,
@@ -600,6 +623,28 @@ export const finalizeWorkoutLog = async (req, res) => {
     log.isExpired = false;
 
     await log.save();
+
+    // Synchronize completion with Daily Planner schedule if a workout event exists for this day
+    try {
+      if (finalStatus === "completed") {
+        await ScheduleEvent.updateMany(
+          {
+            userId: req.user._id,
+            date: logDate,
+            $or: [{ entityType: "workout" }, { category: "fitness" }],
+          },
+          {
+            $set: {
+              status: "completed",
+              completedAt: new Date(),
+              actualDurationMinutes: Number(actualDuration) || log.actualDuration || 45,
+            },
+          }
+        );
+      }
+    } catch (schedErr) {
+      console.warn("Could not sync workout status to schedule event:", schedErr.message);
+    }
 
     const logs = await WorkoutLog.find({
       userId: req.user._id,

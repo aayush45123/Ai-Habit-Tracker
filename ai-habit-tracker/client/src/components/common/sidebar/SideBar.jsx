@@ -93,18 +93,13 @@ function Sidebar() {
 
         {/* Navigation */}
         <nav className={styles.nav}>
-          {renderNavLink("/dashboard", FiGrid, "Dashboard")}
-          {renderNavLink("/add", FiPlusCircle, "Add Habit")}
-          {renderNavLink("/analytics", FiTrendingUp, "Analytics")}
-          {renderNavLink("/dashboard/reports", FiFileText, "Reports")}
-          {renderNavLink("/ai", FiCpu, "AI Insights")}
-          {renderNavLink("/challenge", FiCalendar, "21-Day Challenge")}
-          {renderNavLink("/templates", FiCopy, "Habit Templates")}
+          {renderNavLink("/dashboard", FiGrid, "Overview")}
+          {renderNavLink("/add", FiPlusCircle, "Habits & Goals")}
+          {renderNavLink("/schedule", FiClock, "Daily Planner")}
+          {renderNavLink("/timetable", Dumbbell, "Fitness")}
           {renderNavLink("/journal", FiBookOpen, "Growth Journal")}
-          {renderNavLink("/focus", FiTarget, "Focus")}
-          {renderNavLink("/calories", FiActivity, "Calorie Tracker")}
-          {renderNavLink("/timetable", Dumbbell, "Workout Timetable")}
-          {renderNavLink("/schedule", FiClock, "Time Timetable")}
+          {renderNavLink("/ai", FiCpu, "AI Coach")}
+          {renderNavLink("/analytics", FiTrendingUp, "Analytics & Reports")}
           {renderNavLink("/profile", FiUser, "Profile")}
           {renderNavLink("/about", FiInfo, "About Us")}
           {(user?.isAdmin || user?.role === "admin") && (

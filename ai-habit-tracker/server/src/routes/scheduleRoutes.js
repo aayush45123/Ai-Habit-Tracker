@@ -12,6 +12,8 @@ import {
   cloneDaySchedule,
   applyPresetSchedule,
   getPresets,
+  syncWorkoutToSchedule,
+  getDailyPlannerUnified,
 } from "../controllers/scheduleController.js";
 
 const router = express.Router();
@@ -19,6 +21,10 @@ const router = express.Router();
 // Require authenticated user
 router.use(authMiddleware);
 router.use(requireProfileCompleted);
+
+// Unified Daily Planner Feed
+router.get("/planner-unified", getDailyPlannerUnified);
+router.post("/sync-workout", syncWorkoutToSchedule);
 
 // Preset list
 router.get("/presets", getPresets);

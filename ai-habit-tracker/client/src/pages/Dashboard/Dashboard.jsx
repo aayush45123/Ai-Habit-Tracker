@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import HabitCard from "../../components/HabitCard/HabitCard";
 import RiskAlerts from "../../components/RiskAlerts/RiskAlerts";
@@ -7,6 +8,14 @@ import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
 import AddHabitModal from "../../components/AddHabitModal/AddHabitModal";
 import GamificationWidget from "../../components/GamificationWidget/GamificationWidget";
 import { FaRobot, FaWifi } from "react-icons/fa";
+import {
+  FiCalendar,
+  FiClock,
+  FiCheckSquare,
+  FiZap,
+  FiTrendingUp,
+  FiCpu,
+} from "react-icons/fi";
 import { useSocket } from "../../context/SocketContext";
 import styles from "./Dashboard.module.css";
 import { DashboardSkeleton } from "../../components/Skeleton/Skeleton.jsx";
@@ -16,12 +25,16 @@ function formatDateISO(d = new Date()) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [weeklyData, setWeeklyData] = useState([]);
   const [weekChange, setWeekChange] = useState(0);
+
+  // Unified Command Center Data
+  const [unified, setUnified] = useState(null);
 
   // AI Insights
   const [ai, setAI] = useState(null);
@@ -35,6 +48,17 @@ export default function Dashboard() {
 
   // Socket
   const { subscribe, isConnected } = useSocket();
+
+  const fetchUnifiedDashboard = useCallback(async () => {
+    try {
+      const res = await api.get("/dashboard");
+      if (res.data) {
+        setUnified(res.data);
+      }
+    } catch (err) {
+      console.error("Unified dashboard fetch error:", err);
+    }
+  }, []);
 
   const fetchHabits = useCallback(async (isInitial = false) => {
     try {
@@ -50,21 +74,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchHabits(true);
+    fetchUnifiedDashboard();
     fetchAnalytics();
     fetchAIInsights();
-  }, [fetchHabits]);
+  }, [fetchHabits, fetchUnifiedDashboard]);
 
   // Real-time dashboard refresh via Socket.IO
   useEffect(() => {
     const unsubscribe = subscribe("dashboard:update", (data) => {
       // Perform silent refresh of habits list without triggering full component reload
       fetchHabits(false);
+      fetchUnifiedDashboard();
       if (data?.type !== "habit:logged") {
         fetchAnalytics();
       }
     });
     return unsubscribe;
-  }, [subscribe, fetchHabits]);
+  }, [subscribe, fetchHabits, fetchUnifiedDashboard]);
 
   async function fetchAnalytics() {
     try {
@@ -142,14 +168,24 @@ export default function Dashboard() {
         );
       }
 
-      // Refresh analytics in background silently
+      // Refresh analytics & unified overview in background silently
       fetchAnalytics();
+      fetchUnifiedDashboard();
     } catch (err) {
       console.error("Toggle failed", err);
       // Revert if request failed
       if (previousHabits) {
         setHabits(previousHabits);
       }
+    }
+  }
+
+  async function toggleScheduleTask(taskId) {
+    try {
+      await api.patch(`/schedule/${taskId}/status`, {});
+      fetchUnifiedDashboard();
+    } catch (err) {
+      console.error("Task toggle failed:", err);
     }
   }
 
@@ -163,6 +199,7 @@ export default function Dashboard() {
     try {
       await api.delete(`/habits/${habitId}`);
       fetchAnalytics();
+      fetchUnifiedDashboard();
       fetchAIInsights();
     } catch (err) {
       console.error("Delete failed", err);
@@ -180,6 +217,23 @@ export default function Dashboard() {
     ? Math.round(weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length)
     : 0;
 
+  // Derived Command Center Metrics
+  const overview = unified?.overview || {};
+  const tasksToday = overview.tasksToday || { completed: 0, total: 0 };
+  const focusTime = overview.focusTime || { minutes: 0, sessions: 0 };
+  const workoutInfo = overview.workout || { hasWorkout: false, isRestDay: false, isCompleted: false };
+  const growthScore = overview.growthScore ?? weeklyAvg;
+
+  const weeklyDays = unified?.weeklyProgress?.days || [];
+  const maxBarValue = Math.max(
+    10,
+    ...weeklyDays.map((d) => Math.max(d.tasks || 0, d.habits || 0, Math.round((d.focusMinutes || 0) / 10)))
+  );
+
+  const todayEvents = unified?.todaySchedule?.events || [];
+  const priorityTasks = unified?.priorityTasks || [];
+  const aiBullets = unified?.aiInsights?.bullets || [];
+
   if (loading) return <DashboardSkeleton />;
 
   return (
@@ -188,7 +242,7 @@ export default function Dashboard() {
       <header className={styles.dashHeader}>
         <div className={styles.headerLeft}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <h1 className={styles.headerTitle}>Dashboard</h1>
+            <h1 className={styles.headerTitle}>Personal Growth Command Center</h1>
             <span
               title={isConnected ? "Live updates active" : "Connecting..."}
               style={{
@@ -220,244 +274,263 @@ export default function Dashboard() {
             </span>
           </div>
           <p className={styles.headerSub}>
-            Track your daily habits, build powerful streaks, and transform your
-            life one day at a time.
+            Here's your unified personal growth and productivity overview for today.
           </p>
         </div>
-        <button
-          className={styles.ctaBtn}
-          onClick={() => setAddModalOpen(true)}
-        >
-          + Add Habit
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            className={styles.secondary}
+            onClick={() => navigate("/schedule")}
+          >
+            Daily Planner
+          </button>
+          <button
+            className={styles.ctaBtn}
+            onClick={() => setAddModalOpen(true)}
+          >
+            + Add Habit
+          </button>
+        </div>
       </header>
 
-      {/* ── STATS BAR ── */}
+      {/* ── UNIFIED STATS BAR (5 Command Cards - Image D style) ── */}
       <div className={styles.statsBar}>
-        <div className={styles.statCard}>
-          <span className={styles.statNum}>{total}</span>
-          <span className={styles.statLabel}>Total Habits</span>
+        <div className={styles.statCard} onClick={() => navigate("/schedule")} style={{ cursor: "pointer" }}>
+          <span className={styles.statNum}>{tasksToday.completed}/{tasksToday.total}</span>
+          <span className={styles.statLabel}>Tasks Today</span>
+        </div>
+
+        <div className={styles.statDivider} />
+
+        <div className={styles.statCard} onClick={() => navigate("/focus")} style={{ cursor: "pointer" }}>
+          <span className={styles.statNum}>{focusTime.minutes}m</span>
+          <span className={styles.statLabel}>Focus Time</span>
         </div>
 
         <div className={styles.statDivider} />
 
         <div className={styles.statCard}>
-          <span className={styles.statNum}>{completedToday}</span>
-          <span className={styles.statLabel}>Done Today</span>
+          <span className={styles.statNum}>{completedToday}/{total}</span>
+          <span className={styles.statLabel}>Habits Done</span>
         </div>
 
         <div className={styles.statDivider} />
 
-        <div className={styles.statCard}>
-          <span className={styles.statNum}>{longestStreak}</span>
-          <span className={styles.statLabel}>Longest Streak</span>
-        </div>
-
-        <div className={styles.statDivider} />
-
-        <div className={styles.statCard}>
-          <span
-            className={`${styles.statNum} ${weekChange >= 0 ? styles.positive : styles.negative}`}
-          >
-            {weekChange > 0 ? "+" : ""}
-            {weekChange}%
+        <div className={styles.statCard} onClick={() => navigate("/timetable")} style={{ cursor: "pointer" }}>
+          <span className={`${styles.statNum} ${workoutInfo.isCompleted ? styles.positive : ""}`}>
+            {workoutInfo.isCompleted
+              ? "Done"
+              : workoutInfo.isRestDay
+                ? "Rest"
+                : workoutInfo.hasWorkout
+                  ? "Pending"
+                  : "—"}
           </span>
-          <span className={styles.statLabel}>Week Change</span>
+          <span className={styles.statLabel}>Workout</span>
         </div>
 
         <div className={styles.statDivider} />
 
-        {/* Sparkline stat */}
-        <div className={`${styles.statCard} ${styles.statSparkline}`}>
-          <div className={styles.sparkTop}>
-            <span className={styles.statNum}>{weeklyAvg}%</span>
-            <svg viewBox="0 0 80 28" className={styles.spark}>
-              <defs>
-                <linearGradient id="sg" x1="0" x2="1">
-                  <stop offset="0%" stopColor="#6ee7b7" />
-                  <stop offset="100%" stopColor="#60a5fa" />
-                </linearGradient>
-              </defs>
-              {weeklyData.length > 1 && (
-                <polyline
-                  fill="none"
-                  stroke="url(#sg)"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  points={weeklyData
-                    .map(
-                      (v, i) =>
-                        `${(i / (weeklyData.length - 1)) * 76 + 2},${26 - (v / 100) * 22}`,
-                    )
-                    .join(" ")}
-                />
-              )}
-            </svg>
-          </div>
-          <span className={styles.statLabel}>This Week</span>
+        <div className={styles.statCard}>
+          <span className={styles.statNum}>{growthScore}%</span>
+          <span className={styles.statLabel}>Growth Score</span>
         </div>
+      </div>
+
+      {/* ── MIDDLE ROW: WEEKLY PROGRESS + AI INSIGHTS (Image D style) ── */}
+      <div className={styles.commandMidGrid}>
+        {/* Weekly Progress Multi-Metric Bar Chart */}
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Weekly Progress</h2>
+            <div className={styles.barChartLegend}>
+              <span className={styles.legendItem}>
+                <span className={styles.legendSwatchTasks} /> Tasks
+              </span>
+              <span className={styles.legendItem}>
+                <span className={styles.legendSwatchHabits} /> Habits
+              </span>
+              <span className={styles.legendItem}>
+                <span className={styles.legendSwatchFocus} /> Focus (10m)
+              </span>
+            </div>
+          </div>
+          {weeklyDays.length > 0 ? (
+            <div className={styles.barChartContainer}>
+              {weeklyDays.map((d) => {
+                const tasksH = Math.min(100, Math.round(((d.tasks || 0) / maxBarValue) * 100));
+                const habitsH = Math.min(100, Math.round(((d.habits || 0) / maxBarValue) * 100));
+                const focusUnits = Math.round((d.focusMinutes || 0) / 10);
+                const focusH = Math.min(100, Math.round((focusUnits / maxBarValue) * 100));
+                return (
+                  <div key={d.date} className={styles.barGroup} title={`${d.day}: ${d.tasks} tasks, ${d.habits} habits, ${d.focusMinutes}m focus`}>
+                    <div className={styles.barsRow}>
+                      <div className={styles.barTasks} style={{ height: `${Math.max(4, tasksH)}%` }} />
+                      <div className={styles.barHabits} style={{ height: `${Math.max(4, habitsH)}%` }} />
+                      <div className={styles.barFocus} style={{ height: `${Math.max(4, focusH)}%` }} />
+                    </div>
+                    <span className={styles.barDayLabel}>{d.day}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={styles.muted} style={{ padding: "2rem", textAlign: "center" }}>
+              Complete habits, tasks, or focus sprints to populate your 7-day progress chart.
+            </div>
+          )}
+        </section>
+
+        {/* AI Coach Insights */}
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>AI Coach Insights</h2>
+            <button
+              className={styles.secondary}
+              style={{ padding: "0.3rem 0.7rem", fontSize: "0.72rem" }}
+              onClick={() => navigate("/ai")}
+            >
+              Open Coach
+            </button>
+          </div>
+          {aiBullets.length > 0 ? (
+            <ul className={styles.insightsList}>
+              {aiBullets.map((bullet, idx) => (
+                <li key={idx} className={styles.insightItem}>
+                  <FiCpu size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+          ) : aiLoading ? (
+            <div className={styles.muted}>Analyzing your activity…</div>
+          ) : (
+            <div className={styles.shortAIBox}>
+              {ai?.shortSummary || "Keep logging your daily habits and journal entries to unlock personalized AI insights."}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* ── BOTTOM ROW: TODAY'S SCHEDULE + PRIORITY TASKS & HABITS (Image D style) ── */}
+      <div className={styles.commandBottomGrid}>
+        {/* Left: Today's Schedule */}
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Today's Schedule</h2>
+            <button
+              className={styles.secondary}
+              style={{ padding: "0.3rem 0.7rem", fontSize: "0.72rem" }}
+              onClick={() => navigate("/schedule")}
+            >
+              Manage Planner
+            </button>
+          </div>
+          {todayEvents.length === 0 ? (
+            <div className={styles.empty}>
+              <p>No time blocks scheduled for today.</p>
+              <button className={styles.secondary} onClick={() => navigate("/schedule")}>
+                Plan Your Day
+              </button>
+            </div>
+          ) : (
+            <div className={styles.scheduleList}>
+              {todayEvents.map((ev) => {
+                const isDone = ev.status === "completed";
+                return (
+                  <div key={ev._id} className={`${styles.scheduleRow} ${isDone ? styles.scheduleRowDone : ""}`}>
+                    <span className={styles.scheduleTime}>{ev.startTime}</span>
+                    <span className={`${styles.scheduleTitle} ${isDone ? styles.taskDoneText : ""}`}>
+                      {ev.title}
+                    </span>
+                    <span className={styles.scheduleCategoryTag}>{ev.category}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Right: Priority Tasks & Today's Habits */}
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Priority Tasks & Habits</h2>
+            <span className={styles.panelBadge}>
+              {completedToday + tasksToday.completed}/{total + tasksToday.total}
+            </span>
+          </div>
+
+          {priorityTasks.length > 0 && (
+            <div className={styles.taskChecklist}>
+              {priorityTasks.map((task) => {
+                const isDone = task.status === "completed";
+                return (
+                  <div key={task._id} className={styles.taskCheckRow}>
+                    <input
+                      type="checkbox"
+                      checked={isDone}
+                      onChange={() => toggleScheduleTask(task._id)}
+                      className={styles.taskCheckbox}
+                    />
+                    <span className={`${styles.taskTitleText} ${isDone ? styles.taskDoneText : ""}`}>
+                      {task.title}
+                    </span>
+                    <span className={styles.taskPriorityBadge}>{task.priority || "medium"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Progress strip */}
+          <div className={styles.progressStrip}>
+            <div
+              className={styles.progressFill}
+              style={{
+                width:
+                  total > 0 ? `${(completedToday / total) * 100}%` : "0%",
+              }}
+            />
+          </div>
+
+          {loading ? (
+            <div className={styles.muted} style={{ textAlign: "center", padding: "2rem" }}>Loading habits…</div>
+          ) : habits.length === 0 ? (
+            <div className={styles.empty}>
+              <p>No habits yet.</p>
+              <button
+                className={styles.secondary}
+                onClick={() => setAddModalOpen(true)}
+              >
+                Create first habit
+              </button>
+            </div>
+          ) : (
+            <div className={styles.habitList}>
+              {habits.map((h) => (
+                <HabitCard
+                  key={h._id}
+                  habit={h}
+                  onToggle={(done) => toggleHabitDone(h._id, done)}
+                  onDelete={() => deleteHabit(h._id)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       {/* ── GAMIFICATION PROGRESSION WIDGET ── */}
       <GamificationWidget />
 
-      {/* ── MAIN CONTENT GRID ── */}
+      {/* ── RISK ALERTS & RECOMMENDATIONS ── */}
       <div className={styles.mainGrid}>
-        {/* ── COLUMN 1: Today's Habits ── */}
-        <section className={styles.habitsCol}>
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>Today's Habits</h2>
-              <span className={styles.panelBadge}>
-                {completedToday}/{total}
-              </span>
-            </div>
-
-            {/* Progress strip */}
-            <div className={styles.progressStrip}>
-              <div
-                className={styles.progressFill}
-                style={{
-                  width:
-                    total > 0 ? `${(completedToday / total) * 100}%` : "0%",
-                }}
-              />
-            </div>
-
-            {loading ? (
-              <div className={styles.muted} style={{ textAlign: "center", padding: "2rem" }}>Loading habits…</div>
-            ) : habits.length === 0 ? (
-              <div className={styles.empty}>
-                <p>No habits yet.</p>
-                <button
-                  className={styles.secondary}
-                  onClick={() => setAddModalOpen(true)}
-                >
-                  Create first habit
-                </button>
-              </div>
-            ) : (
-              <div className={styles.habitList}>
-                {habits.map((h) => (
-                  <HabitCard
-                    key={h._id}
-                    habit={h}
-                    onToggle={(done) => toggleHabitDone(h._id, done)}
-                    onDelete={() => deleteHabit(h._id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ── COLUMN 2: Sidebar ── */}
-        <aside className={styles.sidebarCol}>
-          {/* Weekly Chart */}
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>Weekly Completion</h2>
-              <span className={styles.panelMeta}>Aim for 80%+</span>
-            </div>
-            <div className={styles.chartBox}>
-              <svg
-                viewBox="0 0 200 60"
-                className={styles.bigSpark}
-                preserveAspectRatio="none"
-              >
-                {weeklyData.length > 1 && (
-                  <>
-                    <defs>
-                      <linearGradient
-                        id="chartFill"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="#60a5fa"
-                          stopOpacity="0.2"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#60a5fa"
-                          stopOpacity="0"
-                        />
-                      </linearGradient>
-                    </defs>
-                    <polygon
-                      fill="url(#chartFill)"
-                      points={[
-                        ...weeklyData.map(
-                          (v, i) =>
-                            `${(i / (weeklyData.length - 1)) * 196 + 2},${58 - (v / 100) * 50}`,
-                        ),
-                        `${196 + 2},58`,
-                        `2,58`,
-                      ].join(" ")}
-                    />
-                    <polyline
-                      fill="none"
-                      stroke="#60a5fa"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      points={weeklyData
-                        .map(
-                          (v, i) =>
-                            `${(i / (weeklyData.length - 1)) * 196 + 2},${58 - (v / 100) * 50}`,
-                        )
-                        .join(" ")}
-                    />
-                  </>
-                )}
-                <line
-                  x1="2"
-                  y1="10"
-                  x2="198"
-                  y2="10"
-                  stroke="rgba(255,255,255,0.15)"
-                  strokeWidth="1"
-                  strokeDasharray="4,3"
-                />
-              </svg>
-            </div>
-            <div className={styles.chartLabels}>
-              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                <span key={i} className={styles.chartDay}>
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* AI Insights */}
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>AI Insights</h2>
-            </div>
-            {aiLoading ? (
-              <div className={styles.muted}>Analyzing your habits…</div>
-            ) : !ai ? (
-              <div className={styles.muted}>No insights available.</div>
-            ) : (
-              <div className={styles.shortAIBox}>{ai.shortSummary}</div>
-            )}
-          </div>
-
-          {/* Risk Alerts — now a fixed-height carousel, fills remaining space */}
-          <div className={styles.riskAlertsWrapper}>
-            <RiskAlerts />
-          </div>
-        </aside>
-      </div>
-
-      {/* ── RECOMMENDATIONS (full-width below grid) ── */}
-      <div className={styles.recommendationsSection}>
-        <Recommendations />
+        <div className={styles.recommendationsSection}>
+          <Recommendations />
+        </div>
+        <div className={styles.riskAlertsWrapper}>
+          <RiskAlerts />
+        </div>
       </div>
 
       {/* ── ADD HABIT MODAL ── */}
@@ -470,6 +543,7 @@ export default function Dashboard() {
           // Silently re-fetch from server to reconcile
           fetchHabits(false);
           fetchAnalytics();
+          fetchUnifiedDashboard();
         }}
       />
 

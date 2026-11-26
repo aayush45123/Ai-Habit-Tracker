@@ -94,6 +94,35 @@ const scheduleEventSchema = new mongoose.Schema(
       type: String,
       default: "#000000",
     },
+    entityType: {
+      type: String,
+      enum: ["event", "task", "habit", "workout", "focus"],
+      default: "event",
+    },
+    isTask: {
+      type: Boolean,
+      default: false,
+    },
+    isUnscheduled: {
+      type: Boolean,
+      default: false,
+    },
+    plannedDurationMinutes: {
+      type: Number,
+      default: 0,
+    },
+    actualDurationMinutes: {
+      type: Number,
+      default: 0,
+    },
+    relatedId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

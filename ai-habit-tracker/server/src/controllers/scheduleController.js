@@ -1,4 +1,8 @@
 import ScheduleEvent from "../models/ScheduleEvent.js";
+import Timetable from "../models/Timetable.js";
+import WorkoutLog from "../models/WorkoutLog.js";
+import Habit from "../models/Habit.js";
+import HabitLog from "../models/HabitLog.js";
 
 // Helper: convert HH:mm to minutes from 00:00
 function timeToMinutes(timeStr) {
@@ -284,7 +288,17 @@ function annotateConflicts(events) {
 export async function getEvents(req, res) {
   try {
     const userId = req.user._id;
-    const { date, startDate, endDate, category, status, month } = req.query;
+    const {
+      date,
+      startDate,
+      endDate,
+      category,
+      status,
+      month,
+      entityType,
+      isTask,
+      isUnscheduled,
+    } = req.query;
 
     const query = { userId };
 
@@ -303,6 +317,18 @@ export async function getEvents(req, res) {
 
     if (status && status !== "all") {
       query.status = status;
+    }
+
+    if (entityType) {
+      query.entityType = entityType;
+    }
+
+    if (isTask !== undefined) {
+      query.isTask = isTask === "true" || isTask === true;
+    }
+
+    if (isUnscheduled !== undefined) {
+      query.isUnscheduled = isUnscheduled === "true" || isUnscheduled === true;
     }
 
     const events = await ScheduleEvent.find(query).sort({ date: 1, startMinutes: 1 });
@@ -462,17 +488,40 @@ export async function createEvent(req, res) {
       color,
       isRecurring,
       recurringDays,
+      entityType,
+      isTask,
+      isUnscheduled,
+      plannedDurationMinutes,
+      relatedId,
     } = req.body;
 
-    if (!title || !date || !startTime || !endTime) {
+    const taskMode = !!isTask || entityType === "task" || !!isUnscheduled;
+    const finalDate = date || getTodayDateString();
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required",
+      });
+    }
+
+    let finalStartTime = startTime;
+    let finalEndTime = endTime;
+
+    if (taskMode && (!finalStartTime || !finalEndTime)) {
+      finalStartTime = "09:00";
+      finalEndTime = "09:30";
+    }
+
+    if (!finalDate || !finalStartTime || !finalEndTime) {
       return res.status(400).json({
         success: false,
         message: "Title, date, start time, and end time are required",
       });
     }
 
-    const startMinutes = timeToMinutes(startTime);
-    const endMinutes = timeToMinutes(endTime);
+    const startMinutes = timeToMinutes(finalStartTime);
+    const endMinutes = timeToMinutes(finalEndTime);
 
     if (startMinutes >= endMinutes) {
       return res.status(400).json({
@@ -481,30 +530,39 @@ export async function createEvent(req, res) {
       });
     }
 
-    // Check for existing overlapping events on the same day for user
-    const overlapping = await ScheduleEvent.find({
-      userId,
-      date,
-      startMinutes: { $lt: endMinutes },
-      endMinutes: { $gt: startMinutes },
-    });
+    // Check for existing overlapping events on the same day for user (only for scheduled events)
+    let overlapping = [];
+    if (!isUnscheduled) {
+      overlapping = await ScheduleEvent.find({
+        userId,
+        date: finalDate,
+        isUnscheduled: { $ne: true },
+        startMinutes: { $lt: endMinutes },
+        endMinutes: { $gt: startMinutes },
+      });
+    }
 
     const newEvent = new ScheduleEvent({
       userId,
       title: title.trim(),
       description: description ? description.trim() : "",
-      date,
-      startTime,
-      endTime,
+      date: finalDate,
+      startTime: finalStartTime,
+      endTime: finalEndTime,
       startMinutes,
       endMinutes,
-      category: category || "routine",
+      category: category || (taskMode ? "work" : "routine"),
       priority: priority || "medium",
       status: status || "pending",
       reminderMinutesBefore: reminderMinutesBefore !== undefined ? reminderMinutesBefore : 15,
       color: color || "#000000",
       isRecurring: !!isRecurring,
       recurringDays: recurringDays || [],
+      entityType: entityType || (taskMode ? "task" : "event"),
+      isTask: taskMode,
+      isUnscheduled: !!isUnscheduled,
+      plannedDurationMinutes: plannedDurationMinutes || (endMinutes - startMinutes),
+      relatedId: relatedId || null,
     });
 
     await newEvent.save();
@@ -589,7 +647,7 @@ export async function toggleEventStatus(req, res) {
   try {
     const userId = req.user._id;
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, actualDurationMinutes } = req.body;
 
     const event = await ScheduleEvent.findOne({ _id: id, userId });
     if (!event) {
@@ -604,6 +662,17 @@ export async function toggleEventStatus(req, res) {
       status || (event.status === "completed" ? "pending" : "completed");
 
     event.status = newStatus;
+    if (newStatus === "completed") {
+      event.completedAt = new Date();
+      if (actualDurationMinutes) {
+        event.actualDurationMinutes = Number(actualDurationMinutes);
+      } else if (!event.actualDurationMinutes) {
+        event.actualDurationMinutes = Math.max(0, event.endMinutes - event.startMinutes);
+      }
+    } else {
+      event.completedAt = null;
+    }
+
     await event.save();
 
     return res.status(200).json({
@@ -788,5 +857,204 @@ export async function getPresets(req, res) {
       sampleEvents: val.events.slice(0, 3),
     })),
   });
+}
+
+/**
+ * POST /api/schedule/sync-workout
+ * Sync today's workout from active timetable into schedule without duplicates
+ */
+export async function syncWorkoutToSchedule(req, res) {
+  try {
+    const userId = req.user._id;
+    const date = req.body.date || getTodayDateString();
+
+    const d = new Date(date + "T12:00:00Z");
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayOfWeek = dayNames[d.getDay()];
+
+    const timetable = await Timetable.findOne({ userId, isActive: { $ne: false } }).lean();
+    if (!timetable) {
+      return res.status(200).json({
+        success: true,
+        message: "No active timetable found",
+        synced: false,
+      });
+    }
+
+    const daySchedule = (timetable.days || []).find((ds) => ds.day === dayOfWeek);
+    if (!daySchedule || daySchedule.isRestDay || !daySchedule.exercises || daySchedule.exercises.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: `${dayOfWeek} is a rest day or has no exercises scheduled`,
+        synced: false,
+      });
+    }
+
+    // Check if workout schedule block already exists
+    let existing = await ScheduleEvent.findOne({
+      userId,
+      date,
+      entityType: "workout",
+    });
+
+    const startTime = daySchedule.startTime || "07:30";
+    const endTime = daySchedule.endTime || "08:30";
+    const startMins = timeToMinutes(startTime);
+    const endMins = timeToMinutes(endTime);
+
+    const workoutLog = await WorkoutLog.findOne({ userId, date });
+    const isCompleted = workoutLog && workoutLog.status === "completed";
+
+    const title = `Workout: ${daySchedule.focusArea || "Training Session"}`;
+    const description = `${daySchedule.exercises.length} exercises scheduled (${daySchedule.exercises
+      .map((e) => e.name)
+      .slice(0, 3)
+      .join(", ")}${daySchedule.exercises.length > 3 ? "..." : ""})`;
+
+    if (existing) {
+      existing.title = title;
+      existing.description = description;
+      existing.status = isCompleted ? "completed" : existing.status;
+      await existing.save();
+      return res.status(200).json({
+        success: true,
+        message: "Existing workout schedule block updated",
+        event: existing,
+        synced: true,
+      });
+    }
+
+    const newWorkoutEvent = new ScheduleEvent({
+      userId,
+      title,
+      description,
+      date,
+      startTime,
+      endTime,
+      startMinutes: startMins,
+      endMinutes: endMins,
+      category: "fitness",
+      priority: "high",
+      status: isCompleted ? "completed" : "pending",
+      color: "#000000",
+      entityType: "workout",
+      isTask: false,
+      relatedId: timetable._id,
+      plannedDurationMinutes: Math.max(30, endMins - startMins),
+    });
+
+    await newWorkoutEvent.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Workout schedule block synced",
+      event: newWorkoutEvent,
+      synced: true,
+    });
+  } catch (error) {
+    console.error("Error syncing workout to schedule:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to sync workout to schedule",
+      error: error.message,
+    });
+  }
+}
+
+/**
+ * GET /api/schedule/planner-unified
+ * Comprehensive data feed for Daily Planner: scheduled events, tasks, unscheduled queue, workout, and habits
+ */
+export async function getDailyPlannerUnified(req, res) {
+  try {
+    const userId = req.user._id;
+    const targetDate = req.query.date || getTodayDateString();
+
+    const d = new Date(targetDate + "T12:00:00Z");
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayOfWeek = dayNames[d.getDay()];
+
+    const [allEvents, unscheduledTasks, timetable, workoutLog, habits, todayHabitLogs] = await Promise.all([
+      ScheduleEvent.find({ userId, date: targetDate }).sort({ startMinutes: 1 }).lean(),
+      ScheduleEvent.find({
+        userId,
+        isTask: true,
+        isUnscheduled: true,
+        status: { $ne: "completed" },
+      })
+        .sort({ createdAt: -1 })
+        .lean(),
+      Timetable.findOne({ userId, isActive: { $ne: false } }).lean(),
+      WorkoutLog.findOne({ userId, date: targetDate }).lean(),
+      Habit.find({ userId, isArchived: { $ne: true }, isDeleted: { $ne: true } }).lean(),
+      HabitLog.find({
+        userId,
+        date: {
+          $gte: new Date(targetDate + "T00:00:00.000Z"),
+          $lte: new Date(targetDate + "T23:59:59.999Z"),
+        },
+      }).lean(),
+    ]);
+
+    const scheduledEvents = allEvents.filter((e) => !e.isTask && !e.isUnscheduled);
+    const dayTasks = allEvents.filter((e) => e.isTask);
+
+    const completedTasksCount = dayTasks.filter((t) => t.status === "completed").length;
+    const pendingTasksCount = dayTasks.filter((t) => t.status !== "completed").length;
+
+    // Workout status
+    const daySchedule = (timetable?.days || []).find((ds) => ds.day === dayOfWeek);
+    const workoutInfo = {
+      hasWorkoutScheduled: !!(daySchedule && !daySchedule.isRestDay && daySchedule.exercises?.length > 0),
+      isRestDay: !!(daySchedule && daySchedule.isRestDay),
+      focusArea: daySchedule?.focusArea || "Rest & Recovery",
+      totalExercises: daySchedule?.exercises?.length || 0,
+      exercises: daySchedule?.exercises || [],
+      status: workoutLog?.status || (daySchedule?.isRestDay ? "rest" : "pending"),
+      isCompleted: workoutLog?.status === "completed",
+    };
+
+    // Habits status
+    const habitsWithStatus = habits.map((h) => {
+      const log = todayHabitLogs.find((l) => l.habitId && l.habitId.toString() === h._id.toString());
+      return {
+        _id: h._id,
+        title: h.title,
+        category: h.category,
+        streak: h.streak || 0,
+        isCompleted: log ? log.status === "done" || log.status === "completed" : false,
+      };
+    });
+
+    const completedHabitsCount = habitsWithStatus.filter((h) => h.isCompleted).length;
+
+    return res.status(200).json({
+      success: true,
+      date: targetDate,
+      dayOfWeek,
+      scheduledEvents: annotateConflicts(scheduledEvents),
+      dayTasks,
+      unscheduledTasks,
+      taskMetrics: {
+        total: dayTasks.length,
+        completed: completedTasksCount,
+        pending: pendingTasksCount,
+        completionRate: dayTasks.length > 0 ? Math.round((completedTasksCount / dayTasks.length) * 100) : 0,
+      },
+      workout: workoutInfo,
+      habits: {
+        total: habitsWithStatus.length,
+        completed: completedHabitsCount,
+        list: habitsWithStatus,
+      },
+    });
+  } catch (error) {
+    console.error("Error in getDailyPlannerUnified:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch unified daily planner",
+      error: error.message,
+    });
+  }
 }
 
