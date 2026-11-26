@@ -1,6 +1,5 @@
 // client/src/pages/TimetablePage/TimetablePage.jsx - COMPLETE FIXED VERSION
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Dumbbell,
   Sparkles,
@@ -10,7 +9,6 @@ import {
   Edit,
   Lightbulb,
   Calendar,
-  Flame,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./TimetablePage.module.css";
@@ -270,7 +268,6 @@ export default function TimetablePage() {
   const [logSaving, setLogSaving] = useState(false);
   const [timetableSaving, setTimetableSaving] = useState(false);
   const [syncingToPlanner, setSyncingToPlanner] = useState(false);
-  const navigate = useNavigate();
 
   async function handleSyncToPlanner() {
     try {
@@ -856,14 +853,6 @@ export default function TimetablePage() {
             >
               <Calendar className={styles.btnIcon} />
               <span>{syncingToPlanner ? "Syncing..." : "Sync to Planner"}</span>
-            </button>
-            <button
-              className={styles.editBtn}
-              onClick={() => navigate("/calories")}
-              title="View your nutrition and calorie log"
-            >
-              <Flame className={styles.btnIcon} />
-              <span>Nutrition</span>
             </button>
             {!activeTimetable.hasRequestedAI && (
               <button

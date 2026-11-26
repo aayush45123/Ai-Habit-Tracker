@@ -4,10 +4,9 @@ import api from "../../utils/api";
 import HabitCard from "../../components/HabitCard/HabitCard";
 import RiskAlerts from "../../components/RiskAlerts/RiskAlerts";
 import Recommendations from "../../components/Recommendations/Recommendations";
-import AIChatDrawer from "../../components/AIChatDrawer/AIChatDrawer";
 import AddHabitModal from "../../components/AddHabitModal/AddHabitModal";
 import GamificationWidget from "../../components/GamificationWidget/GamificationWidget";
-import { FaRobot, FaWifi } from "react-icons/fa";
+import { FaWifi } from "react-icons/fa";
 import {
   FiCalendar,
   FiClock,
@@ -39,9 +38,6 @@ export default function Dashboard() {
   // AI Insights
   const [ai, setAI] = useState(null);
   const [aiLoading, setAILoading] = useState(true);
-
-  // Floating AI Chat
-  const [chatOpen, setChatOpen] = useState(false);
 
   // Add Habit Modal
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -547,15 +543,6 @@ export default function Dashboard() {
         }}
       />
 
-      {/* ── FLOATING AI CHAT ── */}
-      <AIChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
-      <button
-        className={styles.floatingAI}
-        onClick={() => setChatOpen(true)}
-        title="Chat with AI Coach"
-      >
-        <FaRobot size={22} />
-      </button>
     </div>
   );
 }

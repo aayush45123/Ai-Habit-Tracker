@@ -97,6 +97,7 @@ function Sidebar() {
           {renderNavLink("/add", FiPlusCircle, "Habits & Goals")}
           {renderNavLink("/schedule", FiClock, "Daily Planner")}
           {renderNavLink("/timetable", Dumbbell, "Fitness")}
+          {renderNavLink("/calories", FiActivity, "Calorie Tracker")}
           {renderNavLink("/journal", FiBookOpen, "Growth Journal")}
           {renderNavLink("/ai", FiCpu, "AI Coach")}
           {renderNavLink("/analytics", FiTrendingUp, "Analytics & Reports")}

@@ -43,6 +43,58 @@
   box-sizing: border-box; /* Include padding in width calculation */
 }
 
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.9rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--color-border);
+  transition: transform var(--transition-speed) var(--transition-easing),
+    box-shadow var(--transition-speed) var(--transition-easing),
+    background-color var(--transition-speed) var(--transition-easing);
+}
+
+.backButton:hover {
+  transform: translate(-2px, -2px);
+  background: var(--color-bg-secondary);
+  box-shadow: 5px 5px 0 var(--color-border);
+}
+
+.chatLauncher {
+  position: fixed;
+  right: max(1.25rem, env(safe-area-inset-right));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  z-index: 980;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 54px;
+  padding: 0.8rem 1.2rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 5px 5px 0 var(--color-border);
+  transition: transform var(--transition-speed) var(--transition-easing),
+    box-shadow var(--transition-speed) var(--transition-easing);
+}
+
+.chatLauncher:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--color-border);
+}
+
 /* -------------------------
    RESPONSIVE DESIGN
 --------------------------*/
@@ -64,6 +116,14 @@
 }
 
 @media (max-width: 480px) {
+  .chatLauncher {
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    min-height: 48px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.82rem;
+  }
+
   .pageBody {
     padding: 0.75rem 0.5rem;
     padding-top: 4.25rem;

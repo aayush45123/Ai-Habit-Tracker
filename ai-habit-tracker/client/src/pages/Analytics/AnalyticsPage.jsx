@@ -2,7 +2,16 @@ import React, { lazy, Suspense, useEffect, useState, useMemo } from "react";
 import api from "../../utils/api.js";
 import styles from "./AnalyticsPage.module.css";
 import { Skeleton } from "../../components/Skeleton/Skeleton.jsx";
-import { TrendingUp, TrendingDown, Minus, Flame, Target, CheckSquare, Zap } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Flame,
+  Target,
+  CheckSquare,
+  Zap,
+  Sparkles,
+} from "lucide-react";
 
 // Recharts only downloaded when Analytics is visited
 const AnalyticsCharts = lazy(() => import("./AnalyticsCharts.jsx"));
@@ -70,22 +79,39 @@ function StatCard({ icon: Icon, label, value, sub, accent }) {
 
 export default function AnalyticsPage() {
   const [data, setData] = useState(null);
+  const [aiInsights, setAiInsights] = useState(null);
+  const [aiError, setAiError] = useState("");
+  const [analyticsError, setAnalyticsError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    let active = true;
 
-  async function fetchAnalytics() {
-    try {
-      const res = await api.get("/habits/analytics/all");
-      setData(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+    api.get("/habits/analytics/all")
+      .then((res) => {
+        if (active) setData(res.data);
+      })
+      .catch((err) => {
+        console.error("Analytics fetch error:", err);
+        if (active) setAnalyticsError("Habit analytics are temporarily unavailable.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    api.get("/ai/insights")
+      .then((res) => {
+        if (active) setAiInsights(res.data?.ai || null);
+      })
+      .catch((err) => {
+        console.error("AI analytics fetch error:", err);
+        if (active) setAiError("AI habit insights are temporarily unavailable.");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // ── derived chart data ─────────────────────────────────────────────────────
   const charts = useMemo(() => {
@@ -178,6 +204,7 @@ export default function AnalyticsPage() {
         <h2 className={styles.title}>Analytics</h2>
         <p className={styles.subtitle}>Deep insights into your habit performance</p>
       </div>
+      {analyticsError && <p className={styles.chartHint} role="alert">{analyticsError}</p>}
 
       {/* ── SUMMARY STAT CARDS ── */}
       <div className={styles.statRow}>
@@ -210,6 +237,63 @@ export default function AnalyticsPage() {
           accent="#000000"
         />
       </div>
+
+      <section className={styles.aiInsights} aria-labelledby="ai-insights-title">
+        <div className={styles.aiHeader}>
+          <div className={styles.aiTitleGroup}>
+            <span className={styles.aiIcon}><Sparkles size={20} /></span>
+            <div>
+              <h3 id="ai-insights-title" className={styles.aiSectionTitle}>
+                Your AI habit readout
+              </h3>
+              <p className={styles.aiSummary}>
+                {aiInsights?.summary || aiError || "Gathering your habit patterns…"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.aiInsightGrid}>
+          <div className={styles.aiInsightCard}>
+            <span className={styles.aiInsightLabel}>Strongest habit</span>
+            <strong>{aiInsights?.strongest || "Keep tracking"}</strong>
+            <span>{aiInsights?.explainability?.strongestReason || "Your best-performing routine will appear as data builds."}</span>
+          </div>
+          <div className={styles.aiInsightCard}>
+            <span className={styles.aiInsightLabel}>Needs attention</span>
+            <strong>{aiInsights?.weakest || "No pattern yet"}</strong>
+            <span>{aiInsights?.explainability?.weakestReason || "Track a few more days to find a useful focus area."}</span>
+          </div>
+          <div className={styles.aiInsightCard}>
+            <span className={styles.aiInsightLabel}>Power day</span>
+            <strong>{aiInsights?.bestDay || data?.bestDay || "Not identified"}</strong>
+            <span>{aiInsights?.explainability?.bestDayReason || "Your strongest weekday based on habit completions."}</span>
+          </div>
+          <div className={styles.aiInsightCard}>
+            <span className={styles.aiInsightLabel}>Habit health</span>
+            <strong>
+              {Number.isFinite(aiInsights?.explainability?.overallHealthScore)
+                ? `${aiInsights.explainability.overallHealthScore}/100`
+                : `${ss.consistencyScore}% consistency`}
+            </strong>
+            <span>{aiInsights?.explainability?.keyInsight || "A snapshot of your current consistency."}</span>
+          </div>
+        </div>
+
+        {aiInsights?.recommendations?.length > 0 && (
+          <div className={styles.aiRecommendations}>
+            <h4><Zap size={16} /> Small steps with the biggest impact</h4>
+            <div className={styles.aiRecommendationGrid}>
+              {aiInsights.recommendations.slice(0, 3).map((recommendation, index) => (
+                <article className={styles.aiRecommendation} key={`${recommendation.action}-${index}`}>
+                  <strong>{recommendation.action}</strong>
+                  <p>{recommendation.because || recommendation.dataPoint}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* ── MAIN CHARTS GRID ── */}
       <div className={styles.chartsGrid}>
