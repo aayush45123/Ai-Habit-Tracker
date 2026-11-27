@@ -525,6 +525,177 @@
   color: #b91c1c;
 }
 
+/* ── CATEGORY ALLOCATION BAR (Reclaim-style Monochrome) ── */
+.allocationCard {
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 2px solid var(--color-border, #000000);
+  box-shadow: 3px 3px 0px var(--color-border, #000000);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.allocationLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.allocationLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.allocationDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid #000000;
+  flex-shrink: 0;
+}
+
+.allocationCatName {
+  text-transform: capitalize;
+  color: var(--color-text-primary, #000000);
+}
+
+.allocationPct {
+  color: var(--color-text-secondary, #555555);
+  font-variant-numeric: tabular-nums;
+}
+
+.allocationBarTrack {
+  display: flex;
+  height: 8px;
+  width: 100%;
+  border: 1.5px solid #000000;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.allocationBarSegment {
+  height: 100%;
+  transition: width 0.25s ease;
+}
+
+/* ── SIDEBAR SECTIONS ── */
+.sidebarSearchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebarSearchIcon {
+  position: absolute;
+  left: 0.65rem;
+  color: var(--color-text-secondary, #555555);
+  pointer-events: none;
+}
+
+.sidebarSearchInput {
+  width: 100%;
+  padding: 0.5rem 0.7rem 0.5rem 2rem;
+  border: 2px solid var(--color-border, #000000);
+  background: var(--color-bg-primary, #ffffff);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 0.65rem;
+  border-top: 1.5px solid #e0e0e0;
+}
+
+.sidebarSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebarSectionTitle {
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary, #000000);
+}
+
+.sidebarCompactList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sidebarCompactRow {
+  width: 100%;
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 1.5px solid var(--color-border, #000000);
+  padding: 0.45rem 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: left;
+  color: var(--color-text-primary, #000000);
+}
+
+.sidebarCompactRow:hover {
+  background: #ffffff;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.sidebarCompactTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebarCompactMeta {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary, #555555);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.sidebarDoneToggle {
+  width: 100%;
+  background: transparent;
+  border: 1.5px solid var(--color-border, #000000);
+  padding: 0.4rem 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--color-text-primary, #000000);
+}
+
+.backlogItemDoneRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.25rem;
+}
+
 .emptyBacklog {
   text-align: center;
   padding: 1.5rem 0.5rem;

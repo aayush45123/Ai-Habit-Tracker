@@ -8,6 +8,15 @@ import {
   FiPlus,
   FiSliders,
   FiCopy,
+  FiBriefcase,
+  FiBookOpen,
+  FiActivity,
+  FiUsers,
+  FiRepeat,
+  FiUser,
+  FiCoffee,
+  FiTag,
+  FiBell,
 } from "react-icons/fi";
 import styles from "./TimeSchedule.module.css";
 import {
@@ -16,15 +25,15 @@ import {
   isCurrentTimeInRange,
 } from "../../utils/dateHelpers";
 
-const CATEGORY_ICONS = {
-  work: "💼",
-  study: "📚",
-  fitness: "🏋️",
-  meeting: "🤝",
-  routine: "🔄",
-  personal: "👤",
-  break: "☕",
-  other: "📌",
+const CATEGORY_ICON_MAP = {
+  work: FiBriefcase,
+  study: FiBookOpen,
+  fitness: FiActivity,
+  meeting: FiUsers,
+  routine: FiRepeat,
+  personal: FiUser,
+  break: FiCoffee,
+  other: FiTag,
 };
 
 export default function DailyTimelineView({
@@ -86,7 +95,7 @@ export default function DailyTimelineView({
             selectedDate
           );
           const durationStr = calculateDuration(event.startTime, event.endTime);
-          const catIcon = CATEGORY_ICONS[event.category] || "📌";
+          const CategoryIcon = CATEGORY_ICON_MAP[event.category] || FiTag;
 
           return (
             <div
@@ -141,7 +150,7 @@ export default function DailyTimelineView({
 
                 <div className={styles.badgesRow}>
                   <span className={styles.categoryTag}>
-                    <span>{catIcon}</span>
+                    <CategoryIcon size={12} />
                     <span>{event.category}</span>
                   </span>
 
@@ -155,7 +164,10 @@ export default function DailyTimelineView({
 
                   {event.reminderMinutesBefore !== undefined && (
                     <span className={styles.categoryTag}>
-                      🔔 {event.reminderMinutesBefore === 0 ? "At start" : `${event.reminderMinutesBefore}m before`}
+                      <FiBell size={11} />
+                      <span>
+                        {event.reminderMinutesBefore === 0 ? "At start" : `${event.reminderMinutesBefore}m before`}
+                      </span>
                     </span>
                   )}
                 </div>

@@ -6,7 +6,7 @@ import { formatTime12 } from "../../utils/dateHelpers";
 const LOCAL_PRESETS = [
   {
     key: "productive_workday",
-    name: "💼 Productive Workday",
+    name: "Productive Workday",
     description: "Deep work blocks, dedicated communication windows, balanced breaks, and structured closeout.",
     sample: [
       { time: "08:30 - 09:00", title: "Morning Planning & Priorities" },
@@ -19,7 +19,7 @@ const LOCAL_PRESETS = [
   },
   {
     key: "student_study",
-    name: "📚 Student Exam Prep & Study",
+    name: "Student Exam Prep & Study",
     description: "Active recall blocks, intensive theory, problem-solving drills, and revision pauses.",
     sample: [
       { time: "08:30 - 09:15", title: "Flashcard Recall & Concepts Review" },
@@ -32,7 +32,7 @@ const LOCAL_PRESETS = [
   },
   {
     key: "wellness_balance",
-    name: "🧘 Healthy Balanced Routine",
+    name: "Healthy Balanced Routine",
     description: "Mindful wellness, physical movement, focused execution burst, and digital sunset.",
     sample: [
       { time: "07:00 - 07:30", title: "Morning Sunlight & Hydration" },

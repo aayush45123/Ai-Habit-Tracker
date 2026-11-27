@@ -9,6 +9,9 @@ import {
   Edit,
   Lightbulb,
   Calendar,
+  TrendingUp,
+  LayoutDashboard,
+  Activity,
 } from "lucide-react";
 import api from "../../utils/api";
 import styles from "./TimetablePage.module.css";
@@ -252,6 +255,7 @@ export default function TimetablePage() {
   const [activeTimetable, setActiveTimetable] = useState(null);
   const [todaysWorkout, setTodaysWorkout] = useState(null);
   const [showCreator, setShowCreator] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "schedule" | "progression" | "trends"
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [pageError, setPageError] = useState("");
@@ -976,95 +980,168 @@ export default function TimetablePage() {
             </div>
           </div>
 
-          {/* AI IMPROVEMENTS */}
-          {activeTimetable.hasRequestedAI &&
-            aiSuggestions &&
-            aiSuggestions.length > 0 && (
-              <AIImprovements
-                suggestions={aiSuggestions}
-                assessment={aiAssessment}
-                currentSchedule={activeTimetable.weeklySchedule}
-                timetableId={activeTimetable._id}
-              />
-            )}
+          {/* GYMERLEEN-STYLE SUB-NAVIGATION TABS */}
+          <nav className={styles.subNavTabs} aria-label="Fitness & Training sections">
+            {[
+              { id: "overview", label: "Overview", icon: LayoutDashboard },
+              { id: "schedule", label: "Schedule", icon: Calendar },
+              { id: "progression", label: "Progression", icon: Activity },
+              { id: "trends", label: "Trends", icon: TrendingUp },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`${styles.subNavTabBtn} ${
+                    isActive ? styles.subNavTabBtnActive : ""
+                  }`}
+                >
+                  <Icon size={15} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
 
-          {/* TODAY'S WORKOUT */}
-          {todaysWorkout && (
-            <TodaysWorkout
-              workout={todaysWorkout}
-              completedExerciseIds={completedExerciseIds}
-              completionPercentage={workoutCompletionPercentage}
-              onToggleExercise={handleToggleExercise}
-              onCompleteWorkout={handleCompleteWorkout}
+          {/* TAB 1: OVERVIEW */}
+          {activeTab === "overview" && (
+            <>
+              {/* AI IMPROVEMENTS */}
+              {activeTimetable.hasRequestedAI &&
+                aiSuggestions &&
+                aiSuggestions.length > 0 && (
+                  <AIImprovements
+                    suggestions={aiSuggestions}
+                    assessment={aiAssessment}
+                    currentSchedule={activeTimetable.weeklySchedule}
+                    timetableId={activeTimetable._id}
+                  />
+                )}
+
+              {/* TODAY'S WORKOUT */}
+              {todaysWorkout && (
+                <TodaysWorkout
+                  workout={todaysWorkout}
+                  completedExerciseIds={completedExerciseIds}
+                  completionPercentage={workoutCompletionPercentage}
+                  onToggleExercise={handleToggleExercise}
+                  onCompleteWorkout={handleCompleteWorkout}
+                />
+              )}
+
+              {/* CHECKPOINTS */}
+              <TimetableCheckpointPanel
+                workoutLog={workoutLog}
+                workout={todaysWorkout}
+                analytics={workoutAnalytics}
+                loading={logSaving || logLoading}
+                submitted={isWorkoutSubmitted}
+                completedExerciseIds={completedExerciseIds}
+                completionPercentage={workoutCompletionPercentage}
+                draftStatus={draftStatus}
+                draftNote={draftNote}
+                draftDuration={draftDuration}
+                onStatusChange={setDraftStatus}
+                onNoteChange={setDraftNote}
+                onDurationChange={setDraftDuration}
+                onSubmit={handleSubmitCheckpoint}
+              />
+
+              {/* CTA FOR AI IMPROVEMENT */}
+              {!activeTimetable.hasRequestedAI && (
+                <div className={styles.aiCTA}>
+                  <div className={styles.ctaIcon}>
+                    <Lightbulb />
+                  </div>
+                  <div className={styles.ctaContent}>
+                    <h4 className={styles.ctaTitle}>
+                      Get AI-Powered Improvement Suggestions
+                    </h4>
+                    <p className={styles.ctaText}>
+                      Let our AI analyze your workout plan and provide personalized
+                      recommendations to optimize your training for better results.
+                    </p>
+                    <button
+                      className={styles.ctaButton}
+                      onClick={handleGetAIImprovements}
+                      disabled={loadingAI}
+                    >
+                      {loadingAI ? (
+                        <>
+                          <div className={styles.btnSpinner}></div>
+                          <span>Analyzing Your Program...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className={styles.btnIcon} />
+                          <span>Analyze & Improve</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* TAB 2: SCHEDULE (7-Column Calendar Grid) */}
+          {activeTab === "schedule" && (
+            <WeeklySchedule
+              schedule={activeTimetable.weeklySchedule}
+              goal={activeTimetable.goal}
+              level={activeTimetable.level}
+              timeAvailable={activeTimetable.timeAvailable || 60}
+              checkpointStatusByDay={workoutAnalytics?.latestStatusByDay || {}}
             />
           )}
 
-          {/* CHECKPOINTS */}
-          <TimetableCheckpointPanel
-            workoutLog={workoutLog}
-            workout={todaysWorkout}
-            analytics={workoutAnalytics}
-            loading={logSaving || logLoading}
-            submitted={isWorkoutSubmitted}
-            completedExerciseIds={completedExerciseIds}
-            completionPercentage={workoutCompletionPercentage}
-            draftStatus={draftStatus}
-            draftNote={draftNote}
-            draftDuration={draftDuration}
-            onStatusChange={setDraftStatus}
-            onNoteChange={setDraftNote}
-            onDurationChange={setDraftDuration}
-            onSubmit={handleSubmitCheckpoint}
-          />
-
-          {/* ANALYTICS */}
-          <TimetableAnalyticsPanel
-            analytics={workoutAnalytics}
-            loading={logLoading}
-          />
-
-          {/* WEEKLY SCHEDULE */}
-          <WeeklySchedule
-            schedule={activeTimetable.weeklySchedule}
-            goal={activeTimetable.goal}
-            level={activeTimetable.level}
-            timeAvailable={activeTimetable.timeAvailable || 60}
-            checkpointStatusByDay={workoutAnalytics?.latestStatusByDay || {}}
-          />
-
-          {/* CTA FOR AI IMPROVEMENT */}
-          {!activeTimetable.hasRequestedAI && (
-            <div className={styles.aiCTA}>
-              <div className={styles.ctaIcon}>
-                <Lightbulb />
+          {/* TAB 3: PROGRESSION (Exercise Volume & Split Breakdown) */}
+          {activeTab === "progression" && (
+            <section className={styles.progressionSection}>
+              <div className={styles.progressionHeader}>
+                <div>
+                  <h3 className={styles.progressionTitle}>Exercise Progression & Split</h3>
+                  <p className={styles.progressionSub}>
+                    Complete exercise breakdown, sets, reps, and rest targets across your split
+                  </p>
+                </div>
               </div>
-              <div className={styles.ctaContent}>
-                <h4 className={styles.ctaTitle}>
-                  Get AI-Powered Improvement Suggestions
-                </h4>
-                <p className={styles.ctaText}>
-                  Let our AI analyze your workout plan and provide personalized
-                  recommendations to optimize your training for better results.
-                </p>
-                <button
-                  className={styles.ctaButton}
-                  onClick={handleGetAIImprovements}
-                  disabled={loadingAI}
-                >
-                  {loadingAI ? (
-                    <>
-                      <div className={styles.btnSpinner}></div>
-                      <span>Analyzing Your Program...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className={styles.btnIcon} />
-                      <span>Analyze & Improve</span>
-                    </>
-                  )}
-                </button>
+
+              <div className={styles.progressionGrid}>
+                {(activeTimetable.weeklySchedule || [])
+                  .filter((d) => !d.isRestDay && (d.exercises || []).length > 0)
+                  .map((dayObj, dIdx) => (
+                    <div key={dIdx} className={styles.progressionCard}>
+                      <div className={styles.progressionCardHeader}>
+                        <span className={styles.progressionDay}>{dayObj.day}</span>
+                        <span className={styles.progressionFocus}>{dayObj.focusArea}</span>
+                      </div>
+                      <div className={styles.progressionTable}>
+                        {(dayObj.exercises || []).map((ex, eIdx) => (
+                          <div key={eIdx} className={styles.progressionRow}>
+                            <span className={styles.progressionExName}>{ex.name}</span>
+                            <span className={styles.progressionExMeta}>
+                              {ex.sets ? `${ex.sets} sets` : "-"} / {ex.reps ? `${ex.reps} reps` : "-"}
+                              {ex.restBetweenSets ? ` • ${ex.restBetweenSets} rest` : ""}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
               </div>
-            </div>
+            </section>
+          )}
+
+          {/* TAB 4: TRENDS (Monochrome Recharts Analytics) */}
+          {activeTab === "trends" && (
+            <TimetableAnalyticsPanel
+              analytics={workoutAnalytics}
+              loading={logLoading}
+            />
           )}
         </>
       )}

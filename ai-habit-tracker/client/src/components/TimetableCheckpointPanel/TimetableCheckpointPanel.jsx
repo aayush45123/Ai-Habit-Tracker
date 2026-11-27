@@ -208,7 +208,7 @@ export default function TimetableCheckpointPanel({
               }`}
             >
               {isFinalized
-                ? `${(workout?.isRestDay ? "rest" : completionPercentage >= 100 ? "completed" : status).toUpperCase()} ✓`
+                ? `${(workout?.isRestDay ? "rest" : completionPercentage >= 100 ? "completed" : status).toUpperCase()} (SAVED)`
                 : (workout?.isRestDay ? "rest" : completionPercentage >= 100 ? "completed" : status).toUpperCase()}
             </span>
           </div>

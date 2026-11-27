@@ -74,13 +74,13 @@ export default function TimetableAnalyticsPanel({ analytics, loading }) {
         label: "Completion %",
         data: weeklyCompletionSeries.map((day) => day.percentage),
         backgroundColor: weeklyCompletionSeries.map((day) => {
-          if (day.status === "rest") return "#64748b";
-          if (day.status === "completed") return "#14532d";
-          if (day.status === "partial") return "#b45309";
-          if (day.status === "missed") return "#7f1d1d";
-          return "#94a3b8";
+          if (day.status === "rest") return "#d4d4d4";
+          if (day.status === "completed") return "#000000";
+          if (day.status === "partial") return "#555555";
+          if (day.status === "missed") return "#a3a3a3";
+          return "#888888";
         }),
-        borderRadius: 8,
+        borderRadius: 4,
       },
     ],
   };
@@ -91,8 +91,8 @@ export default function TimetableAnalyticsPanel({ analytics, loading }) {
       {
         label: "Adherence %",
         data: last8WeeksAdherenceTrend.map((week) => week.adherence),
-        borderColor: "#14532d",
-        backgroundColor: "rgba(20, 83, 45, 0.12)",
+        borderColor: "#000000",
+        backgroundColor: "rgba(0, 0, 0, 0.1)",
         borderWidth: 3,
         tension: 0.35,
         pointRadius: 4,
@@ -106,15 +106,15 @@ export default function TimetableAnalyticsPanel({ analytics, loading }) {
       {
         data: Object.values(focusDistribution),
         backgroundColor: [
-          "#14532d",
-          "#1d4ed8",
-          "#c2410c",
-          "#7c3aed",
-          "#0f766e",
-          "#dc2626",
-          "#64748b",
+          "#000000",
+          "#2b2b2b",
+          "#525252",
+          "#737373",
+          "#999999",
+          "#bfbfbf",
+          "#e5e5e5",
         ],
-        borderWidth: 0,
+        borderWidth: 1,
       },
     ],
   };

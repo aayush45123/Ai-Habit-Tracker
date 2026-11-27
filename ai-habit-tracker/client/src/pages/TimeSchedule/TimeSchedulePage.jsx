@@ -15,6 +15,7 @@ import {
   FiX,
   FiCheckSquare,
   FiTrash2,
+  FiSearch,
 } from "react-icons/fi";
 import api from "../../utils/api";
 import styles from "./TimeSchedulePage.module.css";
@@ -69,9 +70,11 @@ export default function TimeSchedulePage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Unscheduled Backlog state (Reclaim style)
+  // Unscheduled Backlog & Sidebar state (Reclaim style)
   const [unscheduledTasks, setUnscheduledTasks] = useState([]);
   const [newBacklogTitle, setNewBacklogTitle] = useState("");
+  const [sidebarSearch, setSidebarSearch] = useState("");
+  const [showDoneTasks, setShowDoneTasks] = useState(false);
   const [syncingWorkout, setSyncingWorkout] = useState(false);
 
   // Modal states
@@ -253,7 +256,7 @@ export default function TimeSchedulePage() {
             });
           }
 
-          showToast(`🔔 Reminder: "${ev.title}" starting at ${ev.startTime}`);
+          showToast(`Reminder: "${ev.title}" starting at ${ev.startTime}`);
         }
       }
     }, 30000);
@@ -653,6 +656,69 @@ export default function TimeSchedulePage() {
         </div>
       </div>
 
+      {/* ── CATEGORY TIME ALLOCATION BAR (Reclaim-style Monochrome) ── */}
+      {(() => {
+        const sourceEvents = activeView === "weekly" ? weekEvents : events;
+        const catTotals = {};
+        let totalAllocatedMins = 0;
+        for (const ev of sourceEvents) {
+          const mins =
+            typeof ev.startMinutes === "number" && typeof ev.endMinutes === "number"
+              ? Math.max(0, ev.endMinutes - ev.startMinutes)
+              : ev.plannedDurationMinutes || 30;
+          const cat = ev.category || "other";
+          catTotals[cat] = (catTotals[cat] || 0) + mins;
+          totalAllocatedMins += mins;
+        }
+        const CAT_SHADES = {
+          work: "#000000",
+          study: "#2b2b2b",
+          fitness: "#4a4a4a",
+          meeting: "#6e6e6e",
+          routine: "#919191",
+          personal: "#b5b5b5",
+          break: "#d4d4d4",
+          other: "#e5e5e5",
+        };
+        const breakdown = Object.entries(catTotals)
+          .sort((a, b) => b[1] - a[1])
+          .map(([cat, mins]) => ({
+            cat,
+            pct: totalAllocatedMins > 0 ? Math.round((mins / totalAllocatedMins) * 100) : 0,
+            color: CAT_SHADES[cat] || "#737373",
+          }))
+          .filter((item) => item.pct > 0);
+
+        if (breakdown.length === 0) return null;
+
+        return (
+          <div className={styles.allocationCard}>
+            <div className={styles.allocationLegend}>
+              {breakdown.map((item) => (
+                <span key={item.cat} className={styles.allocationLegendItem}>
+                  <span
+                    className={styles.allocationDot}
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className={styles.allocationCatName}>{item.cat}</span>
+                  <span className={styles.allocationPct}>{item.pct}%</span>
+                </span>
+              ))}
+            </div>
+            <div className={styles.allocationBarTrack}>
+              {breakdown.map((item) => (
+                <div
+                  key={item.cat}
+                  className={styles.allocationBarSegment}
+                  style={{ width: `${item.pct}%`, backgroundColor: item.color }}
+                  title={`${item.cat}: ${item.pct}%`}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── FILTERS (Available in Timeline View) ── */}
       {activeView === "timeline" && (
         <div className={styles.filterBar}>
@@ -688,152 +754,227 @@ export default function TimeSchedulePage() {
         </div>
       )}
 
-      {/* ── MAIN VIEW CONTENT ── */}
-      {activeView === "timeline" && (
+      {/* ── MAIN VIEW CONTENT (Split Calendar + Sidebar on Timeline & Weekly) ── */}
+      {(activeView === "timeline" || activeView === "weekly") && (
         <div className={styles.plannerLayout}>
           <div className={styles.timelineMain}>
-            <DailyTimelineView
-              events={filteredEvents}
-              selectedDate={selectedDate}
-              onEditEvent={(event) => {
-                setEventRequestError("");
-                setEditingEvent(event);
-                setIsEventModalOpen(true);
-              }}
-              onDeleteEvent={handleDeleteEvent}
-              onToggleStatus={handleToggleStatus}
-              onOpenAddModal={() => {
-                setEditingEvent(null);
-                setEventRequestError("");
-                setIsEventModalOpen(true);
-              }}
-              onOpenPresetModal={() => setIsPresetModalOpen(true)}
-              onOpenCloneModal={() => setIsCloneModalOpen(true)}
-              hasAnyEvents={events.length > 0}
-              onClearFilters={() => {
-                setCategoryFilter("all");
-                setStatusFilter("all");
-              }}
-            />
+            {activeView === "timeline" && (
+              <DailyTimelineView
+                events={filteredEvents}
+                selectedDate={selectedDate}
+                onEditEvent={(event) => {
+                  setEventRequestError("");
+                  setEditingEvent(event);
+                  setIsEventModalOpen(true);
+                }}
+                onDeleteEvent={handleDeleteEvent}
+                onToggleStatus={handleToggleStatus}
+                onOpenAddModal={() => {
+                  setEditingEvent(null);
+                  setEventRequestError("");
+                  setIsEventModalOpen(true);
+                }}
+                onOpenPresetModal={() => setIsPresetModalOpen(true)}
+                onOpenCloneModal={() => setIsCloneModalOpen(true)}
+                hasAnyEvents={events.length > 0}
+                onClearFilters={() => {
+                  setCategoryFilter("all");
+                  setStatusFilter("all");
+                }}
+              />
+            )}
+
+            {activeView === "weekly" && weekError && (
+              <div className={styles.errorNotice} role="alert">
+                <span>{weekError}</span>
+                <button type="button" onClick={() => fetchWeekData(selectedDate)}>
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {activeView === "weekly" && !weekError && (
+              <WeeklyGridView
+                weekEvents={weekEvents}
+                selectedDate={selectedDate}
+                onSelectDate={(date) => {
+                  setSelectedDate(date);
+                  setActiveView("timeline");
+                }}
+                onEditEvent={(event) => {
+                  setEventRequestError("");
+                  setEditingEvent(event);
+                  setIsEventModalOpen(true);
+                }}
+                onAddForDate={(date) => {
+                  setSelectedDate(date);
+                  setEditingEvent(null);
+                  setEventRequestError("");
+                  setIsEventModalOpen(true);
+                }}
+              />
+            )}
           </div>
 
-          {/* ── UNSCHEDULED / PRIORITY BACKLOG (Reclaim.ai style) ── */}
-          <aside className={styles.backlogPanel}>
-            <div className={styles.backlogHeader}>
-              <h3 className={styles.backlogTitle}>
-                <FiCheckSquare size={18} />
-                <span>Tasks & Backlog</span>
-              </h3>
-              <span className={styles.backlogBadge}>
-                {unscheduledTasks.filter((t) => t.status !== "completed").length} Open
-              </span>
-            </div>
+          {/* ── RIGHT SIDEBAR: SCHEDULED / UNSCHEDULED / DONE (Reclaim.ai style) ── */}
+          {(() => {
+            const q = sidebarSearch.trim().toLowerCase();
+            const openTasks = unscheduledTasks.filter(
+              (t) => t.status !== "completed" && (!q || t.title.toLowerCase().includes(q))
+            );
+            const doneTasks = [
+              ...unscheduledTasks.filter((t) => t.status === "completed"),
+              ...events.filter((e) => e.status === "completed"),
+            ].filter((t) => !q || t.title.toLowerCase().includes(q));
+            const scheduledThisWeek = (activeView === "weekly" ? weekEvents : events)
+              .filter((e) => e.status !== "completed" && (!q || e.title.toLowerCase().includes(q)))
+              .slice(0, 6);
 
-            <form onSubmit={handleAddBacklogTask} className={styles.backlogAddForm}>
-              <input
-                type="text"
-                placeholder="Add task to backlog..."
-                value={newBacklogTitle}
-                onChange={(e) => setNewBacklogTitle(e.target.value)}
-                className={styles.backlogInput}
-              />
-              <button type="submit" className={styles.backlogAddBtn} title="Add to Backlog">
-                <FiPlus size={16} />
-              </button>
-            </form>
-
-            <div className={styles.backlogList}>
-              {unscheduledTasks.length === 0 ? (
-                <div className={styles.emptyBacklog}>
-                  No backlog tasks. Create one above to schedule later!
+            return (
+              <aside className={styles.backlogPanel}>
+                <div className={styles.sidebarSearchWrap}>
+                  <FiSearch size={14} className={styles.sidebarSearchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search tasks & slots..."
+                    value={sidebarSearch}
+                    onChange={(e) => setSidebarSearch(e.target.value)}
+                    className={styles.sidebarSearchInput}
+                  />
                 </div>
-              ) : (
-                unscheduledTasks.map((task) => {
-                  const isDone = task.status === "completed";
-                  return (
-                    <div
-                      key={task._id}
-                      className={`${styles.backlogItem} ${isDone ? styles.backlogItemDone : ""}`}
-                    >
-                      <div className={styles.backlogItemTop}>
-                        <input
-                          type="checkbox"
-                          checked={isDone}
-                          onChange={() => handleToggleStatus(task._id)}
-                          className={styles.backlogCheckbox}
-                          title={isDone ? "Mark as pending" : "Mark as done"}
-                        />
-                        <span
-                          className={`${styles.backlogItemTitle} ${
-                            isDone ? styles.completedTaskTitle : ""
-                          }`}
-                        >
-                          {task.title}
-                        </span>
+
+                {/* Scheduled this week / today */}
+                <div className={styles.sidebarSection}>
+                  <div className={styles.sidebarSectionHeader}>
+                    <span className={styles.sidebarSectionTitle}>
+                      {activeView === "weekly" ? "Scheduled this week" : "Scheduled today"}
+                    </span>
+                    <span className={styles.backlogBadge}>{scheduledThisWeek.length}</span>
+                  </div>
+                  {scheduledThisWeek.length === 0 ? (
+                    <div className={styles.emptyBacklog}>No upcoming slots</div>
+                  ) : (
+                    <div className={styles.sidebarCompactList}>
+                      {scheduledThisWeek.map((ev) => (
                         <button
-                          className={styles.deleteTaskBtn}
-                          onClick={() => handleDeleteEvent(task._id)}
-                          title="Delete task"
+                          type="button"
+                          key={ev._id}
+                          className={styles.sidebarCompactRow}
+                          onClick={() => {
+                            setEventRequestError("");
+                            setEditingEvent(ev);
+                            setIsEventModalOpen(true);
+                          }}
                         >
-                          <FiTrash2 size={13} />
+                          <span className={styles.sidebarCompactTitle}>{ev.title}</span>
+                          <span className={styles.sidebarCompactMeta}>{ev.startTime}</span>
                         </button>
-                      </div>
-
-                      <div className={styles.backlogItemMeta}>
-                        <div className={styles.backlogMetaLeft}>
-                          <span>{task.priority || "Normal"}</span>
-                          <span>•</span>
-                          <span>{task.plannedDurationMinutes || 30}m</span>
-                        </div>
-                        {!isDone && (
-                          <button
-                            className={styles.scheduleTaskBtn}
-                            onClick={() => handleScheduleBacklogTask(task)}
-                            title="Assign a time block to this task"
-                          >
-                            <FiClock size={12} />
-                            <span>Schedule</span>
-                          </button>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </aside>
-        </div>
-      )}
+                  )}
+                </div>
 
-      {activeView === "weekly" && weekError && (
-        <div className={styles.errorNotice} role="alert">
-          <span>{weekError}</span>
-          <button type="button" onClick={() => fetchWeekData(selectedDate)}>
-            Retry
-          </button>
-        </div>
-      )}
+                {/* Unscheduled Backlog */}
+                <div className={styles.sidebarSection}>
+                  <div className={styles.sidebarSectionHeader}>
+                    <span className={styles.sidebarSectionTitle}>Unscheduled</span>
+                    <span className={styles.backlogBadge}>{openTasks.length}</span>
+                  </div>
 
-      {activeView === "weekly" && !weekError && (
-        <WeeklyGridView
-          weekEvents={weekEvents}
-          selectedDate={selectedDate}
-          onSelectDate={(date) => {
-            setSelectedDate(date);
-            setActiveView("timeline");
-          }}
-          onEditEvent={(event) => {
-            setEventRequestError("");
-            setEditingEvent(event);
-            setIsEventModalOpen(true);
-          }}
-          onAddForDate={(date) => {
-            setSelectedDate(date);
-            setEditingEvent(null);
-            setEventRequestError("");
-            setIsEventModalOpen(true);
-          }}
-        />
+                  <form onSubmit={handleAddBacklogTask} className={styles.backlogAddForm}>
+                    <input
+                      type="text"
+                      placeholder="Add task to backlog..."
+                      value={newBacklogTitle}
+                      onChange={(e) => setNewBacklogTitle(e.target.value)}
+                      className={styles.backlogInput}
+                    />
+                    <button type="submit" className={styles.backlogAddBtn} title="Add to Backlog">
+                      <FiPlus size={16} />
+                    </button>
+                  </form>
+
+                  <div className={styles.backlogList}>
+                    {openTasks.length === 0 ? (
+                      <div className={styles.emptyBacklog}>
+                        No open backlog tasks.
+                      </div>
+                    ) : (
+                      openTasks.map((task) => (
+                        <div key={task._id} className={styles.backlogItem}>
+                          <div className={styles.backlogItemTop}>
+                            <input
+                              type="checkbox"
+                              checked={false}
+                              onChange={() => handleToggleStatus(task._id)}
+                              className={styles.backlogCheckbox}
+                              title="Mark as done"
+                            />
+                            <span className={styles.backlogItemTitle}>{task.title}</span>
+                            <button
+                              className={styles.deleteTaskBtn}
+                              onClick={() => handleDeleteEvent(task._id)}
+                              title="Delete task"
+                            >
+                              <FiTrash2 size={13} />
+                            </button>
+                          </div>
+
+                          <div className={styles.backlogItemMeta}>
+                            <div className={styles.backlogMetaLeft}>
+                              <span>{task.priority || "Normal"}</span>
+                              <span>•</span>
+                              <span>{task.plannedDurationMinutes || 30}m</span>
+                            </div>
+                            <button
+                              className={styles.scheduleTaskBtn}
+                              onClick={() => handleScheduleBacklogTask(task)}
+                              title="Assign a time block to this task"
+                            >
+                              <FiClock size={12} />
+                              <span>Schedule</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Done Section */}
+                <div className={styles.sidebarSection}>
+                  <button
+                    type="button"
+                    className={styles.sidebarDoneToggle}
+                    onClick={() => setShowDoneTasks((prev) => !prev)}
+                  >
+                    <span>Done ({doneTasks.length})</span>
+                    <span>{showDoneTasks ? "Hide" : "Show"}</span>
+                  </button>
+                  {showDoneTasks && (
+                    <div className={styles.sidebarCompactList}>
+                      {doneTasks.length === 0 ? (
+                        <div className={styles.emptyBacklog}>No completed items yet</div>
+                      ) : (
+                        doneTasks.map((task) => (
+                          <div key={task._id} className={styles.backlogItemDoneRow}>
+                            <input
+                              type="checkbox"
+                              checked={true}
+                              onChange={() => handleToggleStatus(task._id)}
+                              className={styles.backlogCheckbox}
+                            />
+                            <span className={styles.completedTaskTitle}>{task.title}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              </aside>
+            );
+          })()}
+        </div>
       )}
 
       {activeView === "monthly" && monthError && (

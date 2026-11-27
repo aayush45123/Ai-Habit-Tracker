@@ -9,6 +9,8 @@ import {
   Sunset,
   Moon,
   Lightbulb,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import styles from "./TodaysWorkout.module.css";
 
@@ -152,7 +154,7 @@ export default function TodaysWorkout({
                           isCompleted ? "not completed" : "completed"
                         }`}
                       >
-                        {isCompleted ? "☑" : "☐"}
+                        {isCompleted ? <CheckSquare size={18} /> : <Square size={18} />}
                       </button>
                     </div>
                   </div>

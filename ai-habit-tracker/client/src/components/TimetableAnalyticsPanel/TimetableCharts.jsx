@@ -28,13 +28,13 @@ const tooltipStyle = {
 };
 
 const DEFAULT_FOCUS_COLORS = [
-  "#14532d",
-  "#1d4ed8",
-  "#c2410c",
-  "#7c3aed",
-  "#0f766e",
-  "#dc2626",
-  "#64748b",
+  "#000000",
+  "#2b2b2b",
+  "#525252",
+  "#737373",
+  "#999999",
+  "#bfbfbf",
+  "#e5e5e5",
 ];
 
 /**
@@ -83,7 +83,7 @@ export default function TimetableCharts({ type, data }) {
   }
 
   if (type === "line") {
-    const strokeColor = data?.datasets?.[0]?.borderColor || "#14532d";
+    const strokeColor = data?.datasets?.[0]?.borderColor || "#000000";
     return (
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={chartItems} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>

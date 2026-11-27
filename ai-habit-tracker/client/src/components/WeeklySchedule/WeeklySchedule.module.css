@@ -99,6 +99,326 @@
   letter-spacing: 0.3px;
 }
 
+/* ===== GYMERLEEN-STYLE CALENDAR TOOLBAR & 7-COLUMN GRID ===== */
+.calendarToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.viewToggleGroup {
+  display: inline-flex;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
+.viewToggleBtn {
+  padding: 0.45rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.viewToggleBtnActive {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.weekNavGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.weekNavBtn {
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.weekNavBtn:hover {
+  background: var(--color-bg-secondary);
+}
+
+.weekRangeBadge {
+  padding: 0.42rem 0.9rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.calendarScrollWrap {
+  overflow-x: auto;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-primary);
+  margin-bottom: 1.5rem;
+}
+
+.calendarGrid7 {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(150px, 1fr));
+  min-width: 1050px;
+}
+
+.calendarCol {
+  position: relative;
+  border-right: 1.5px solid #d4d4d4;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-primary);
+}
+
+.calendarCol:last-child {
+  border-right: none;
+}
+
+.calendarColToday {
+  background: #fafafa;
+}
+
+.calendarColSelected {
+  background: var(--color-bg-secondary);
+}
+
+.calendarColHeader {
+  padding: 0.65rem 0.6rem;
+  border-bottom: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-bg-primary);
+}
+
+.calendarColToday .calendarColHeader {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-dark);
+}
+
+.calendarColDate {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.todayDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.todayVerticalLine {
+  position: absolute;
+  top: 38px;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+}
+
+.calendarColBody {
+  padding: 0.65rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.workoutGridCard {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-left: 5px solid var(--color-accent-primary);
+  box-shadow: 3px 3px 0px var(--color-border);
+  padding: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  color: var(--color-text-primary);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.workoutGridCard:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--color-border);
+  background: #ffffff;
+}
+
+.workoutGridCardActive {
+  background: #ffffff;
+  outline: 2px solid #000000;
+}
+
+.workoutGridCardRest {
+  border-left-color: #7a7a7a;
+  background: #f9f9f9;
+}
+
+.workoutGridCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.workoutGridCardTitle {
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.workoutGridMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  border-top: 1px dashed #c4c4c4;
+  padding-top: 0.45rem;
+}
+
+.workoutGridMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.metricKey {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.metricVal {
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.workoutGridSlotTag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emptyDaySlot {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  padding: 1rem 0;
+}
+
+.selectedDayPanel {
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  box-shadow: 4px 4px 0px var(--color-border);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.selectedDayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 0.75rem;
+}
+
+.selectedDayTitle {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.selectedDaySub {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.selectedDayPills {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.exerciseDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.exerciseDetailCard {
+  background: var(--color-bg-primary);
+  border: 1.5px solid var(--color-border);
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.exerciseDetailName {
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.exerciseDetailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-size: 0.74rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .root {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .headerStats {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
 /* ===== DAYS LIST ===== */
 .daysList {
   display: flex;

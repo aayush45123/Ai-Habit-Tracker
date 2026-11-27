@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { FiX, FiCheck, FiClock, FiAlertTriangle, FiTrash2 } from "react-icons/fi";
+import { FiX, FiCheck, FiClock, FiAlertTriangle, FiTrash2, FiCalendar, FiCheckSquare } from "react-icons/fi";
 import styles from "./TimeSchedule.module.css";
 import { timeToMinutes } from "../../utils/dateHelpers";
 
 const CATEGORIES = [
-  { value: "work", label: "💼 Work" },
-  { value: "study", label: "📚 Study" },
-  { value: "fitness", label: "🏋️ Fitness / Health" },
-  { value: "meeting", label: "🤝 Meeting" },
-  { value: "routine", label: "🔄 Daily Routine" },
-  { value: "personal", label: "👤 Personal" },
-  { value: "break", label: "☕ Break / Rest" },
-  { value: "other", label: "📌 Other" },
+  { value: "work", label: "Work" },
+  { value: "study", label: "Study" },
+  { value: "fitness", label: "Fitness / Health" },
+  { value: "meeting", label: "Meeting" },
+  { value: "routine", label: "Daily Routine" },
+  { value: "personal", label: "Personal" },
+  { value: "break", label: "Break / Rest" },
+  { value: "other", label: "Other" },
 ];
 
 const PRIORITIES = [
@@ -144,9 +144,14 @@ export default function EventModal({
                   cursor: "pointer",
                   borderRadius: "6px",
                   boxShadow: !isTask ? "none" : "2px 2px 0 #000",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.4rem",
                 }}
               >
-                📅 Time Block
+                <FiCalendar size={14} />
+                <span>Time Block</span>
               </button>
               <button
                 type="button"
@@ -162,9 +167,14 @@ export default function EventModal({
                   cursor: "pointer",
                   borderRadius: "6px",
                   boxShadow: isTask ? "none" : "2px 2px 0 #000",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.4rem",
                 }}
               >
-                ✓ Task / To-Do
+                <FiCheckSquare size={14} />
+                <span>Task / To-Do</span>
               </button>
             </div>
 

@@ -1,47 +1,92 @@
 // client/src/components/WeeklySchedule/WeeklySchedule.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Calendar,
-  ChevronDown,
-  ChevronUp,
   Target,
   Clock,
   Flame,
   Award,
+  ChevronLeft,
+  ChevronRight,
+  Dumbbell,
+  Moon,
 } from "lucide-react";
 import styles from "./WeeklySchedule.module.css";
 
+const ORDERED_DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+function getWeekDates(weekOffset = 0) {
+  const now = new Date();
+  const dayIdx = (now.getDay() + 6) % 7; // Monday = 0
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - dayIdx + weekOffset * 7);
+
+  return ORDERED_DAYS.map((dayName, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const isToday =
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
+
+    return {
+      dayName,
+      shortLabel: d.toLocaleDateString("en-US", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+      }),
+      isToday,
+    };
+  });
+}
+
 export default function WeeklySchedule({
-  schedule,
-  goal,
-  level,
-  timeAvailable,
+  schedule = [],
+  goal = "",
+  level = "",
+  timeAvailable = 60,
   checkpointStatusByDay = {},
 }) {
-  const [expandedDays, setExpandedDays] = useState([]);
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const currentDay = daysOfWeek[new Date().getDay()];
 
-  const toggleDay = (day) => {
-    if (expandedDays.includes(day)) {
-      setExpandedDays(expandedDays.filter((d) => d !== day));
-    } else {
-      setExpandedDays([...expandedDays, day]);
+  const [viewMode, setViewMode] = useState("week"); // "week" | "day"
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedDayName, setSelectedDayName] = useState(currentDay);
+
+  const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
+
+  const scheduleByDay = useMemo(() => {
+    const map = {};
+    for (const item of schedule) {
+      map[item.day] = item;
     }
-  };
+    return map;
+  }, [schedule]);
 
-  const getDayOfWeek = () => {
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    return days[new Date().getDay()];
-  };
+  const weekRangeLabel = useMemo(() => {
+    if (weekDates.length < 7) return "";
+    return `${weekDates[0].shortLabel} – ${weekDates[6].shortLabel}`;
+  }, [weekDates]);
 
-  const currentDay = getDayOfWeek();
+  const activeDaySchedule = scheduleByDay[selectedDayName] || schedule[0];
 
   return (
     <div className={styles.root}>
@@ -50,8 +95,10 @@ export default function WeeklySchedule({
         <div className={styles.headerContent}>
           <Calendar className={styles.headerIcon} />
           <div className={styles.headerText}>
-            <h3 className={styles.title}>Weekly Schedule</h3>
-            <p className={styles.subtitle}>Your 7-day workout plan</p>
+            <h3 className={styles.title}>Training Schedule</h3>
+            <p className={styles.subtitle}>
+              Structured 7-day workout & recovery calendar
+            </p>
           </div>
         </div>
 
@@ -73,167 +120,219 @@ export default function WeeklySchedule({
         </div>
       </div>
 
-      {/* DAYS */}
-      <div className={styles.daysList}>
-        {schedule.map((daySchedule, index) => {
-          const isExpanded = expandedDays.includes(daySchedule.day);
-          const isToday = daySchedule.day === currentDay;
+      {/* CALENDAR TOOLBAR (Gymerleen-style Monochrome) */}
+      <div className={styles.calendarToolbar}>
+        <div className={styles.viewToggleGroup}>
+          <button
+            type="button"
+            className={`${styles.viewToggleBtn} ${
+              viewMode === "day" ? styles.viewToggleBtnActive : ""
+            }`}
+            onClick={() => setViewMode("day")}
+          >
+            Day
+          </button>
+          <button
+            type="button"
+            className={`${styles.viewToggleBtn} ${
+              viewMode === "week" ? styles.viewToggleBtnActive : ""
+            }`}
+            onClick={() => setViewMode("week")}
+          >
+            Week
+          </button>
+        </div>
 
-          return (
-            <div
-              key={index}
-              className={`${styles.dayCard} ${isToday ? styles.today : ""} ${
-                daySchedule.isRestDay ? styles.restDay : ""
-              }`}
-            >
-              {/* DAY HEADER */}
-              <div
-                className={styles.dayHeader}
-                onClick={() => toggleDay(daySchedule.day)}
-              >
-                <div className={styles.dayHeaderLeft}>
-                  <div className={styles.dayNumber}>{index + 1}</div>
-                  <div className={styles.dayInfo}>
-                    <h4 className={styles.dayName}>{daySchedule.day}</h4>
-                    <span className={styles.dayFocus}>
-                      {daySchedule.focusArea}
-                    </span>
-                  </div>
-                </div>
+        <div className={styles.weekNavGroup}>
+          <button
+            type="button"
+            className={styles.weekNavBtn}
+            onClick={() => setWeekOffset((w) => w - 1)}
+            aria-label="Previous week"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            type="button"
+            className={styles.weekRangeBadge}
+            onClick={() => setWeekOffset(0)}
+            title="Jump to current week"
+          >
+            {weekRangeLabel}
+          </button>
+          <button
+            type="button"
+            className={styles.weekNavBtn}
+            onClick={() => setWeekOffset((w) => w + 1)}
+            aria-label="Next week"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
 
-                <div className={styles.dayHeaderRight}>
-                  {checkpointStatusByDay[daySchedule.day] && (
-                    <span
-                      className={`${styles.checkpointBadge} ${
-                        checkpointStatusByDay[daySchedule.day].status ===
-                        "completed"
-                          ? styles.completedCheckpoint
-                          : checkpointStatusByDay[daySchedule.day].status ===
-                              "partial"
-                            ? styles.partialCheckpoint
-                            : checkpointStatusByDay[daySchedule.day].status ===
-                                "rest"
-                              ? styles.restCheckpoint
-                              : styles.missedCheckpoint
-                      }`}
-                    >
-                      {checkpointStatusByDay[daySchedule.day].status ===
-                      "completed"
-                        ? "COMPLETED"
-                        : checkpointStatusByDay[daySchedule.day].status ===
-                            "partial"
-                          ? "PARTIAL"
-                          : checkpointStatusByDay[daySchedule.day].status ===
-                              "rest"
-                            ? "REST"
-                            : checkpointStatusByDay[daySchedule.day].status ===
-                                "pending"
-                              ? "PENDING"
-                              : "MISSED"}
-                    </span>
-                  )}
-                  {isToday && <span className={styles.todayBadge}>TODAY</span>}
-                  {daySchedule.isRestDay && (
-                    <span className={styles.restBadge}>REST</span>
-                  )}
-                  <div className={styles.expandIcon}>
-                    {isExpanded ? <ChevronUp /> : <ChevronDown />}
-                  </div>
-                </div>
-              </div>
+      {/* WEEK 7-COLUMN CALENDAR GRID */}
+      {viewMode === "week" && (
+        <div className={styles.calendarScrollWrap}>
+          <div className={styles.calendarGrid7}>
+            {weekDates.map((dInfo) => {
+              const dayItem = scheduleByDay[dInfo.dayName];
+              const isSelected = selectedDayName === dInfo.dayName;
+              const cp = checkpointStatusByDay[dInfo.dayName];
+              const statusText = cp?.status
+                ? cp.status.toUpperCase()
+                : dayItem?.isRestDay
+                ? "REST"
+                : "PLANNED";
 
-              {/* EXPANDED CONTENT */}
-              {isExpanded && (
-                <div className={styles.dayContent}>
-                  {/* TIME BLOCKS */}
-                  <div className={styles.timeBlocksGrid}>
-                    <div className={styles.timeBlockItem}>
-                      <span className={styles.timeBlockLabel}>Morning</span>
-                      <span className={styles.timeBlockValue}>
-                        {daySchedule.timeBlock?.morning || "Rest"}
-                      </span>
-                    </div>
-                    <div className={styles.timeBlockItem}>
-                      <span className={styles.timeBlockLabel}>Evening</span>
-                      <span className={styles.timeBlockValue}>
-                        {daySchedule.timeBlock?.evening || "Rest"}
-                      </span>
-                    </div>
-                    <div className={styles.timeBlockItem}>
-                      <span className={styles.timeBlockLabel}>Night</span>
-                      <span className={styles.timeBlockValue}>
-                        {daySchedule.timeBlock?.night || "Rest"}
-                      </span>
-                    </div>
+              return (
+                <div
+                  key={dInfo.dayName}
+                  className={`${styles.calendarCol} ${
+                    dInfo.isToday ? styles.calendarColToday : ""
+                  } ${isSelected ? styles.calendarColSelected : ""}`}
+                >
+                  <div className={styles.calendarColHeader}>
+                    <span className={styles.calendarColDate}>{dInfo.shortLabel}</span>
+                    {dInfo.isToday && <span className={styles.todayDot} />}
                   </div>
 
-                  {/* EXERCISES */}
-                  {!daySchedule.isRestDay &&
-                    daySchedule.exercises.length > 0 && (
-                      <div className={styles.exercisesSection}>
-                        <div className={styles.exercisesHeader}>
-                          <Flame className={styles.exercisesIcon} />
-                          <span className={styles.exercisesTitle}>
-                            Exercises ({daySchedule.exercises.length})
+                  {dInfo.isToday && <div className={styles.todayVerticalLine} />}
+
+                  <div className={styles.calendarColBody}>
+                    {dayItem ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDayName(dInfo.dayName)}
+                        className={`${styles.workoutGridCard} ${
+                          dayItem.isRestDay ? styles.workoutGridCardRest : ""
+                        } ${isSelected ? styles.workoutGridCardActive : ""}`}
+                      >
+                        <div className={styles.workoutGridCardTop}>
+                          <span className={styles.workoutGridCardTitle}>
+                            {dayItem.isRestDay
+                              ? "Rest & Recovery"
+                              : dayItem.focusArea || "Training Session"}
                           </span>
+                          {dayItem.isRestDay ? (
+                            <Moon size={14} />
+                          ) : (
+                            <Dumbbell size={14} />
+                          )}
                         </div>
 
-                        <div className={styles.exercisesGrid}>
-                          {daySchedule.exercises.map((exercise, exIndex) => (
-                            <div key={exIndex} className={styles.exerciseItem}>
-                              <div className={styles.exerciseTop}>
-                                <span className={styles.exerciseNum}>
-                                  {exIndex + 1}
-                                </span>
-                                <span className={styles.exerciseName}>
-                                  {exercise.name}
-                                </span>
-                              </div>
+                        <div className={styles.workoutGridMetrics}>
+                          <div className={styles.workoutGridMetric}>
+                            <span className={styles.metricKey}>Exercises</span>
+                            <span className={styles.metricVal}>
+                              {dayItem.isRestDay ? "0" : dayItem.exercises?.length || 0}
+                            </span>
+                          </div>
+                          <div className={styles.workoutGridMetric}>
+                            <span className={styles.metricKey}>Mins</span>
+                            <span className={styles.metricVal}>
+                              {dayItem.isRestDay ? "-" : timeAvailable}
+                            </span>
+                          </div>
+                          <div className={styles.workoutGridMetric}>
+                            <span className={styles.metricKey}>Status</span>
+                            <span className={styles.metricVal}>{statusText}</span>
+                          </div>
+                        </div>
 
-                              <div className={styles.exerciseSpecs}>
-                                {exercise.sets && (
-                                  <span className={styles.spec}>
-                                    {exercise.sets} sets
-                                  </span>
-                                )}
-                                {exercise.reps && (
-                                  <span className={styles.spec}>
-                                    {exercise.reps} reps
-                                  </span>
-                                )}
-                                {exercise.duration && (
-                                  <span className={styles.spec}>
-                                    {exercise.duration}
-                                  </span>
-                                )}
-                              </div>
-
-                              {exercise.notes && (
-                                <div className={styles.exerciseNotes}>
-                                  {exercise.notes}
-                                </div>
-                              )}
+                        {dayItem.timeBlock?.evening &&
+                          dayItem.timeBlock.evening !== "Rest" && (
+                            <div className={styles.workoutGridSlotTag}>
+                              Evening: {dayItem.timeBlock.evening}
                             </div>
-                          ))}
-                        </div>
-                      </div>
+                          )}
+                      </button>
+                    ) : (
+                      <div className={styles.emptyDaySlot}>No plan</div>
                     )}
-
-                  {/* REST DAY INFO */}
-                  {daySchedule.isRestDay && (
-                    <div className={styles.restDayInfo}>
-                      <p>
-                        Active recovery day. Focus on stretching, light walking,
-                        or complete rest to allow muscles to recover and grow.
-                      </p>
-                    </div>
-                  )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* SELECTED DAY DETAIL PANEL (Visible in both Day & Week modes) */}
+      {activeDaySchedule && (
+        <div className={styles.selectedDayPanel}>
+          <div className={styles.selectedDayHeader}>
+            <div>
+              <h4 className={styles.selectedDayTitle}>
+                {activeDaySchedule.day} —{" "}
+                {activeDaySchedule.isRestDay
+                  ? "Rest & Recovery"
+                  : activeDaySchedule.focusArea}
+              </h4>
+              <p className={styles.selectedDaySub}>
+                {activeDaySchedule.isRestDay
+                  ? "Active recovery, mobility, and hydration."
+                  : `${activeDaySchedule.exercises?.length || 0} structured exercises`}
+              </p>
+            </div>
+            <div className={styles.selectedDayPills}>
+              {activeDaySchedule.day === currentDay && (
+                <span className={styles.todayBadge}>TODAY</span>
+              )}
+              {activeDaySchedule.isRestDay && (
+                <span className={styles.restBadge}>REST</span>
               )}
             </div>
-          );
-        })}
-      </div>
+          </div>
+
+          <div className={styles.timeBlocksGrid}>
+            <div className={styles.timeBlockItem}>
+              <span className={styles.timeBlockLabel}>Morning</span>
+              <span className={styles.timeBlockValue}>
+                {activeDaySchedule.timeBlock?.morning || "Rest"}
+              </span>
+            </div>
+            <div className={styles.timeBlockItem}>
+              <span className={styles.timeBlockLabel}>Evening</span>
+              <span className={styles.timeBlockValue}>
+                {activeDaySchedule.timeBlock?.evening || "Rest"}
+              </span>
+            </div>
+            <div className={styles.timeBlockItem}>
+              <span className={styles.timeBlockLabel}>Night</span>
+              <span className={styles.timeBlockValue}>
+                {activeDaySchedule.timeBlock?.night || "Rest"}
+              </span>
+            </div>
+          </div>
+
+          {!activeDaySchedule.isRestDay &&
+            activeDaySchedule.exercises?.length > 0 && (
+              <div className={styles.exercisesSection}>
+                <div className={styles.exercisesHeader}>
+                  <Flame className={styles.exercisesIcon} />
+                  <span className={styles.exercisesTitle}>
+                    Exercises ({activeDaySchedule.exercises.length})
+                  </span>
+                </div>
+                <div className={styles.exerciseDetailGrid}>
+                  {activeDaySchedule.exercises.map((ex, idx) => (
+                    <div key={idx} className={styles.exerciseDetailCard}>
+                      <div className={styles.exerciseDetailName}>
+                        {idx + 1}. {ex.name}
+                      </div>
+                      <div className={styles.exerciseDetailMeta}>
+                        {ex.sets && <span>Sets: {ex.sets}</span>}
+                        {ex.reps && <span>Reps: {ex.reps}</span>}
+                        {ex.restBetweenSets && <span>Rest: {ex.restBetweenSets}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+        </div>
+      )}
     </div>
   );
 }
