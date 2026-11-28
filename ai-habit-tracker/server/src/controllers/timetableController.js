@@ -1,5 +1,6 @@
 // server/src/controllers/timetableController.js
 import Timetable from "../models/Timetable.js";
+import { normalizeTimetableEnums } from "../utils/normalizeTimetableEnums.js";
 import {
   generateImprovementSuggestions,
   getTodaysWorkout,
@@ -252,13 +253,15 @@ export const createTimetable = async (req, res) => {
       { isActive: false },
     );
 
+    const normalizedEnums = normalizeTimetableEnums({ category, goal, level });
+
     // Create new timetable - ✅ FIXED: req.user._id
     const timetable = await Timetable.create({
       userId: req.user._id,
       name: name || "My Workout Schedule",
-      category,
-      goal,
-      level,
+      category: normalizedEnums.category,
+      goal: normalizedEnums.goal,
+      level: normalizedEnums.level,
       sportsMode: sportsMode || { enabled: false, sport: "none" },
       weeklySchedule,
       isActive: true,

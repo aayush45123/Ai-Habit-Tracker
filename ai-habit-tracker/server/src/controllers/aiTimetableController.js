@@ -1,5 +1,6 @@
 // server/src/controllers/aiTimetableController.js
 import { completeWithGroq, extractAndParseJSON } from "../utils/aiClient.js";
+import { normalizeTimetableEnums } from "../utils/normalizeTimetableEnums.js";
 
 const DAYS = [
   "Monday",
@@ -12,7 +13,12 @@ const DAYS = [
 ];
 
 function generateFallbackTimetable(body) {
-  const { fitnessGoal = "general_fitness", fitnessLevel = "beginner" } = body;
+  const { fitnessGoal = "general_fitness", fitnessLevel = "intermediate" } = body;
+  const normalized = normalizeTimetableEnums({
+    category: fitnessGoal,
+    goal: fitnessGoal,
+    level: fitnessLevel,
+  });
   const splitMap = {
     fat_loss: [
       { day: "Monday", focus: "Full Body HIIT & Cardio", isRest: false, exercises: [{ name: "Jumping Jacks", sets: "3", reps: "30s", restBetweenSets: "45s", notes: "Warmup" }, { name: "Bodyweight Squats", sets: "4", reps: "15", restBetweenSets: "60s", notes: "Control form" }, { name: "Push-ups", sets: "3", reps: "10-12", restBetweenSets: "60s", notes: "Knee pushups if needed" }] },
@@ -27,10 +33,10 @@ function generateFallbackTimetable(body) {
 
   const defaultDays = splitMap.fat_loss;
   return {
-    name: `${fitnessGoal.replace("_", " ")} Plan`,
-    category: "general_fitness",
-    goal: fitnessGoal,
-    level: fitnessLevel,
+    name: `${normalized.goal.replace("_", " ")} Plan`,
+    category: normalized.category,
+    goal: normalized.goal,
+    level: normalized.level,
     weeklySchedule: DAYS.map((day, idx) => {
       const d = defaultDays[idx] || { day, focus: "General Workout", isRest: false, exercises: [] };
       return {
@@ -74,7 +80,7 @@ export const generateAITimetable = async (req, res) => {
     const safeEquipment = cleanField(equipment, 250);
     const safeInjuries = cleanField(injuries, 250);
     const safeFocus = cleanField(focusAreas, 250);
-    const safeNotes = cleanField(additionalNotes, 400);
+    const safeNotes = cleanField(additionalNotes, 3000);
 
     const prompt = `
 You are an elite Strength & Conditioning Coach.
@@ -94,15 +100,16 @@ Additional Notes: ${safeNotes}
 
 WORKOUT GENERATION RULES:
 - Generate exactly 7 days (Monday to Sunday)
+- If Additional Notes specifies a custom workout schedule, days, or exercises, follow those exact exercises and structure faithfully.
 - Include at least 1 recovery/rest day
 - Every training day must contain 4-6 exercises with name, sets, reps, restBetweenSets, notes
 - Rest days must have isRestDay: true, exercises: []
 - Return ONLY valid JSON matching this schema:
 {
   "name": "string",
-  "category": "sports_specific | hypertrophy | fat_loss | strength",
-  "goal": "${fitnessGoal}",
-  "level": "${fitnessLevel}",
+  "category": "bodybuilding | powerlifting | crossfit | calisthenics | sports_specific | general_fitness | weight_loss | endurance",
+  "goal": "fat_loss | muscle_gain | strength | sports_stamina | general_fitness | endurance | flexibility",
+  "level": "beginner | intermediate | advanced",
   "weeklySchedule": [
     {
       "day": "Monday",
@@ -170,6 +177,15 @@ WORKOUT GENERATION RULES:
         },
       };
     });
+
+    const normalizedEnums = normalizeTimetableEnums({
+      category: parsed.category || fitnessGoal,
+      goal: parsed.goal || fitnessGoal,
+      level: parsed.level || fitnessLevel,
+    });
+    parsed.category = normalizedEnums.category;
+    parsed.goal = normalizedEnums.goal;
+    parsed.level = normalizedEnums.level;
 
     res.json(parsed);
   } catch (err) {

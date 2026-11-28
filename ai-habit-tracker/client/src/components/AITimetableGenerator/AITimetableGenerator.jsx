@@ -135,11 +135,37 @@ Rules:
         };
       });
 
+      const normCat = (() => {
+        const v = String(parsed.category || "").toLowerCase();
+        if (["bodybuilding", "powerlifting", "crossfit", "calisthenics", "sports_specific", "general_fitness", "weight_loss", "endurance"].includes(v)) return v;
+        if (v.includes("fat") || v.includes("lose")) return "weight_loss";
+        if (v.includes("hypertrophy") || v.includes("muscle")) return "bodybuilding";
+        if (v.includes("strength")) return "powerlifting";
+        return "general_fitness";
+      })();
+      const normGoal = (() => {
+        const v = String(parsed.goal || fitnessGoal || "").toLowerCase();
+        if (["fat_loss", "muscle_gain", "strength", "sports_stamina", "general_fitness", "endurance", "flexibility"].includes(v)) return v;
+        if (v.includes("fat") || v.includes("lose")) return "fat_loss";
+        if (v.includes("muscle") || v.includes("gain")) return "muscle_gain";
+        if (v.includes("strength")) return "strength";
+        if (v.includes("stamina") || v.includes("sport")) return "sports_stamina";
+        if (v.includes("endurance")) return "endurance";
+        if (v.includes("flex")) return "flexibility";
+        return "general_fitness";
+      })();
+      const normLevel = (() => {
+        const v = String(parsed.level || fitnessLevel || "").toLowerCase();
+        if (v.includes("beginner")) return "beginner";
+        if (v.includes("advanced")) return "advanced";
+        return "intermediate";
+      })();
+
       onGenerated({
         name: parsed.name || "My Fitness Schedule",
-        category: parsed.category || "general_fitness",
-        goal: parsed.goal || "general_fitness",
-        level: parsed.level || "intermediate",
+        category: normCat,
+        goal: normGoal,
+        level: normLevel,
         weeklySchedule: fixedSchedule,
       });
     } catch (err) {
